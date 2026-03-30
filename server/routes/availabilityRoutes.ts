@@ -40,13 +40,9 @@ router.get('/slots', async (req: AuthRequest, res: Response) => {
   const dayOfWeek = new Date(date as string).getDay();
   const availSlots = await db.all('SELECT start_time, end_time FROM availability WHERE user_id = ? AND day_of_week = ? ORDER BY start_time', service.provider_id, dayOfWeek);
 
-  // Get already booked slots for that date
-  const booked = await db.all(SELECT b.start_time, b.end_time FROM bookings b
-    JOIN service_requests sr ON b.request_id = sr.id
-    JOIN services s ON sr.service_id = s.id
-    WHERE s.provider_id = ? AND b.booked_date = ? AND sr.status NOT IN ('cancelled'), service.provider_id, date);
+  const bookedQuery = 'SELECT b.start_time, b.end_time FROM bookings b JOIN service_requests sr ON b.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ? AND b.booked_date = ? AND sr.status != ?';
+  const booked = await db.all(bookedQuery, service.provider_id, date, 'cancelled');
 
-  // Filter out booked times
   const available = availSlots.filter((slot: any) => {
     return !booked.some((b: any) => b.start_time === slot.start_time);
   });
