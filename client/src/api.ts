@@ -57,4 +57,12 @@ export const api = {
   getAvailableSlots: (serviceId: number, date: string) => request(`/availability/slots?service_id=${serviceId}&date=${date}`),
   bookSlot: (body: any) => request('/availability/book', { method: 'POST', body: JSON.stringify(body) }),
   getBooking: (requestId: number) => request(`/availability/booking/${requestId}`),
+
+  // Trust & Safety
+  getTrustScore: (userId: number) => request(`/trust/score/${userId}`),
+  reportUser: (body: any) => request('/trust/report', { method: 'POST', body: JSON.stringify(body) }),
+  blockUser: (blockedId: number) => request('/trust/block', { method: 'POST', body: JSON.stringify({ blocked_id: blockedId }) }),
+  unblockUser: (userId: number) => request(`/trust/block/${userId}`, { method: 'DELETE' }),
+  getBlockedUsers: () => request('/trust/blocked'),
+  isBlocked: (userId: number) => request(`/trust/blocked/${userId}`),
 };
