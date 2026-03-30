@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AvailabilityPage from './pages/AvailabilityPage';
+import InstallPrompt from './components/InstallPrompt';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -159,6 +160,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <InstallPrompt />
     </div>
   );
 }

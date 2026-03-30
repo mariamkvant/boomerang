@@ -1,0 +1,17 @@
+{
+  "name": "Boomerang",
+  "short_name": "Boomerang",
+  "description": "Give your skills, earn points, get help back. No money needed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-192.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "categories": ["lifestyle", "social"],
+  "lang": "en"
+}
