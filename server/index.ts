@@ -5,6 +5,7 @@ import { initDatabase } from './database';
 import userRoutes from './routes/userRoutes';
 import serviceRoutes from './routes/serviceRoutes';
 import requestRoutes from './routes/requestRoutes';
+import availabilityRoutes from './routes/availabilityRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

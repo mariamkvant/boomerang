@@ -10,18 +10,43 @@ export default function ServiceDetailPage() {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
   const [requesting, setRequesting] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<any>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); }, [id]);
+
+  // Load available slots when date changes
+  useEffect(() => {
+    if (selectedDate && service) {
+      setLoadingSlots(true);
+      setSelectedSlot(null);
+      api.getAvailableSlots(Number(id), selectedDate)
+        .then(s => { setAvailableSlots(s); setLoadingSlots(false); })
+        .catch(() => { setAvailableSlots([]); setLoadingSlots(false); });
+    }
+  }, [selectedDate, service]);
 
   const handleRequest = async () => {
     setRequesting(true);
     try {
-      await api.createRequest({ service_id: Number(id), message });
+      const res = await api.createRequest({ service_id: Number(id), message });
+      // Book the slot if one was selected
+      if (selectedSlot && selectedDate) {
+        await api.bookSlot({ request_id: res.id, booked_date: selectedDate, start_time: selectedSlot.start_time, end_time: selectedSlot.end_time });
+      }
       setStatus('success');
       setMessage('');
     } catch (err: any) { setStatus(err.message); }
     setRequesting(false);
   };
+
+  // Generate next 14 days for date picker
+  const dateOptions = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    return d.toISOString().split('T')[0];
+  });
 
   if (!service) return (
     <div className="text-center py-20">
@@ -93,6 +118,49 @@ export default function ServiceDetailPage() {
         {user && !isOwner && status !== 'success' && (
           <div className="border-t border-gray-100 pt-6 mt-6">
             <h3 className="font-semibold mb-3">Request this service</h3>
+
+            {/* Date picker */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">📅 Pick a date</label>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {dateOptions.map(d => {
+                  const date = new Date(d + 'T12:00:00');
+                  const dayName = date.toLocaleDateString('en', { weekday: 'short' });
+                  const dayNum = date.getDate();
+                  const monthName = date.toLocaleDateString('en', { month: 'short' });
+                  return (
+                    <button key={d} type="button" onClick={() => setSelectedDate(d)}
+                      className={`flex-shrink-0 w-16 py-2 rounded-xl text-center text-xs font-medium border transition-all ${selectedDate === d ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
+                      <div>{dayName}</div>
+                      <div className="text-lg font-bold">{dayNum}</div>
+                      <div>{monthName}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Time slots */}
+            {selectedDate && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">⏰ Available times</label>
+                {loadingSlots ? (
+                  <p className="text-xs text-gray-400">Loading slots...</p>
+                ) : availableSlots.length === 0 ? (
+                  <p className="text-xs text-gray-400">No available slots on this date. Try another day.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {availableSlots.map((s: any, i: number) => (
+                      <button key={i} type="button" onClick={() => setSelectedSlot(s)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${selectedSlot?.start_time === s.start_time ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
+                        {s.start_time} – {s.end_time}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Add a message to the provider (optional)..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" aria-label="Request message" />
             <button onClick={handleRequest} disabled={requesting}

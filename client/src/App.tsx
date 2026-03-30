@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import AvailabilityPage from './pages/AvailabilityPage';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -38,6 +39,7 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-1">
           {navLink('/browse', 'Browse')}
           {user && navLink('/services/new', 'Offer Service')}
+          {user && navLink('/availability', 'My Schedule')}
           {user && navLink('/dashboard', 'Dashboard')}
         </div>
 
@@ -85,6 +87,7 @@ function Navbar() {
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
           {navLink('/browse', 'Browse Services')}
           {user && navLink('/services/new', 'Offer a Service')}
+          {user && navLink('/availability', 'My Schedule')}
           {user && navLink('/dashboard', 'Dashboard')}
           {!user && navLink('/login', 'Log in')}
           {!user && navLink('/register', 'Sign up free')}
@@ -151,6 +154,7 @@ export default function App() {
           <Route path="/services/new" element={user ? <CreateServicePage /> : <Navigate to="/login" />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
+          <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>
