@@ -119,6 +119,7 @@ export default function BrowsePage() {
                   <span className="text-xs text-gray-400 flex items-center gap-1">
                     <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
                     {s.provider_name}
+                    {s.provider_city && <span className="text-gray-300">· {s.provider_city}</span>}
                   </span>
                 </div>
               </Link>

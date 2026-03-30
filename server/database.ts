@@ -9,7 +9,7 @@ export async function initDatabase() {
   const client = await pool.connect();
   try {
     const ddl = [
-      `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, bio TEXT DEFAULT '', points INTEGER DEFAULT 50, email_verified BOOLEAN DEFAULT false, verify_code TEXT, verify_expires TIMESTAMPTZ, reset_code TEXT, reset_expires TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, bio TEXT DEFAULT '', points INTEGER DEFAULT 50, email_verified BOOLEAN DEFAULT false, verify_code TEXT, verify_expires TIMESTAMPTZ, reset_code TEXT, reset_expires TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW(), city TEXT, latitude REAL, longitude REAL)`,
       `CREATE TABLE IF NOT EXISTS categories (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, icon TEXT DEFAULT '', multiplier REAL DEFAULT 1.0, base_rate INTEGER DEFAULT 10)`,
       `CREATE TABLE IF NOT EXISTS subcategories (id SERIAL PRIMARY KEY, category_id INTEGER NOT NULL REFERENCES categories(id), name TEXT NOT NULL, description TEXT DEFAULT '', UNIQUE(category_id, name))`,
       `CREATE TABLE IF NOT EXISTS services (id SERIAL PRIMARY KEY, provider_id INTEGER NOT NULL REFERENCES users(id), category_id INTEGER NOT NULL REFERENCES categories(id), subcategory_id INTEGER REFERENCES subcategories(id), title TEXT NOT NULL, description TEXT NOT NULL, points_cost INTEGER NOT NULL DEFAULT 10, duration_minutes INTEGER DEFAULT 60, is_active INTEGER DEFAULT 1, created_at TIMESTAMPTZ DEFAULT NOW())`,
@@ -70,6 +70,13 @@ export async function initDatabase() {
         await client.query('INSERT INTO subcategories (category_id, name, description) VALUES ($1, $2, $3) ON CONFLICT (category_id, name) DO NOTHING', [catRes.rows[0].id, subName, desc]);
       }
     }
+        // Migrations for existing tables
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT false'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score INTEGER DEFAULT 0'); } catch(e) {}
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

@@ -13,6 +13,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AvailabilityPage from './pages/AvailabilityPage';
 import InstallPrompt from './components/InstallPrompt';
+import SettingsPage from './pages/SettingsPage';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -62,6 +63,7 @@ function Navbar() {
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                   <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Dashboard</Link>
+                  <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Settings</Link>
                   <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
                 </div>
               </div>
@@ -156,6 +158,7 @@ export default function App() {
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
           <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />
+          <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>

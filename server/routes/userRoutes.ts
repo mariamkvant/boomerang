@@ -90,12 +90,12 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   const token = generateToken(user.id);
-  res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified } });
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude } });
 });
 
 // Get current user profile
 router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, email, bio, points, email_verified, created_at FROM users WHERE id = ?', req.userId);
+  const user = await db.get('SELECT id, username, email, bio, points, email_verified, city, latitude, longitude, created_at FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.userId);
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });
@@ -103,8 +103,8 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
 
 // Update profile
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { bio, username } = req.body;
-  await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username) WHERE id = ?', bio, username, req.userId);
+  const { bio, username, city, latitude, longitude } = req.body;
+  await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude) WHERE id = ?', bio, username, city, latitude, longitude, req.userId);
   res.json({ message: 'Profile updated' });
 });
 
