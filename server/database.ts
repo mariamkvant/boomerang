@@ -1,8 +1,8 @@
 import { Pool } from 'pg';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const dbUrl = process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL;
+if (!dbUrl) { console.error('WARNING: No DATABASE_URL found. Env keys:', Object.keys(process.env).join(',')); }
+const pool = new Pool(dbUrl ? { connectionString: dbUrl } : { host: process.env.PGHOST, port: parseInt(process.env.PGPORT || '5432'), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE });
 
 export async function initDatabase() {
   const client = await pool.connect();
