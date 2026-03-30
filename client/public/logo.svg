@@ -1,16 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
-  <!-- Circular arrow trail -->
-  <path d="M60 15 A45 45 0 1 1 25 85" stroke="#14b8a6" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 6" opacity="0.35"/>
-  <polygon points="22,78 18,90 30,86" fill="#14b8a6" opacity="0.5"/>
-  <!-- Boomerang shape -->
-  <path d="M62 28 C54 36, 38 52, 34 68 C32 76, 36 82, 42 78 C48 74, 54 62, 60 54 C66 62, 72 74, 78 78 C84 82, 88 76, 86 68 C82 52, 66 36, 62 28Z" fill="url(#grad)" stroke="#0f766e" stroke-width="2"/>
+  <!-- Clean minimal boomerang: a single curved V shape with a subtle return arc -->
+  <!-- The boomerang itself — smooth, thick, elegant -->
+  <path d="M60 22 C52 34, 34 56, 32 72 C31 80, 36 84, 42 80 C50 74, 56 60, 60 50 C64 60, 70 74, 78 80 C84 84, 89 80, 88 72 C86 56, 68 34, 60 22Z" 
+    fill="url(#g)" />
+  <!-- Return arc — the "comes back" element, subtle and elegant -->
+  <path d="M38 86 C28 78, 22 62, 24 48 C26 36, 32 28, 38 24" 
+    stroke="url(#g2)" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <!-- Small arrow tip on the arc -->
+  <path d="M36 28 L38 22 L42 27" stroke="url(#g2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.5"/>
   <defs>
-    <linearGradient id="grad" x1="34" y1="28" x2="86" y2="82">
+    <linearGradient id="g" x1="32" y1="22" x2="88" y2="84">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="22" y1="86" x2="42" y2="22">
       <stop offset="0%" stop-color="#2dd4bf"/>
       <stop offset="100%" stop-color="#0d9488"/>
     </linearGradient>
   </defs>
-  <circle cx="28" cy="42" r="3" fill="#14b8a6" opacity="0.6"/>
-  <circle cx="92" cy="42" r="3" fill="#14b8a6" opacity="0.6"/>
-  <circle cx="60" cy="95" r="3" fill="#14b8a6" opacity="0.6"/>
 </svg>
