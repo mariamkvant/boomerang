@@ -114,7 +114,7 @@ function Footer() {
               <img src="/logo.svg" alt="" className="w-7 h-7" />
               <span className="text-lg font-bold text-gray-900">Boomerang</span>
             </div>
-            <p className="text-sm text-gray-500 max-w-xs">Give your skills, earn points, get help back. What goes around, comes around.</p>
+            <p className="text-sm text-gray-500 max-w-xs">What you give, comes back. Share your skills, earn points, get help — no money needed.</p>
           </div>
           <div className="flex gap-12 text-sm">
             <div>

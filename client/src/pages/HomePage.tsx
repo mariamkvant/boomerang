@@ -19,8 +19,9 @@ export default function HomePage() {
       <section className="text-center py-16 md:py-24">
         <img src="/logo.svg" alt="Boomerang" className="w-20 h-20 mx-auto mb-8 animate-slide-up" />
         <h1 className="text-4xl md:text-6xl font-extrabold mb-5 leading-tight">
-          Give, and It <span className="bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">Comes Back</span>
+          What You Give, <span className="bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">Comes Back</span>
         </h1>
+        <p className="text-sm text-gray-400 italic mb-6">— Shota Rustaveli</p>
         <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
           Share your talents with your community and earn points. Use those points to get help when you need it. No money involved — just people helping people.
         </p>
