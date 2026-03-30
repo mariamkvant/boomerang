@@ -1,4 +1,4 @@
-﻿import { Pool } from 'pg';
+import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -8,107 +8,61 @@ const pool = new Pool({
 export async function initDatabase() {
   const client = await pool.connect();
   try {
-    await client.query(CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL,
-      email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, bio TEXT DEFAULT '',
-      points INTEGER DEFAULT 50, email_verified BOOLEAN DEFAULT false,
-      verify_code TEXT, verify_expires TIMESTAMPTZ,
-      reset_code TEXT, reset_expires TIMESTAMPTZ,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS categories (
-      id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL,
-      icon TEXT DEFAULT '', multiplier REAL DEFAULT 1.0, base_rate INTEGER DEFAULT 10
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS subcategories (
-      id SERIAL PRIMARY KEY, category_id INTEGER NOT NULL REFERENCES categories(id),
-      name TEXT NOT NULL, description TEXT DEFAULT '', UNIQUE(category_id, name)
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS services (
-      id SERIAL PRIMARY KEY, provider_id INTEGER NOT NULL REFERENCES users(id),
-      category_id INTEGER NOT NULL REFERENCES categories(id),
-      subcategory_id INTEGER REFERENCES subcategories(id),
-      title TEXT NOT NULL, description TEXT NOT NULL,
-      points_cost INTEGER NOT NULL DEFAULT 10, duration_minutes INTEGER DEFAULT 60,
-      is_active INTEGER DEFAULT 1, created_at TIMESTAMPTZ DEFAULT NOW()
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS service_requests (
-      id SERIAL PRIMARY KEY, service_id INTEGER NOT NULL REFERENCES services(id),
-      requester_id INTEGER NOT NULL REFERENCES users(id),
-      status TEXT DEFAULT 'pending',
-      message TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW(), completed_at TIMESTAMPTZ
-    ));
-    await client.query(DO } BEGIN
-      ALTER TABLE service_requests DROP CONSTRAINT IF EXISTS service_requests_status_check;
-      ALTER TABLE service_requests ADD CONSTRAINT service_requests_status_check
-        CHECK(status IN ('pending','accepted','delivered','completed','cancelled','disputed'));
-      EXCEPTION WHEN OTHERS THEN NULL; END });
-    await client.query(CREATE TABLE IF NOT EXISTS reviews (
-      id SERIAL PRIMARY KEY, request_id INTEGER UNIQUE NOT NULL REFERENCES service_requests(id),
-      reviewer_id INTEGER NOT NULL REFERENCES users(id),
-      rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
-      comment TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW()
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS messages (
-      id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id),
-      sender_id INTEGER NOT NULL REFERENCES users(id),
-      body TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW()
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS availability (
-      id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
-      day_of_week INTEGER NOT NULL CHECK(day_of_week >= 0 AND day_of_week <= 6),
-      start_time TEXT NOT NULL, end_time TEXT NOT NULL,
-      UNIQUE(user_id, day_of_week, start_time)
-    ));
-    await client.query(CREATE TABLE IF NOT EXISTS bookings (
-      id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id),
-      booked_date DATE NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    ));
-
-    // Seed categories
-    const cats = [
-      ['Cleaning', '\u{1F9F9}', 1.0], ['Gardening', '\u{1F331}', 1.0],
-      ['Pet Care', '\u{1F415}', 1.2], ['Transportation', '\u{1F697}', 1.2],
-      ['Sports & Fitness', '\u{1F3F8}', 1.3], ['Cooking', '\u{1F373}', 1.3],
-      ['Tutoring', '\u{1F4DA}', 1.5], ['Languages', '\u{1F5E3}\uFE0F', 1.5], ['Music', '\u{1F3B8}', 1.5],
-      ['Tech Help', '\u{1F4BB}', 1.8], ['Home Repair', '\u{1F527}', 2.0], ['Other', '\u2728', 1.0],
+    const ddl = [
+      `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, bio TEXT DEFAULT '', points INTEGER DEFAULT 50, email_verified BOOLEAN DEFAULT false, verify_code TEXT, verify_expires TIMESTAMPTZ, reset_code TEXT, reset_expires TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS categories (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, icon TEXT DEFAULT '', multiplier REAL DEFAULT 1.0, base_rate INTEGER DEFAULT 10)`,
+      `CREATE TABLE IF NOT EXISTS subcategories (id SERIAL PRIMARY KEY, category_id INTEGER NOT NULL REFERENCES categories(id), name TEXT NOT NULL, description TEXT DEFAULT '', UNIQUE(category_id, name))`,
+      `CREATE TABLE IF NOT EXISTS services (id SERIAL PRIMARY KEY, provider_id INTEGER NOT NULL REFERENCES users(id), category_id INTEGER NOT NULL REFERENCES categories(id), subcategory_id INTEGER REFERENCES subcategories(id), title TEXT NOT NULL, description TEXT NOT NULL, points_cost INTEGER NOT NULL DEFAULT 10, duration_minutes INTEGER DEFAULT 60, is_active INTEGER DEFAULT 1, created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS service_requests (id SERIAL PRIMARY KEY, service_id INTEGER NOT NULL REFERENCES services(id), requester_id INTEGER NOT NULL REFERENCES users(id), status TEXT DEFAULT 'pending', message TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW(), completed_at TIMESTAMPTZ)`,
+      `CREATE TABLE IF NOT EXISTS reviews (id SERIAL PRIMARY KEY, request_id INTEGER UNIQUE NOT NULL REFERENCES service_requests(id), reviewer_id INTEGER NOT NULL REFERENCES users(id), rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), comment TEXT DEFAULT '', created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id), sender_id INTEGER NOT NULL REFERENCES users(id), body TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS availability (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), day_of_week INTEGER NOT NULL CHECK(day_of_week >= 0 AND day_of_week <= 6), start_time TEXT NOT NULL, end_time TEXT NOT NULL, UNIQUE(user_id, day_of_week, start_time))`,
+      `CREATE TABLE IF NOT EXISTS bookings (id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id), booked_date DATE NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`,
+    ];
+    for (const sql of ddl) { await client.query(sql); }
+    try { await client.query(`ALTER TABLE service_requests DROP CONSTRAINT IF EXISTS service_requests_status_check`); } catch(e) {}
+    try { await client.query(`ALTER TABLE service_requests ADD CONSTRAINT service_requests_status_check CHECK(status IN ('pending','accepted','delivered','completed','cancelled','disputed'))`); } catch(e) {}
+    const cats: [string, string, number][] = [
+      ['Cleaning', '\uD83E\uDDF9', 1.0], ['Gardening', '\uD83C\uDF31', 1.0],
+      ['Pet Care', '\uD83D\uDC15', 1.2], ['Transportation', '\uD83D\uDE97', 1.2],
+      ['Sports & Fitness', '\uD83C\uDFF8', 1.3], ['Cooking', '\uD83C\uDF73', 1.3],
+      ['Tutoring', '\uD83D\uDCDA', 1.5], ['Languages', '\uD83D\uDDE3\uFE0F', 1.5], ['Music', '\uD83C\uDFB8', 1.5],
+      ['Tech Help', '\uD83D\uDCBB', 1.8], ['Home Repair', '\uD83D\uDD27', 2.0], ['Other', '\u2728', 1.0],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
     }
 
-    // Seed subcategories
     const subs: [string, string, string][] = [
-      ['Cleaning', 'House Cleaning', 'General house cleaning'], ['Cleaning', 'Deep Cleaning', 'Thorough cleaning'],
-      ['Cleaning', 'Laundry & Ironing', 'Washing and ironing'], ['Cleaning', 'Window Cleaning', 'Window washing'],
-      ['Gardening', 'Lawn Mowing', 'Mowing lawns'], ['Gardening', 'Planting & Weeding', 'Planting and weeding'],
-      ['Gardening', 'Tree & Hedge Trimming', 'Pruning'], ['Gardening', 'Garden Design', 'Garden layouts'],
-      ['Pet Care', 'Dog Walking', 'Walking dogs'], ['Pet Care', 'Pet Sitting', 'Watching pets'],
-      ['Pet Care', 'Pet Grooming', 'Bathing and grooming'], ['Pet Care', 'Pet Training', 'Obedience training'],
-      ['Transportation', 'Rides & Errands', 'Driving or pickups'], ['Transportation', 'Airport Pickup', 'Airport transfers'],
-      ['Transportation', 'Moving Help', 'Moving furniture'],
-      ['Sports & Fitness', 'Personal Training', 'Fitness coaching'], ['Sports & Fitness', 'Yoga & Meditation', 'Yoga sessions'],
-      ['Sports & Fitness', 'Padel / Tennis Partner', 'Racket sports partner'], ['Sports & Fitness', 'Running Buddy', 'Running companion'],
-      ['Sports & Fitness', 'Swimming Coaching', 'Swimming lessons'],
-      ['Cooking', 'Meal Prep', 'Preparing meals'], ['Cooking', 'Cooking Lessons', 'Teaching cooking'],
-      ['Cooking', 'Baking', 'Baking goods'], ['Cooking', 'Special Diet Cooking', 'Allergy-friendly meals'],
-      ['Tutoring', 'Math & Science', 'STEM tutoring'], ['Tutoring', 'Writing & Literature', 'Writing help'],
-      ['Tutoring', 'Test Prep', 'Exam preparation'], ['Tutoring', 'Homework Help', 'Homework assistance'],
-      ['Languages', 'English', 'English practice'], ['Languages', 'Spanish', 'Spanish lessons'],
-      ['Languages', 'French', 'French lessons'], ['Languages', 'German', 'German lessons'],
-      ['Languages', 'Other Languages', 'Other language tutoring'],
-      ['Music', 'Guitar Lessons', 'Guitar instruction'], ['Music', 'Piano / Keyboard', 'Piano lessons'],
-      ['Music', 'Singing / Vocals', 'Vocal coaching'], ['Music', 'Drums & Percussion', 'Drum instruction'],
-      ['Music', 'Music Theory', 'Music theory'],
-      ['Tech Help', 'Computer Setup', 'Computer setup'], ['Tech Help', 'Phone & Tablet Help', 'Mobile device help'],
-      ['Tech Help', 'Website Help', 'Website creation'], ['Tech Help', 'Software Training', 'Software training'],
-      ['Tech Help', 'Smart Home Setup', 'Smart home devices'],
-      ['Home Repair', 'Plumbing', 'Basic plumbing'], ['Home Repair', 'Electrical', 'Basic electrical'],
-      ['Home Repair', 'Painting', 'Painting'], ['Home Repair', 'Furniture Assembly', 'Flat-pack assembly'],
-      ['Home Repair', 'General Handyman', 'Odd jobs'],
-      ['Other', 'Photography', 'Photo services'], ['Other', 'Event Help', 'Event organization'],
-      ['Other', 'Administrative', 'Paperwork help'], ['Other', 'Other', 'Anything else'],
+      ['Cleaning','House Cleaning','General house cleaning'],['Cleaning','Deep Cleaning','Thorough cleaning'],
+      ['Cleaning','Laundry & Ironing','Washing and ironing'],['Cleaning','Window Cleaning','Window washing'],
+      ['Gardening','Lawn Mowing','Mowing lawns'],['Gardening','Planting & Weeding','Planting and weeding'],
+      ['Gardening','Tree & Hedge Trimming','Pruning'],['Gardening','Garden Design','Garden layouts'],
+      ['Pet Care','Dog Walking','Walking dogs'],['Pet Care','Pet Sitting','Watching pets'],
+      ['Pet Care','Pet Grooming','Bathing and grooming'],['Pet Care','Pet Training','Obedience training'],
+      ['Transportation','Rides & Errands','Driving or pickups'],['Transportation','Airport Pickup','Airport transfers'],
+      ['Transportation','Moving Help','Moving furniture'],
+      ['Sports & Fitness','Personal Training','Fitness coaching'],['Sports & Fitness','Yoga & Meditation','Yoga sessions'],
+      ['Sports & Fitness','Padel / Tennis Partner','Racket sports partner'],['Sports & Fitness','Running Buddy','Running companion'],
+      ['Sports & Fitness','Swimming Coaching','Swimming lessons'],
+      ['Cooking','Meal Prep','Preparing meals'],['Cooking','Cooking Lessons','Teaching cooking'],
+      ['Cooking','Baking','Baking goods'],['Cooking','Special Diet Cooking','Allergy-friendly meals'],
+      ['Tutoring','Math & Science','STEM tutoring'],['Tutoring','Writing & Literature','Writing help'],
+      ['Tutoring','Test Prep','Exam preparation'],['Tutoring','Homework Help','Homework assistance'],
+      ['Languages','English','English practice'],['Languages','Spanish','Spanish lessons'],
+      ['Languages','French','French lessons'],['Languages','German','German lessons'],
+      ['Languages','Other Languages','Other language tutoring'],
+      ['Music','Guitar Lessons','Guitar instruction'],['Music','Piano / Keyboard','Piano lessons'],
+      ['Music','Singing / Vocals','Vocal coaching'],['Music','Drums & Percussion','Drum instruction'],
+      ['Music','Music Theory','Music theory'],
+      ['Tech Help','Computer Setup','Computer setup'],['Tech Help','Phone & Tablet Help','Mobile device help'],
+      ['Tech Help','Website Help','Website creation'],['Tech Help','Software Training','Software training'],
+      ['Tech Help','Smart Home Setup','Smart home devices'],
+      ['Home Repair','Plumbing','Basic plumbing'],['Home Repair','Electrical','Basic electrical'],
+      ['Home Repair','Painting','Painting'],['Home Repair','Furniture Assembly','Flat-pack assembly'],
+      ['Home Repair','General Handyman','Odd jobs'],
+      ['Other','Photography','Photo services'],['Other','Event Help','Event organization'],
+      ['Other','Administrative','Paperwork help'],['Other','Other','Anything else'],
     ];
     for (const [catName, subName, desc] of subs) {
       const catRes = await client.query('SELECT id FROM categories WHERE name = $1', [catName]);
@@ -118,6 +72,11 @@ export async function initDatabase() {
     }
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
+}
+
+function convertPlaceholders(sql: string): string {
+  let i = 0;
+  return sql.replace(/\?/g, () => '$' + String(++i));
 }
 
 export const dbHelper = {
@@ -148,10 +107,4 @@ export const dbHelper = {
   }
 };
 
-function convertPlaceholders(sql: string): string {
-  let i = 0;
-  return sql.replace(/\?/g, () => $+${++i});
-}
-
 export default dbHelper;
-
