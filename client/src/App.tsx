@@ -34,7 +34,7 @@ function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
           <img src="/logo.svg" alt="" className="w-8 h-8 group-hover:scale-110 transition-transform" />
-          <span className="text-xl font-bold font-logo bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent tracking-tight">Boomerang</span>
+          <span className="text-2xl font-light font-logo bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent tracking-wide">boomerang</span>
         </Link>
 
         {/* Desktop nav */}
@@ -112,7 +112,7 @@ function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <img src="/logo.svg" alt="" className="w-7 h-7" />
-              <span className="text-lg font-bold font-logo text-gray-900">Boomerang</span>
+              <span className="text-lg font-light font-logo text-gray-900 tracking-wide">boomerang</span>
             </div>
             <p className="text-sm text-gray-500 max-w-xs">What you give, comes back. Share your skills, earn points, get help — no money needed.</p>
           </div>
