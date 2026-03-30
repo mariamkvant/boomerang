@@ -26,7 +26,6 @@ RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/client/dist ./client/dist
-COPY --from=builder /app/server/sql.js.d.ts ./server/
 
 EXPOSE 3001
 ENV PORT=3001

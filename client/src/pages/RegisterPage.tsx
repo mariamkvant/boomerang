@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setLoading(true);
-    try { await register(username, email, password); navigate('/dashboard'); }
+    try { await register(username, email, password); navigate('/verify-email'); }
     catch (err: any) { setError(err.message); setLoading(false); }
   };
 

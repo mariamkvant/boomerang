@@ -14,6 +14,10 @@ export const api = {
   // Auth
   register: (body: any) => request('/users/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body: any) => request('/users/login', { method: 'POST', body: JSON.stringify(body) }),
+  verifyEmail: (code: string) => request('/users/verify-email', { method: 'POST', body: JSON.stringify({ code }) }),
+  resendVerify: () => request('/users/resend-verify', { method: 'POST' }),
+  forgotPassword: (email: string) => request('/users/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (body: any) => request('/users/reset-password', { method: 'POST', body: JSON.stringify(body) }),
   getMe: () => request('/users/me'),
   updateProfile: (body: any) => request('/users/me', { method: 'PUT', body: JSON.stringify(body) }),
   getUser: (id: number) => request(`/users/${id}`),

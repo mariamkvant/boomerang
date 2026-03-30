@@ -12,19 +12,15 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/requests', requestRoutes);
 
-// Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve frontend — resolve path whether running via ts-node or compiled JS
-// ts-node: __dirname = .../skillswap/server → ../client/dist works
-// compiled: __dirname = .../skillswap/dist/server → ../../client/dist works
+// Serve frontend
 const clientDist = path.resolve(__dirname, '..', 'client', 'dist');
 const clientDistAlt = path.resolve(__dirname, '..', '..', 'client', 'dist');
 const fs = require('fs');
@@ -34,7 +30,6 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(servePath, 'index.html'));
 });
 
-// Initialize database then start server
 initDatabase().then(() => {
   app.listen(PORT, () => {
     console.log(`Boomerang server running on port ${PORT}`);

@@ -9,6 +9,8 @@ import ServiceDetailPage from './pages/ServiceDetailPage';
 import CreateServicePage from './pages/CreateServicePage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -143,6 +145,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
+          <Route path="/verify-email" element={user ? <VerifyEmailPage /> : <Navigate to="/login" />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/services/new" element={user ? <CreateServicePage /> : <Navigate to="/login" />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
