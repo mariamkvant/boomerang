@@ -151,15 +151,15 @@ export default function DashboardPage() {
                 </div>
               </div>
               {/* Inline review form */}
-              {reviewForm?.id === r.id && (
+              {reviewForm?.id === r.id && reviewForm && (
                 <div className="mt-4 border-t border-gray-100 pt-4">
                   <div className="flex gap-1 mb-3">
                     {[1,2,3,4,5].map(n => (
                       <button key={n} onClick={() => setReviewForm(f => f ? {...f, rating: n} : f)}
-                        className={`text-2xl transition-transform hover:scale-110 ${n <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-200'}`} aria-label={`Rate ${n} stars`}>★</button>
+                        className={`text-2xl transition-transform hover:scale-110 ${n <= (reviewForm?.rating ?? 0) ? 'text-yellow-400' : 'text-gray-200'}`} aria-label={`Rate ${n} stars`}>★</button>
                     ))}
                   </div>
-                  <textarea value={reviewForm.comment} onChange={e => setReviewForm(f => f ? {...f, comment: e.target.value} : f)}
+                  <textarea value={reviewForm?.comment ?? ''} onChange={e => setReviewForm(f => f ? {...f, comment: e.target.value} : f)}
                     placeholder="Share your experience..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm h-20 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none mb-3" aria-label="Review comment" />
                   <div className="flex gap-2">
                     <button onClick={submitReview} className="text-sm bg-primary-500 text-white px-5 py-2 rounded-lg hover:bg-primary-600 font-medium">Submit Review</button>
