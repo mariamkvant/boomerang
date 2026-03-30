@@ -3,6 +3,46 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 
+function MessageThread({ requestId, userId }: { requestId: number; userId: number }) {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMsg, setNewMsg] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const loadMessages = () => { api.getMessages(requestId).then(setMessages).catch(() => {}); };
+  useEffect(() => { loadMessages(); const i = setInterval(loadMessages, 10000); return () => clearInterval(i); }, [requestId]);
+
+  const send = async () => {
+    if (!newMsg.trim()) return;
+    setSending(true);
+    try { await api.sendMessage(requestId, newMsg); setNewMsg(''); loadMessages(); }
+    catch (err: any) { alert(err.message); }
+    setSending(false);
+  };
+
+  return (
+    <div className="mt-4 border-t border-gray-100 pt-4">
+      <h4 className="text-xs font-semibold text-gray-500 mb-3">💬 Messages</h4>
+      <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
+        {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-2">No messages yet</p>}
+        {messages.map((m: any) => (
+          <div key={m.id} className={`flex ${m.sender_id === userId ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${m.sender_id === userId ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
+              <div className="text-[10px] opacity-70 mb-0.5">{m.sender_name}</div>
+              {m.body}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
+          placeholder="Type a message..." className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+        <button onClick={send} disabled={sending || !newMsg.trim()}
+          className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">Send</button>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, refreshUser } = useAuth();
   const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services'>('incoming');
@@ -10,6 +50,7 @@ export default function DashboardPage() {
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [myServices, setMyServices] = useState<any[]>([]);
   const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string } | null>(null);
+  const [expandedChat, setExpandedChat] = useState<number | null>(null);
 
   const load = async () => {
     try {
@@ -31,43 +72,38 @@ export default function DashboardPage() {
   };
 
   const badge = (s: string) => {
-    const m: Record<string, string> = { pending: 'bg-amber-50 text-amber-600 border-amber-200', accepted: 'bg-blue-50 text-blue-600 border-blue-200', completed: 'bg-green-50 text-green-600 border-green-200', cancelled: 'bg-gray-50 text-gray-400 border-gray-200' };
+    const m: Record<string, string> = {
+      pending: 'bg-amber-50 text-amber-600 border-amber-200',
+      accepted: 'bg-blue-50 text-blue-600 border-blue-200',
+      delivered: 'bg-purple-50 text-purple-600 border-purple-200',
+      completed: 'bg-green-50 text-green-600 border-green-200',
+      cancelled: 'bg-gray-50 text-gray-400 border-gray-200',
+      disputed: 'bg-red-50 text-red-600 border-red-200',
+    };
     return <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${m[s] || ''}`}>{s}</span>;
   };
 
   const tabs = [
-    { key: 'incoming' as const, label: 'Incoming', count: incoming.filter(r => r.status === 'pending').length },
-    { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => r.status !== 'completed' && r.status !== 'cancelled').length },
+    { key: 'incoming' as const, label: 'Incoming', count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
+    { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length },
     { key: 'services' as const, label: 'My Services', count: myServices.length },
   ];
 
   return (
     <div className="animate-fade-in">
-      {/* Header with stats */}
+      {/* Header */}
       <div className="bg-white rounded-2xl shadow-card p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              {user?.username.charAt(0).toUpperCase()}
-            </div>
+            <div className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl">{user?.username.charAt(0).toUpperCase()}</div>
             <div>
               <h2 className="text-xl font-bold">{user?.username}</h2>
-              <p className="text-sm text-gray-500">Member since {user ? new Date().toLocaleDateString() : ''}</p>
+              <p className="text-sm text-gray-500">Your dashboard</p>
             </div>
           </div>
           <div className="flex gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600">{user?.points}</div>
-              <div className="text-xs text-gray-500">Points</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-700">{myServices.length}</div>
-              <div className="text-xs text-gray-500">Services</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-gray-700">{outgoing.filter(r => r.status === 'completed').length}</div>
-              <div className="text-xs text-gray-500">Completed</div>
-            </div>
+            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">Points</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">Services</div></div>
           </div>
         </div>
       </div>
@@ -90,7 +126,6 @@ export default function DashboardPage() {
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
               <div className="text-4xl mb-3">📬</div>
               <p className="text-gray-500 text-sm">No incoming requests yet</p>
-              <p className="text-gray-400 text-xs mt-1">When someone requests your service, it'll show up here</p>
             </div>
           )}
           {incoming.map((r: any) => (
@@ -112,10 +147,26 @@ export default function DashboardPage() {
                     </>
                   )}
                   {r.status === 'accepted' && (
-                    <button onClick={() => handleAction(api.completeRequest, r.id)} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Mark Complete ✓</button>
+                    <button onClick={() => handleAction(api.deliverRequest, r.id)} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">Mark Delivered ✓</button>
+                  )}
+                  {r.status === 'delivered' && (
+                    <span className="text-xs text-purple-500 font-medium">Waiting for confirmation...</span>
+                  )}
+                  {r.status === 'disputed' && (
+                    <span className="text-xs text-red-500 font-medium">Disputed — resolve via messages</span>
                   )}
                 </div>
               </div>
+              {/* Chat toggle for accepted/delivered/disputed */}
+              {['accepted','delivered','completed','disputed'].includes(r.status) && (
+                <div>
+                  <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
+                    className="text-xs text-primary-600 mt-3 hover:underline">
+                    {expandedChat === r.id ? 'Hide messages ▲' : 'Messages ▼'}
+                  </button>
+                  {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -145,12 +196,28 @@ export default function DashboardPage() {
                   {r.status === 'pending' && (
                     <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
                   )}
+                  {r.status === 'delivered' && (
+                    <>
+                      <button onClick={() => handleAction(api.confirmRequest, r.id)} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
+                      <button onClick={() => handleAction(api.disputeRequest, r.id)} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
+                    </>
+                  )}
                   {r.status === 'completed' && !r.has_reviewed && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '' })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
                   )}
                 </div>
               </div>
-              {/* Inline review form */}
+              {/* Chat toggle */}
+              {['accepted','delivered','completed','disputed'].includes(r.status) && (
+                <div>
+                  <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
+                    className="text-xs text-primary-600 mt-3 hover:underline">
+                    {expandedChat === r.id ? 'Hide messages ▲' : 'Messages ▼'}
+                  </button>
+                  {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
+                </div>
+              )}
+              {/* Review form */}
               {reviewForm?.id === r.id && reviewForm && (
                 <div className="mt-4 border-t border-gray-100 pt-4">
                   <div className="flex gap-1 mb-3">
@@ -183,7 +250,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} pts · {s.duration_minutes} min</p>
+                  <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} pts</p>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-400">→</span>
               </div>

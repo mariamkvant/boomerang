@@ -31,21 +31,42 @@ router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'pending') return res.status(400).json({ error: 'Request is not pending' });
-  await db.run(UPDATE service_requests SET status = 'accepted' WHERE id = ?, req.params.id);
+  await db.run("UPDATE service_requests SET status = 'accepted' WHERE id = ?", req.params.id);
   res.json({ message: 'Request accepted' });
 });
 
-router.put('/:id/complete', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+// Provider marks service as delivered
+router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'accepted') return res.status(400).json({ error: 'Request must be accepted first' });
+  await db.run("UPDATE service_requests SET status = 'delivered' WHERE id = ?", req.params.id);
+  res.json({ message: 'Service marked as delivered. Waiting for requester confirmation.' });
+});
+
+// Requester confirms delivery -> triggers point transfer
+router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId) return res.status(403).json({ error: 'Only the requester can confirm' });
+  if (r.status !== 'delivered') return res.status(400).json({ error: 'Service must be marked as delivered first' });
   const requester = await db.get('SELECT points FROM users WHERE id = ?', r.requester_id);
-  if (requester.points < r.points_cost) return res.status(400).json({ error: 'Requester does not have enough points' });
+  if (requester.points < r.points_cost) return res.status(400).json({ error: 'Not enough points' });
   await db.run('UPDATE users SET points = points - ? WHERE id = ?', r.points_cost, r.requester_id);
-  await db.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, req.userId);
-  await db.run(UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?, req.params.id);
-  res.json({ message: 'Service completed, points transferred' });
+  await db.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, r.provider_id);
+  await db.run("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?", req.params.id);
+  res.json({ message: 'Delivery confirmed! Points transferred.' });
+});
+
+// Requester disputes delivery
+router.put('/:id/dispute', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId) return res.status(403).json({ error: 'Only the requester can dispute' });
+  if (r.status !== 'delivered') return res.status(400).json({ error: 'Can only dispute delivered services' });
+  await db.run("UPDATE service_requests SET status = 'disputed' WHERE id = ?", req.params.id);
+  res.json({ message: 'Dispute opened. Please use messages to resolve.' });
 });
 
 router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -53,8 +74,28 @@ router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
   if (r.status === 'completed') return res.status(400).json({ error: 'Cannot cancel a completed request' });
-  await db.run(UPDATE service_requests SET status = 'cancelled' WHERE id = ?, req.params.id);
+  await db.run("UPDATE service_requests SET status = 'cancelled' WHERE id = ?", req.params.id);
   res.json({ message: 'Request cancelled' });
+});
+
+// Messages for a request
+router.get('/:id/messages', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  const messages = await db.all('SELECT m.*, u.username as sender_name FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.request_id = ? ORDER BY m.created_at ASC', req.params.id);
+  res.json(messages);
+});
+
+router.post('/:id/messages', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { body } = req.body;
+  if (!body || !body.trim()) return res.status(400).json({ error: 'Message cannot be empty' });
+  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  if (r.status === 'pending' || r.status === 'cancelled') return res.status(400).json({ error: 'Cannot message on this request' });
+  const result = await db.run('INSERT INTO messages (request_id, sender_id, body) VALUES (?, ?, ?)', req.params.id, req.userId, body.trim());
+  res.status(201).json({ id: result.lastInsertRowid, message: 'Message sent' });
 });
 
 router.post('/:id/review', authMiddleware, async (req: AuthRequest, res: Response) => {

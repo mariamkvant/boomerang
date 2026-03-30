@@ -40,7 +40,13 @@ export const api = {
   getIncoming: () => request('/requests/incoming'),
   getOutgoing: () => request('/requests/outgoing'),
   acceptRequest: (id: number) => request(`/requests/${id}/accept`, { method: 'PUT' }),
-  completeRequest: (id: number) => request(`/requests/${id}/complete`, { method: 'PUT' }),
+  deliverRequest: (id: number) => request(`/requests/${id}/deliver`, { method: 'PUT' }),
+  confirmRequest: (id: number) => request(`/requests/${id}/confirm`, { method: 'PUT' }),
+  disputeRequest: (id: number) => request(`/requests/${id}/dispute`, { method: 'PUT' }),
   cancelRequest: (id: number) => request(`/requests/${id}/cancel`, { method: 'PUT' }),
   reviewRequest: (id: number, body: any) => request(`/requests/${id}/review`, { method: 'POST', body: JSON.stringify(body) }),
+
+  // Messages
+  getMessages: (requestId: number) => request(`/requests/${requestId}/messages`),
+  sendMessage: (requestId: number, body: string) => request(`/requests/${requestId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }),
 };
