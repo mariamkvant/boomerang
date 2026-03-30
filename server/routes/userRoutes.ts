@@ -110,7 +110,7 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
 
 // Get any user's public profile
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, bio, points, created_at FROM users WHERE id = ?', req.params.id);
+  const user = await db.get('SELECT id, username, bio, points, city, created_at FROM users WHERE id = ?', req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.params.id);
   const services = await db.all('SELECT s.*, c.name as category_name, c.icon as category_icon FROM services s JOIN categories c ON s.category_id = c.id WHERE s.provider_id = ? AND s.is_active = 1', req.params.id);

@@ -136,7 +136,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{r.service_title}</span>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From {r.requester_name} · {r.points_cost} pts</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} pts</p>
                   {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{r.service_title}</span>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From {r.provider_name} · {r.points_cost} pts</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} pts</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (

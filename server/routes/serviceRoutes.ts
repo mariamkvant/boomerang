@@ -34,7 +34,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   let query = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
-    u.username as provider_name, u.city as provider_city, sc.name as subcategory_name,
+    u.username as provider_name, u.city as provider_city, u.id as provider_user_id, sc.name as subcategory_name,
     (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
     FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.is_active = 1`;

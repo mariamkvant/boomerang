@@ -103,26 +103,27 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400 mb-4">{services.length} service{services.length !== 1 ? 's' : ''} found</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`}
-                className="bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover group animate-slide-up">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="bg-gray-50 text-xs px-2.5 py-1 rounded-full text-gray-500">{s.category_icon} {s.category_name}</span>
-                    {s.subcategory_name && <span className="bg-gray-50 text-xs px-2 py-0.5 rounded-full text-gray-400">{s.subcategory_name}</span>}
+              <div key={s.id} className="bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover animate-slide-up">
+                <Link to={`/services/${s.id}`} className="block group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="bg-gray-50 text-xs px-2.5 py-1 rounded-full text-gray-500">{s.category_icon} {s.category_name}</span>
+                      {s.subcategory_name && <span className="bg-gray-50 text-xs px-2 py-0.5 rounded-full text-gray-400">{s.subcategory_name}</span>}
+                    </div>
+                    {s.avg_rating && <span className="text-xs text-accent-500 font-medium">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
-                  {s.avg_rating && <span className="text-xs text-accent-500 font-medium">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
+                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
+                </Link>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                   <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">🪃 {s.points_cost} pts</span>
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600">
                     <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
                     {s.provider_name}
                     {s.provider_city && <span className="text-gray-300">· {s.provider_city}</span>}
-                  </span>
+                  </Link>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </>
