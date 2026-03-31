@@ -39,7 +39,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
+      <h2 className="text-2xl font-bold mb-6">My Profile</h2>
 
       <div className="bg-white p-6 rounded-2xl shadow-card space-y-5">
         <div>

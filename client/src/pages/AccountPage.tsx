@@ -1,0 +1,99 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../api';
+
+export default function AccountPage() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [pwSaved, setPwSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault(); setError('');
+    if (newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
+    try {
+      await api.updateProfile({ password: newPassword });
+      setPwSaved(true); setPassword(''); setNewPassword('');
+      setTimeout(() => setPwSaved(false), 3000);
+    } catch (err: any) { setError(err.message); }
+  };
+
+  const handleDeactivate = async () => {
+    try {
+      await api.updateProfile({ bio: '[DEACTIVATED]' });
+      logout(); navigate('/');
+    } catch (err: any) { setError(err.message); }
+  };
+
+  const handleDelete = async () => {
+    if (confirmText !== 'DELETE') return;
+    try {
+      await api.deleteAccount();
+      logout(); navigate('/');
+    } catch (err: any) { setError(err.message); }
+  };
+
+  return (
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+      <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
+
+      {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
+
+      <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
+        <h3 className="font-semibold mb-3">Account Info</h3>
+        <div className="text-sm text-gray-500 space-y-1">
+          <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
+          <p>Username: {user?.username}</p>
+          <p>Points: {user?.points}</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
+        <h3 className="font-semibold">Change Password</h3>
+        <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New password (min 6 characters)"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+        <div className="flex items-center gap-3">
+          <button type="submit" className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Update Password</button>
+          {pwSaved && <span className="text-sm text-green-600">✓ Updated</span>}
+        </div>
+      </form>
+
+      <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
+        <h3 className="font-semibold text-amber-600 mb-3">⚠️ Deactivate Account</h3>
+        <p className="text-sm text-gray-500 mb-3">Your profile will be hidden and services removed. You can reactivate by logging in again.</p>
+        {!showDeactivate ? (
+          <button onClick={() => setShowDeactivate(true)} className="text-sm text-amber-600 border border-amber-200 px-4 py-2 rounded-xl hover:bg-amber-50">Deactivate Account</button>
+        ) : (
+          <div className="flex gap-2">
+            <button onClick={handleDeactivate} className="text-sm bg-amber-500 text-white px-4 py-2 rounded-xl hover:bg-amber-600">Confirm Deactivate</button>
+            <button onClick={() => setShowDeactivate(false)} className="text-sm text-gray-500 px-3 py-2">Cancel</button>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-card border border-red-100">
+        <h3 className="font-semibold text-red-600 mb-3">🗑️ Delete Account</h3>
+        <p className="text-sm text-gray-500 mb-3">This permanently deletes your account, services, and all data. This cannot be undone.</p>
+        {!showDelete ? (
+          <button onClick={() => setShowDelete(true)} className="text-sm text-red-600 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50">Delete Account</button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-red-600">Type <span className="font-mono font-bold">DELETE</span> to confirm:</p>
+            <input value={confirmText} onChange={e => setConfirmText(e.target.value)} placeholder="Type DELETE"
+              className="w-full border border-red-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-red-500 outline-none" />
+            <div className="flex gap-2">
+              <button onClick={handleDelete} disabled={confirmText !== 'DELETE'} className="text-sm bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 disabled:opacity-50">Permanently Delete</button>
+              <button onClick={() => { setShowDelete(false); setConfirmText(''); }} className="text-sm text-gray-500 px-3 py-2">Cancel</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

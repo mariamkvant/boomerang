@@ -141,6 +141,23 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   res.json({ message: 'Profile updated' });
 });
 
+// Search people by skill/language/city
+router.get('/search/people', async (req: AuthRequest, res: Response) => {
+  const { q } = req.query;
+  if (!q) return res.json([]);
+  const users = await db.all(
+    "SELECT id, username, bio, city, languages_spoken, points FROM users WHERE username ILIKE ? OR city ILIKE ? OR languages_spoken ILIKE ? OR bio ILIKE ? LIMIT 20",
+    `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`
+  );
+  res.json(users);
+});
+
+// Delete account
+router.delete('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
+  await db.run('DELETE FROM users WHERE id = ?', req.userId);
+  res.json({ message: 'Account deleted' });
+});
+
 // Get any user's public profile
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, created_at FROM users WHERE id = ?', req.params.id);

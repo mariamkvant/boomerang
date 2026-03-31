@@ -18,6 +18,8 @@ import SettingsPage from './pages/SettingsPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import HelpWantedPage from './pages/HelpWantedPage';
+import AccountPage from './pages/AccountPage';
+import PeoplePage from './pages/PeoplePage';
 import { getLang, setLang, LANGUAGES } from './i18n';
 
 function Navbar() {
@@ -69,8 +71,8 @@ function Navbar() {
                     <p className="text-sm font-medium text-gray-900">{user.username}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
-                  <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Dashboard</Link>
-                  <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Settings</Link>
+                  <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">My Profile</Link>
+                  <Link to="/account" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
                   <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
                 </div>
               </div>
@@ -129,6 +131,8 @@ function Footer() {
               <h4 className="font-semibold text-gray-900 mb-3">Platform</h4>
               <div className="space-y-2">
                 <Link to="/browse" className="block text-gray-500 hover:text-primary-600">Browse Services</Link>
+                <Link to="/help-wanted" className="block text-gray-500 hover:text-primary-600">Help Needed</Link>
+                <Link to="/people" className="block text-gray-500 hover:text-primary-600">Find People</Link>
                 <Link to="/services/new" className="block text-gray-500 hover:text-primary-600">Offer a Service</Link>
               </div>
             </div>
@@ -178,6 +182,8 @@ export default function App() {
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
+          <Route path="/people" element={<PeoplePage />} />
+          <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>

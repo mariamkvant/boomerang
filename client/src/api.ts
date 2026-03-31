@@ -21,7 +21,9 @@ export const api = {
   resetPassword: (body: any) => request('/users/reset-password', { method: 'POST', body: JSON.stringify(body) }),
   getMe: () => request('/users/me'),
   updateProfile: (body: any) => request('/users/me', { method: 'PUT', body: JSON.stringify(body) }),
+  deleteAccount: () => request('/users/me', { method: 'DELETE' }),
   getUser: (id: number) => request(`/users/${id}`),
+  searchPeople: (q: string) => request(`/users/search/people?q=${encodeURIComponent(q)}`),
 
   // Categories & Subcategories
   getCategories: () => request('/services/categories'),
