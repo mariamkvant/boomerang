@@ -120,4 +120,5 @@ export const api = {
   getSuperhelperStatus: (id: number) => request(`/social/superhelper/${id}`),
   getSmartMatches: () => request('/social/matches'),
   getCommunityFeed: () => request('/social/feed'),
+  getDailyMatch: () => request('/social/daily-match'),
 };

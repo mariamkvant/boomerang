@@ -68,7 +68,23 @@ router.get('/matches', authMiddleware, async (req: AuthRequest, res: Response) =
   res.json(matches);
 });
 
-// Community feed — mix of shoutouts and stats
+// Daily match — one person near you who needs help with something you can do
+router.get('/daily-match', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const myCategories = await db.all('SELECT DISTINCT category_id FROM services WHERE provider_id = ? AND is_active = 1', req.userId);
+  if (myCategories.length === 0) return res.json(null);
+  const catIds = myCategories.map((c: any) => c.category_id);
+  const placeholders = catIds.map((_: any, i: number) => '$' + (i + 2)).join(',');
+  const match = await db.get(
+    `SELECT hw.*, c.name as category_name, c.icon as category_icon, u.username as requester_name, u.city as requester_city
+    FROM help_wanted hw JOIN categories c ON hw.category_id = c.id JOIN users u ON hw.requester_id = u.id
+    WHERE hw.status = 'open' AND hw.requester_id != $1 AND hw.category_id IN (${placeholders})
+    ORDER BY RANDOM() LIMIT 1`,
+    req.userId, ...catIds
+  );
+  res.json(match || null);
+});
+
+// Community feed
 router.get('/feed', async (_req, res: Response) => {
   const shoutouts = await db.all(`SELECT s.id, 'shoutout' as type, s.message, s.created_at,
     fu.username as from_username, tu.username as to_username

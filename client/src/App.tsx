@@ -22,6 +22,7 @@ import AccountPage from './pages/AccountPage';
 import PeoplePage from './pages/PeoplePage';
 import MessagesPage from './pages/MessagesPage';
 import CommunityPage from './pages/CommunityPage';
+import OnboardingPage from './pages/OnboardingPage';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 function Navbar() {
@@ -197,6 +198,7 @@ export default function App() {
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />

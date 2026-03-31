@@ -114,6 +114,7 @@ export default function DashboardPage() {
   const [expandedChat, setExpandedChat] = useState<number | null>(null);
   const [availSlots, setAvailSlots] = useState<any[]>([]);
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
+  const [dailyMatch, setDailyMatch] = useState<any>(null);
 
   const load = async () => {
     try {
@@ -121,6 +122,7 @@ export default function DashboardPage() {
       setIncoming(inc); setOutgoing(out); setMyServices(svc);
       api.getMyHelpWanted().then(setMyHelpWanted).catch(() => {});
       api.getMyHelping().then(setMyHelping).catch(() => {});
+      api.getDailyMatch().then(setDailyMatch).catch(() => {});
     } catch {}
   };
 
@@ -174,6 +176,53 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Profile completion + 7-day challenge */}
+      {user && (() => {
+        const steps = [
+          { done: !!user.bio, label: 'Add bio' },
+          { done: !!user.city, label: 'Set location' },
+          { done: user.email_verified, label: 'Verify email' },
+          { done: myServices.length > 0, label: 'Create a service' },
+          { done: outgoing.some(r => r.status === 'completed'), label: 'Complete first exchange' },
+        ];
+        const done = steps.filter(s => s.done).length;
+        const total = steps.length;
+        if (done >= total) return null;
+        return (
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-5 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-primary-700">🚀 Get Started Challenge</h3>
+              <span className="text-sm font-bold text-primary-600">{done}/{total}</span>
+            </div>
+            <div className="w-full bg-primary-200 rounded-full h-2 mb-3">
+              <div className="bg-primary-500 h-2 rounded-full transition-all" style={{ width: `${(done/total)*100}%` }} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {steps.map((s, i) => (
+                <span key={i} className={`text-xs px-2.5 py-1 rounded-full ${s.done ? 'bg-primary-500 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                  {s.done ? '✓' : '○'} {s.label}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to earn 25 bonus boomerangs! 🪃</p>
+          </div>
+        );
+      })()}
+
+      {/* Daily Match */}
+      {dailyMatch && (
+        <div className="bg-white border border-primary-100 rounded-2xl p-5 mb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-semibold text-sm text-primary-700 mb-1">🎯 Daily Match — Someone needs your skills!</h3>
+              <p className="font-medium text-sm">{dailyMatch.title}</p>
+              <p className="text-xs text-gray-500 mt-1">{dailyMatch.category_icon} {dailyMatch.category_name} · 🪃 {dailyMatch.points_budget} · {dailyMatch.requester_name}{dailyMatch.requester_city ? ` · ${dailyMatch.requester_city}` : ''}</p>
+            </div>
+            <Link to="/help-wanted" className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 shrink-0">Help →</Link>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
