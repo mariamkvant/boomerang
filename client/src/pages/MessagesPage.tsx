@@ -22,6 +22,11 @@ export default function MessagesPage() {
   useEffect(() => {
     if (activeUser) {
       api.getDMs(activeUser).then(setMessages).catch(() => {});
+      // Light polling fallback in case WebSocket isn't available
+      const i = setInterval(() => {
+        api.getDMs(activeUser).then(setMessages).catch(() => {});
+      }, 10000);
+      return () => clearInterval(i);
     }
   }, [activeUser]);
 
@@ -44,10 +49,21 @@ export default function MessagesPage() {
   const send = async () => {
     if (!newMsg.trim() || !activeUser) return;
     setSending(true);
+    const msgText = newMsg.trim();
+    // Optimistic update — show message immediately
+    const optimistic = { id: Date.now(), sender_id: user?.id, receiver_id: activeUser, body: msgText, created_at: new Date().toISOString() };
+    setMessages((prev) => [...prev, optimistic]);
+    setNewMsg('');
     try {
-      await api.sendDM(activeUser, newMsg);
-      setNewMsg('');
-    } catch (err: any) { alert(err.message); }
+      const result = await api.sendDM(activeUser, msgText);
+      // Replace optimistic message with real one
+      setMessages((prev) => prev.map((m) => m.id === optimistic.id ? { ...optimistic, id: result.id } : m));
+      api.getConversations().then(setConvos).catch(() => {});
+    } catch (err: any) {
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+      alert(err.message);
+    }
     setSending(false); setShowEmoji(false);
   };
 
