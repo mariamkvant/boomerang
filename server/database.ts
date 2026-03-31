@@ -31,6 +31,7 @@ export async function initDatabase() {
       ['Arts & Crafts', '\uD83C\uDFA8', 1.3], ['Health & Wellness', '\uD83E\uDDD8', 1.5],
       ['Business & Career', '\uD83D\uDCBC', 1.8], ['Design & Creative', '\uD83C\uDFAC', 1.5],
       ['Childcare & Education', '\uD83D\uDC76', 1.3], ['Auto & Mechanics', '\uD83D\uDE97', 2.0],
+      ['Listening & Support', '\uD83D\uDC9C', 1.0],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
@@ -93,6 +94,12 @@ export async function initDatabase() {
       ['Auto & Mechanics','Car Maintenance','Oil change, tire rotation, basic checks'],
       ['Auto & Mechanics','Bike Repair','Flat tires, chain, brakes, tune-ups'],
       ['Auto & Mechanics','Diagnostics','Check engine light, troubleshooting'],
+      ['Listening & Support','Good Listener','Just someone to talk to, no judgment'],
+      ['Listening & Support','Life Advice','Sharing life experience and perspective'],
+      ['Listening & Support','Deep Conversations','Philosophy, meaning, big questions'],
+      ['Listening & Support','Grief & Loss Support','Compassionate ear during tough times'],
+      ['Listening & Support','Loneliness & Connection','Company for those feeling isolated'],
+      ['Listening & Support','Career & Life Transitions','Talking through big decisions'],
     ];
     for (const [catName, subName, desc] of subs) {
       const catRes = await client.query('SELECT id FROM categories WHERE name = $1', [catName]);
