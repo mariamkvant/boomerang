@@ -47,24 +47,39 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   res.json(hw);
 });
 
-// Offer to help
+// Offer to help — creates a real service + service_request so it flows through the normal system
 router.put('/:id/offer', authMiddleware, async (req: AuthRequest, res: Response) => {
   const hw = await db.get('SELECT * FROM help_wanted WHERE id = ? AND status = ?', req.params.id, 'open');
   if (!hw) return res.status(404).json({ error: 'Not found or already taken' });
   if (hw.requester_id === req.userId) return res.status(400).json({ error: 'Cannot accept your own request' });
+
+  // Create a service by the helper for this specific help wanted
+  const svc = await db.run(
+    'INSERT INTO services (provider_id, category_id, title, description, points_cost, duration_minutes) VALUES (?, ?, ?, ?, ?, ?)',
+    req.userId, hw.category_id, '[Help] ' + hw.title, 'Helping with: ' + hw.description, hw.points_budget, 60
+  );
+
+  // Create a service request from the original requester, auto-accepted
+  const sr = await db.run(
+    "INSERT INTO service_requests (service_id, requester_id, status, message) VALUES (?, ?, 'accepted', ?)",
+    svc.lastInsertRowid, hw.requester_id, 'Help offered via Help Needed board'
+  );
+
+  // Update help_wanted with the link
   await db.run('UPDATE help_wanted SET status = ?, accepted_by = ? WHERE id = ?', 'accepted', req.userId, req.params.id);
+
   const helper = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
-  await notify({ userId: hw.requester_id, type: 'help_offered', title: 'Someone can help!', body: (helper?.username || 'Someone') + ' offered to help with: ' + hw.title, link: '/dashboard' });
-  res.json({ message: 'Offer sent!' });
+  await notify({ userId: hw.requester_id, type: 'help_offered', title: 'Someone can help!', body: (helper?.username || 'Someone') + ' offered to help with: ' + hw.title + '. Check your dashboard.', link: '/dashboard' });
+  res.json({ message: 'Offer sent! A service request has been created. Both of you can now message, deliver, and confirm through the dashboard.' });
 });
 
-// Helper marks as delivered
+// Keep deliver/confirm for backward compat but the main flow now goes through service_requests
 router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Response) => {
   const hw = await db.get('SELECT * FROM help_wanted WHERE id = ? AND accepted_by = ?', req.params.id, req.userId);
   if (!hw) return res.status(404).json({ error: 'Not found' });
   if (hw.status !== 'accepted') return res.status(400).json({ error: 'Must be accepted first' });
   await db.run('UPDATE help_wanted SET status = ? WHERE id = ?', 'delivered', req.params.id);
-  await notify({ userId: hw.requester_id, type: 'help_delivered', title: 'Help delivered!', body: 'Please confirm the help was received.', link: '/dashboard' });
+  await notify({ userId: hw.requester_id, type: 'help_delivered', title: 'Help delivered!', body: 'Please confirm via your dashboard.', link: '/dashboard' });
   res.json({ message: 'Marked as delivered' });
 });
 
