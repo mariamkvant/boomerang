@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { getLang, setLang, LANGUAGES } from '../i18n';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
@@ -70,6 +71,18 @@ export default function SettingsPage() {
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Points: {user?.points}</p>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
+        <h3 className="font-semibold mb-3">🌍 Language</h3>
+        <div className="flex gap-2">
+          {LANGUAGES.map(l => (
+            <button key={l.code} onClick={() => setLang(l.code)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
+              {l.flag} {l.name}
+            </button>
+          ))}
         </div>
       </div>
 

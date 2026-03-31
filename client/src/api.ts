@@ -40,6 +40,7 @@ export const api = {
   getMyFavorites: () => request('/services/user/favorites'),
   isFavorited: (id: number) => request(`/services/${id}/favorited`),
   getPopularServices: () => request('/services/trending/popular'),
+  getStats: () => request('/services/stats'),
 
   // Requests
   createRequest: (body: any) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),

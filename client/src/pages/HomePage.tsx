@@ -8,11 +8,13 @@ export default function HomePage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [recentServices, setRecentServices] = useState<any[]>([]);
   const [popularServices, setPopularServices] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
     api.getServices('').then(setRecentServices).catch(() => {});
     api.getPopularServices().then(setPopularServices).catch(() => {});
+    api.getStats().then(setStats).catch(() => {});
   }, []);
 
   return (
@@ -62,6 +64,37 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Community stats / activity feed */}
+      {stats && (stats.total_completed > 0 || stats.total_users > 1) && (
+        <section className="py-12">
+          <h2 className="text-center text-2xl font-bold mb-2">Community Activity</h2>
+          <p className="text-center text-gray-500 text-sm mb-8">What's happening on Boomerang</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="bg-white p-5 rounded-2xl shadow-card text-center">
+              <div className="text-2xl font-bold text-primary-600">{stats.total_users}</div>
+              <div className="text-xs text-gray-500 mt-1">Members</div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-card text-center">
+              <div className="text-2xl font-bold text-primary-600">{stats.total_services}</div>
+              <div className="text-xs text-gray-500 mt-1">Services Offered</div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-card text-center">
+              <div className="text-2xl font-bold text-primary-600">{stats.total_completed}</div>
+              <div className="text-xs text-gray-500 mt-1">Exchanges Done</div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-card text-center">
+              <div className="text-2xl font-bold text-primary-600">{stats.total_points_exchanged}</div>
+              <div className="text-xs text-gray-500 mt-1">Points Exchanged</div>
+            </div>
+          </div>
+          {(stats.week_completed > 0 || stats.week_new_services > 0) && (
+            <p className="text-center text-sm text-gray-400 mt-4">
+              This week: {stats.week_completed} exchanges completed · {stats.week_new_services} new services added
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Browse by category */}
       {categories.length > 0 && (

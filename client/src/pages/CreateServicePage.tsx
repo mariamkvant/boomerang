@@ -6,7 +6,7 @@ export default function CreateServicePage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60' });
+  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10' });
   const [suggested, setSuggested] = useState<{ suggested: number; min: number; max: number; multiplier: number } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,6 +46,7 @@ export default function CreateServicePage() {
         ...form, category_id: Number(form.category_id),
         subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
         points_cost: Number(form.points_cost), duration_minutes: Number(form.duration_minutes),
+        is_bundle: form.is_bundle, sessions_count: Number(form.sessions_count), bundle_discount: Number(form.bundle_discount),
       });
       navigate(`/services/${res.id}`);
     } catch (err: any) { setError(err.message); setLoading(false); }
@@ -149,6 +150,28 @@ export default function CreateServicePage() {
               value={form.points_cost} onChange={set('points_cost')}
               className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
           </div>
+        </div>
+
+        {/* Bundle option */}
+        <div className="border-t border-gray-100 pt-5">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" checked={form.is_bundle} onChange={e => setForm(f => ({...f, is_bundle: e.target.checked}))} className="rounded" />
+            <span className="font-medium text-gray-700">📦 Offer as a package deal</span>
+          </label>
+          {form.is_bundle && (
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <label htmlFor="sessions" className="block text-xs font-medium text-gray-600 mb-1">Number of sessions</label>
+                <input id="sessions" type="number" min="2" value={form.sessions_count} onChange={e => setForm(f => ({...f, sessions_count: e.target.value}))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              </div>
+              <div>
+                <label htmlFor="discount" className="block text-xs font-medium text-gray-600 mb-1">Discount %</label>
+                <input id="discount" type="number" min="0" max="50" value={form.bundle_discount} onChange={e => setForm(f => ({...f, bundle_discount: e.target.value}))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              </div>
+            </div>
+          )}
         </div>
 
         <button type="submit" disabled={loading}

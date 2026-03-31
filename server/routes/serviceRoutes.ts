@@ -9,6 +9,24 @@ router.get('/categories', async (_req, res: Response) => {
   res.json(categories);
 });
 
+// Platform stats for activity feed
+router.get('/stats', async (_req, res: Response) => {
+  const users = await db.get('SELECT COUNT(*) as count FROM users');
+  const services = await db.get('SELECT COUNT(*) as count FROM services WHERE is_active = 1');
+  const completed = await db.get("SELECT COUNT(*) as count FROM service_requests WHERE status = 'completed'");
+  const weekCompleted = await db.get("SELECT COUNT(*) as count FROM service_requests WHERE status = 'completed' AND completed_at > NOW() - INTERVAL '7 days'");
+  const weekNew = await db.get("SELECT COUNT(*) as count FROM services WHERE created_at > NOW() - INTERVAL '7 days'");
+  const totalPoints = await db.get("SELECT COALESCE(SUM(s.points_cost), 0) as total FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.status = 'completed'");
+  res.json({
+    total_users: parseInt(users?.count || '0'),
+    total_services: parseInt(services?.count || '0'),
+    total_completed: parseInt(completed?.count || '0'),
+    week_completed: parseInt(weekCompleted?.count || '0'),
+    week_new_services: parseInt(weekNew?.count || '0'),
+    total_points_exchanged: parseInt(totalPoints?.total || '0'),
+  });
+});
+
 router.get('/categories/:id/subcategories', async (req: AuthRequest, res: Response) => {
   const subs = await db.all('SELECT * FROM subcategories WHERE category_id = ? ORDER BY name', req.params.id);
   res.json(subs);
@@ -69,8 +87,12 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
     const cat = await db.get('SELECT * FROM categories WHERE id = ?', category_id);
     finalPoints = cat ? Math.round(((duration_minutes || 60) / 60) * cat.base_rate * cat.multiplier) : 10;
   }
-  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60);
+  // Apply bundle discount if applicable
+  if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
+    finalPoints = Math.round(finalPoints * req.body.sessions_count * (1 - req.body.bundle_discount / 100));
+  }
+  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0);
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
 });
 
