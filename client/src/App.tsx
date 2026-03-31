@@ -31,6 +31,7 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
+  const isHome = location.pathname === '/';
   const navLink = (to: string, label: string) => (
     <Link to={to} onClick={() => setMobileOpen(false)}
       className={`text-sm font-medium px-3 py-2 rounded-lg ${isActive(to) ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'}`}>
@@ -41,10 +42,17 @@ function Navbar() {
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-nav border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <div className="flex items-center gap-1">
+          {!isHome && (
+            <button onClick={() => navigate(-1)} className="md:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Go back">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+          )}
+          <Link to="/" className="flex items-center gap-2.5 group">
           <img src="/logo.svg" alt="" className="w-8 h-8 group-hover:scale-110 transition-transform" />
           <span className="text-2xl font-light font-logo bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent tracking-wide">boomerang</span>
         </Link>
+        </div>
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
