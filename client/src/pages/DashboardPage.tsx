@@ -267,7 +267,7 @@ export default function DashboardPage() {
                       <button onClick={() => handleAction(api.disputeRequest, r.id)} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
                     </>
                   )}
-                  {r.status === 'completed' && !r.has_reviewed && (
+                  {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '' })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
                   )}
                 </div>
