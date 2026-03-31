@@ -43,14 +43,75 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
   );
 }
 
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const TIMES = Array.from({ length: 28 }, (_, i) => {
+  const h = Math.floor(i / 2) + 7; const m = i % 2 === 0 ? '00' : '30';
+  return `${String(h).padStart(2, '0')}:${m}`;
+});
+
+function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slots: any[]; setSlots: (s: any[]) => void; onLoad: () => void }) {
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!loaded) { api.getMyAvailability().then(s => { setSlots(s); onLoad(); }).catch(() => onLoad()); }
+  }, [loaded]);
+
+  const addSlot = (day: number) => { setSlots([...slots, { day_of_week: day, start_time: '09:00', end_time: '10:00' }]); setSaved(false); };
+  const removeSlot = (idx: number) => { setSlots(slots.filter((_, i) => i !== idx)); setSaved(false); };
+  const updateSlot = (idx: number, field: string, value: string) => { setSlots(slots.map((s, i) => i === idx ? { ...s, [field]: value } : s)); setSaved(false); };
+
+  const save = async () => {
+    try { await api.setMyAvailability(slots); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    catch (err: any) { alert(err.message); }
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-gray-500 mb-4">Set when you're available to provide services. Requesters will book from these slots.</p>
+      <div className="space-y-3">
+        {DAYS.map((dayName, dayIdx) => {
+          const daySlots = slots.map((s, i) => ({ ...s, idx: i })).filter(s => s.day_of_week === dayIdx);
+          return (
+            <div key={dayIdx} className="bg-white p-4 rounded-xl shadow-card">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-sm">{dayName}</h4>
+                <button onClick={() => addSlot(dayIdx)} className="text-xs text-primary-600 hover:text-primary-700 font-medium">+ Add</button>
+              </div>
+              {daySlots.length === 0 && <p className="text-xs text-gray-400">Not available</p>}
+              {daySlots.map(s => (
+                <div key={s.idx} className="flex items-center gap-2 mt-1">
+                  <select value={s.start_time} onChange={e => updateSlot(s.idx, 'start_time', e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm" aria-label="Start time">
+                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <span className="text-gray-400 text-xs">to</span>
+                  <select value={s.end_time} onChange={e => updateSlot(s.idx, 'end_time', e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm" aria-label="End time">
+                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <button onClick={() => removeSlot(s.idx)} className="text-red-400 hover:text-red-600 text-xs" aria-label="Remove">✕</button>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-4 flex items-center gap-3">
+        <button onClick={save} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 text-sm">Save Schedule</button>
+        {saved && <span className="text-sm text-green-600">✓ Saved</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services'>('incoming');
+  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services' | 'schedule'>('incoming');
   const [incoming, setIncoming] = useState<any[]>([]);
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [myServices, setMyServices] = useState<any[]>([]);
   const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string } | null>(null);
   const [expandedChat, setExpandedChat] = useState<number | null>(null);
+  const [availSlots, setAvailSlots] = useState<any[]>([]);
+  const [scheduleLoaded, setScheduleLoaded] = useState(false);
 
   const load = async () => {
     try {
@@ -87,6 +148,7 @@ export default function DashboardPage() {
     { key: 'incoming' as const, label: 'Incoming', count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
     { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length },
     { key: 'services' as const, label: 'My Services', count: myServices.length },
+    { key: 'schedule' as const, label: '📅 Schedule', count: 0 },
   ];
 
   return (
@@ -258,6 +320,9 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      {/* Schedule */}
+      {tab === 'schedule' && <ScheduleTab loaded={scheduleLoaded} slots={availSlots} setSlots={setAvailSlots} onLoad={() => setScheduleLoaded(true)} />}
     </div>
   );
 }
