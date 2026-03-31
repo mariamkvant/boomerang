@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +47,11 @@ export default function RegisterPage() {
           <input id="password" type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="At least 6 characters" />
         </div>
-        <button type="submit" disabled={loading}
+        <label className="flex items-start gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded mt-0.5" required />
+          <span className="text-gray-600">I agree to the <Link to="/terms" className="text-primary-600 hover:underline" target="_blank">Terms of Service</Link> and <Link to="/privacy" className="text-primary-600 hover:underline" target="_blank">Privacy Policy</Link></span>
+        </label>
+        <button type="submit" disabled={loading || !agreed}
           className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md">
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
