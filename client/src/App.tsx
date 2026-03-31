@@ -23,6 +23,7 @@ import PeoplePage from './pages/PeoplePage';
 import MessagesPage from './pages/MessagesPage';
 import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
+import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 function Navbar() {
@@ -180,7 +181,7 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full">
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full pb-20 md:pb-6">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
@@ -205,6 +206,7 @@ export default function App() {
         </Routes>
       </main>
       <Footer />
+      <BottomNav />
       <InstallPrompt />
     </div>
   );

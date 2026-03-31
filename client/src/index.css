@@ -31,3 +31,6 @@ a, button { @apply transition-all duration-200; }
 ::-webkit-scrollbar-track { @apply bg-transparent; }
 ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
 ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+
+/* Safe area for bottom nav on iOS */
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }

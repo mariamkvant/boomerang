@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function BrowsePage() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -11,6 +13,15 @@ export default function BrowsePage() {
   const [selectedSub, setSelectedSub] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    if (!user) return;
+    try {
+      await api.createRequest({ service_id: serviceId, message: 'Quick request from browse' });
+      alert('Request sent! Check your dashboard.');
+    } catch (err: any) { alert(err.message); }
+  };
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
@@ -117,7 +128,11 @@ export default function BrowsePage() {
                 </Link>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                   <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">🪃 {s.points_cost} 🪃</span>
-                  <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600">
+                  <div className="flex items-center gap-2">
+                    {user && user.id !== (s.provider_user_id || s.provider_id) && (
+                      <button onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); quickRequest(s.id, e); }} className="bg-primary-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-medium hover:bg-primary-600">Request</button>
+                    )}
+                    <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600">
                     <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
                     {s.provider_name}
                     {s.provider_city && <span className="text-gray-300">· {s.provider_city}</span>}
