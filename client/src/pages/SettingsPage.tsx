@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 
@@ -70,6 +71,12 @@ export default function SettingsPage() {
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Points: {user?.points}</p>
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
+        <h3 className="font-semibold mb-3">📅 My Availability</h3>
+        <p className="text-sm text-gray-500 mb-3">Set when you're available to provide services so people can book your time.</p>
+        <Link to="/availability" className="inline-block bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Manage Schedule →</Link>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card mt-6">

@@ -43,12 +43,11 @@ function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
-          {navLink('/browse', 'Browse')}
-          {navLink('/help-wanted', 'Help Wanted')}
-          {navLink('/groups', 'Communities')}
+          {navLink('/browse', 'Browse Services')}
           {user && navLink('/services/new', 'Offer Service')}
-          {user && navLink('/availability', 'My Schedule')}
-          {user && navLink('/dashboard', 'Dashboard')}
+          {navLink('/help-wanted', 'Help Needed')}
+          {navLink('/groups', 'Communities')}
+          {user && navLink('/dashboard', 'My Dashboard')}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -96,11 +95,10 @@ function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
           {navLink('/browse', 'Browse Services')}
-          {navLink('/help-wanted', 'Help Wanted')}
-          {navLink('/groups', 'Communities')}
           {user && navLink('/services/new', 'Offer a Service')}
-          {user && navLink('/availability', 'My Schedule')}
-          {user && navLink('/dashboard', 'Dashboard')}
+          {navLink('/help-wanted', 'Help Needed')}
+          {navLink('/groups', 'Communities')}
+          {user && navLink('/dashboard', 'My Dashboard')}
           {!user && navLink('/login', 'Log in')}
           {!user && navLink('/register', 'Sign up free')}
           {user && (
