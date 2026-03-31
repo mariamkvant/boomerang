@@ -4,11 +4,14 @@ import db from '../database';
 import { generateToken, authMiddleware, AuthRequest } from '../auth';
 import { sendEmail, generateCode, verifyEmailHtml, resetPasswordHtml } from '../email';
 import { checkAchievements, BADGES } from '../achievements';
+import { rateLimit } from '../rateLimit';
 
 const router = Router();
 
+const authLimiter = rateLimit(15 * 60 * 1000, 10); // 10 attempts per 15 min
+
 // Register
-router.post('/register', async (req: AuthRequest, res: Response) => {
+router.post('/register', authLimiter, async (req: AuthRequest, res: Response) => {
   const { username, email, password, referral_code } = req.body;
   if (!username || !email || !password) return res.status(400).json({ error: 'All fields are required' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -68,7 +71,7 @@ router.post('/resend-verify', authMiddleware, async (req: AuthRequest, res: Resp
 });
 
 // Request password reset
-router.post('/forgot-password', async (req: AuthRequest, res: Response) => {
+router.post('/forgot-password', authLimiter, async (req: AuthRequest, res: Response) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
@@ -95,14 +98,14 @@ router.post('/reset-password', async (req: AuthRequest, res: Response) => {
 });
 
 // Login
-router.post('/login', async (req: AuthRequest, res: Response) => {
+router.post('/login', authLimiter, async (req: AuthRequest, res: Response) => {
   const { email, password } = req.body;
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   const token = generateToken(user.id);
-  res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude, languages_spoken: user.languages_spoken } });
+  res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude, languages_spoken: user.languages_spoken, is_admin: user.is_admin } });
 });
 
 // Get my referral info
@@ -128,7 +131,7 @@ router.get('/:id/achievements', async (req: AuthRequest, res: Response) => {
 
 // Get current user profile
 router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, email, bio, points, email_verified, city, latitude, longitude, languages_spoken, created_at FROM users WHERE id = ?', req.userId);
+  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, created_at FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.userId);
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });
@@ -136,7 +139,12 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
 
 // Update profile
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { bio, username, city, latitude, longitude, languages_spoken } = req.body;
+  const { bio, username, city, latitude, longitude, languages_spoken, avatar } = req.body;
+  if (avatar !== undefined) {
+    // Validate base64 image (max ~2MB)
+    if (avatar && avatar.length > 2_800_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
+    await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatar || null, req.userId);
+  }
   await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, req.userId);
   res.json({ message: 'Profile updated' });
 });
@@ -163,7 +171,7 @@ router.delete('/me', authMiddleware, async (req: AuthRequest, res: Response) => 
 
 // Get any user's public profile
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, created_at FROM users WHERE id = ?', req.params.id);
+  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at FROM users WHERE id = ?', req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.params.id);
   const services = await db.all('SELECT s.*, c.name as category_name, c.icon as category_icon FROM services s JOIN categories c ON s.category_id = c.id WHERE s.provider_id = ? AND s.is_active = 1', req.params.id);

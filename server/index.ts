@@ -16,13 +16,14 @@ import helpWantedRoutes from './routes/helpWantedRoutes';
 import dmRoutes from './routes/dmRoutes';
 import socialRoutes from './routes/socialRoutes';
 import pushRoutes from './routes/pushRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
@@ -35,14 +36,10 @@ app.use('/api/help-wanted', helpWantedRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (_req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    vapid_configured: !!(process.env.VAPID_PUBLIC_KEY || '').trim(),
-    env_keys: Object.keys(process.env).filter(k => k.includes('VAPID')).join(','),
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Serve frontend

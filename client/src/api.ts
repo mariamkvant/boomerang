@@ -130,4 +130,14 @@ export const api = {
   getVapidKey: () => request('/push/vapid-key'),
   subscribePush: (subscription: any) => request('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription }) }),
   unsubscribePush: (endpoint: string) => request('/push/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint }) }),
+
+  // Admin
+  checkAdmin: () => request('/admin/check'),
+  getAdminStats: () => request('/admin/stats'),
+  getAdminUsers: (params?: string) => request(`/admin/users${params ? `?${params}` : ''}`),
+  banUser: (id: number, banned: boolean) => request(`/admin/users/${id}/ban`, { method: 'PUT', body: JSON.stringify({ banned }) }),
+  setAdmin: (id: number, is_admin: boolean) => request(`/admin/users/${id}/admin`, { method: 'PUT', body: JSON.stringify({ is_admin }) }),
+  getAdminReports: () => request('/admin/reports'),
+  resolveReport: (id: number, status: string) => request(`/admin/reports/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  adminDeleteService: (id: number) => request(`/admin/services/${id}`, { method: 'DELETE' }),
 };

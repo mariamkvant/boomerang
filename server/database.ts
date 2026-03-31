@@ -143,6 +143,9 @@ export async function initDatabase() {
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INTEGER'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES groups(id)'); } catch(e) {}
         try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS languages_spoken TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS image TEXT'); } catch(e) {}
 try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_bundle BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS sessions_count INTEGER DEFAULT 1'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS bundle_discount INTEGER DEFAULT 0'); } catch(e) {}

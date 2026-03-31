@@ -12,6 +12,16 @@ export default function CreateServicePage() {
   const [suggested, setSuggested] = useState<{ suggested: number; min: number; max: number; multiplier: number } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return alert('Image must be under 2MB');
+    const reader = new FileReader();
+    reader.onload = () => setImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const generateDescription = () => {
     if (!form.title) return;
@@ -61,7 +71,7 @@ export default function CreateServicePage() {
         subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
         points_cost: Number(form.points_cost), duration_minutes: Number(form.duration_minutes),
         is_bundle: form.is_bundle, sessions_count: Number(form.sessions_count), bundle_discount: Number(form.bundle_discount),
-        group_id: groupId ? Number(groupId) : null,
+        group_id: groupId ? Number(groupId) : null, image,
       });
       navigate(`/services/${res.id}`);
     } catch (err: any) { setError(err.message); setLoading(false); }
@@ -127,6 +137,22 @@ export default function CreateServicePage() {
           <textarea id="description" required value={form.description} onChange={set('description')} rows={4}
             placeholder="Describe what you offer, your experience, and what people can expect..."
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+        </div>
+
+        {/* Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">📷 Service Image (optional)</label>
+          {image ? (
+            <div className="relative">
+              <img src={image} alt="" className="w-full h-40 object-cover rounded-xl" />
+              <button type="button" onClick={() => setImage(null)} className="absolute top-2 right-2 bg-white/80 rounded-full w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-white">✕</button>
+            </div>
+          ) : (
+            <label className="block border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-primary-300">
+              <span className="text-gray-400 text-sm">Click to upload an image</span>
+              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            </label>
+          )}
         </div>
 
         {/* Duration */}

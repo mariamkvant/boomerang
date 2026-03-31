@@ -11,6 +11,23 @@ export default function SettingsPage() {
   const [languagesSpoken, setLanguagesSpoken] = useState(user?.languages_spoken || '');
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return alert('Image must be under 2MB');
+    setAvatarUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await api.updateProfile({ avatar: reader.result as string });
+        await refreshUser();
+      } catch (err: any) { alert(err.message); }
+      setAvatarUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     try { await api.updateProfile({ bio, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
@@ -42,6 +59,27 @@ export default function SettingsPage() {
       <h2 className="text-2xl font-bold mb-6">My Profile</h2>
 
       <div className="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        {/* Avatar */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {user?.avatar ? (
+              <img src={user.avatar} alt="" className="w-16 h-16 rounded-full object-cover" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center text-white text-xl font-semibold">
+                {user?.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-50 shadow-sm">
+              <span className="text-xs">📷</span>
+              <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            </label>
+          </div>
+          <div>
+            <p className="font-medium">{user?.username}</p>
+            <p className="text-xs text-gray-400">{avatarUploading ? 'Uploading...' : 'Click camera to change photo'}</p>
+          </div>
+        </div>
+
         <div>
           <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1.5">Bio</label>
           <textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="Tell people about yourself..."

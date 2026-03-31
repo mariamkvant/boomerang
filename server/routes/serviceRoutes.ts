@@ -83,8 +83,9 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 });
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { title, description, category_id, subcategory_id, points_cost, duration_minutes } = req.body;
+  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, image } = req.body;
   if (!title || !description || !category_id) return res.status(400).json({ error: 'Title, description, and category are required' });
+  if (image && image.length > 2_800_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
   let finalPoints = points_cost;
   if (!finalPoints) {
     const cat = await db.get('SELECT * FROM categories WHERE id = ?', category_id);
@@ -94,15 +95,19 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
     finalPoints = Math.round(finalPoints * req.body.sessions_count * (1 - req.body.bundle_discount / 100));
   }
-  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null);
+  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, image || null);
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
 });
 
 router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   const service = await db.get('SELECT * FROM services WHERE id = ? AND provider_id = ?', req.params.id, req.userId);
   if (!service) return res.status(404).json({ error: 'Service not found or not yours' });
-  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, is_active } = req.body;
+  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, is_active, image } = req.body;
+  if (image !== undefined) {
+    if (image && image.length > 2_800_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
+    await db.run('UPDATE services SET image = ? WHERE id = ?', image || null, req.params.id);
+  }
   await db.run('UPDATE services SET title = COALESCE(?, title), description = COALESCE(?, description), category_id = COALESCE(?, category_id), subcategory_id = COALESCE(?, subcategory_id), points_cost = COALESCE(?, points_cost), duration_minutes = COALESCE(?, duration_minutes), is_active = COALESCE(?, is_active) WHERE id = ?',
     title, description, category_id, subcategory_id, points_cost, duration_minutes, is_active, req.params.id);
   res.json({ message: 'Service updated' });

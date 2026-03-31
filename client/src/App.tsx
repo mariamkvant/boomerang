@@ -27,6 +27,7 @@ import OnboardingPage from './pages/OnboardingPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import EditServicePage from './pages/EditServicePage';
+import AdminPage from './pages/AdminPage';
 import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
@@ -89,6 +90,7 @@ function Navbar() {
                   <Link to="/messages" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">💬 Messages</Link>
                   <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">My Profile</Link>
                   <Link to="/account" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
+                  {user.is_admin && <Link to="/admin" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">🛡️ Admin</Link>}
                   <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
                 </div>
               </div>
@@ -211,6 +213,7 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>
