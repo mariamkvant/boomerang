@@ -83,6 +83,8 @@ export async function initDatabase() {
 try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_bundle BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS sessions_count INTEGER DEFAULT 1'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS bundle_discount INTEGER DEFAULT 0'); } catch(e) {}
+    try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help_wanted_status_check"); } catch(e) {}
+    try { await client.query("ALTER TABLE help_wanted ADD CONSTRAINT help_wanted_status_check CHECK(status IN ('open','accepted','delivered','completed','closed'))"); } catch(e) {}
                 await client.query('CREATE TABLE IF NOT EXISTS favorites (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), service_id INTEGER NOT NULL REFERENCES services(id), created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, service_id))');
     await client.query("CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, description TEXT DEFAULT '', is_public BOOLEAN DEFAULT true, invite_code TEXT UNIQUE, created_by INTEGER NOT NULL REFERENCES users(id), created_at TIMESTAMPTZ DEFAULT NOW())");
     await client.query("CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER NOT NULL REFERENCES groups(id), user_id INTEGER NOT NULL REFERENCES users(id), role TEXT DEFAULT 'member', joined_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(group_id, user_id))");

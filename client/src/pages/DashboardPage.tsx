@@ -109,6 +109,7 @@ export default function DashboardPage() {
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [myServices, setMyServices] = useState<any[]>([]);
   const [myHelpWanted, setMyHelpWanted] = useState<any[]>([]);
+  const [myHelping, setMyHelping] = useState<any[]>([]);
   const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string } | null>(null);
   const [expandedChat, setExpandedChat] = useState<number | null>(null);
   const [availSlots, setAvailSlots] = useState<any[]>([]);
@@ -119,6 +120,7 @@ export default function DashboardPage() {
       const [inc, out, svc] = await Promise.all([api.getIncoming(), api.getOutgoing(), api.getServices(`provider=${user?.id}`)]);
       setIncoming(inc); setOutgoing(out); setMyServices(svc);
       api.getMyHelpWanted().then(setMyHelpWanted).catch(() => {});
+      api.getMyHelping().then(setMyHelping).catch(() => {});
     } catch {}
   };
 
@@ -330,24 +332,60 @@ export default function DashboardPage() {
           <Link to="/help-wanted" className="flex items-center justify-center gap-2 bg-white p-5 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-primary-300 hover:text-primary-600 transition-colors">
             <span className="text-lg">+</span> Post a new help request
           </Link>
-          {myHelpWanted.length === 0 && <p className="text-gray-400 text-sm text-center py-8">You haven't posted any help requests yet.</p>}
+
+          {/* My help requests */}
+          {myHelpWanted.length > 0 && <h4 className="text-sm font-semibold text-gray-500 mt-4">My Requests</h4>}
           {myHelpWanted.map((h: any) => (
             <div key={h.id} className="bg-white p-5 rounded-xl shadow-card">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-semibold text-sm">{h.title}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${h.status === 'open' ? 'bg-green-50 text-green-600 border-green-200' : h.status === 'accepted' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>{h.status}</span>
+                    {badge(h.status)}
                   </div>
                   <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} pts</p>
                   {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
                 </div>
-                {h.status === 'open' && (
-                  <button onClick={async () => { await api.closeHelpWanted(h.id); load(); }} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
-                )}
+                <div className="flex gap-2">
+                  {h.status === 'delivered' && (
+                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600">Confirm ✓</button>
+                  )}
+                  {h.status === 'open' && (
+                    <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
+
+          {/* Items I'm helping with */}
+          {myHelping.length > 0 && <h4 className="text-sm font-semibold text-gray-500 mt-6">I'm Helping With</h4>}
+          {myHelping.map((h: any) => (
+            <div key={h.id} className="bg-white p-5 rounded-xl shadow-card">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-sm">{h.title}</span>
+                    {badge(h.status)}
+                  </div>
+                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} pts</p>
+                  <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
+                </div>
+                <div className="flex gap-2">
+                  {h.status === 'accepted' && (
+                    <button onClick={() => handleAction(api.deliverHelp, h.id)} className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600">Mark Delivered ✓</button>
+                  )}
+                  {h.status === 'delivered' && (
+                    <span className="text-xs text-purple-500">Waiting for confirmation...</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {myHelpWanted.length === 0 && myHelping.length === 0 && (
+            <p className="text-gray-400 text-sm text-center py-8">No help requests yet.</p>
+          )}
         </div>
       )}
 

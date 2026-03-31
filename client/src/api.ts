@@ -97,8 +97,11 @@ export const api = {
   getHelpWanted: (params?: string) => request(`/help-wanted${params ? `?${params}` : ''}`),
   getHelpWantedDetail: (id: number) => request(`/help-wanted/${id}`),
   offerHelp: (id: number) => request(`/help-wanted/${id}/offer`, { method: 'PUT' }),
+  deliverHelp: (id: number) => request(`/help-wanted/${id}/deliver`, { method: 'PUT' }),
+  confirmHelp: (id: number) => request(`/help-wanted/${id}/confirm`, { method: 'PUT' }),
   closeHelpWanted: (id: number) => request(`/help-wanted/${id}/close`, { method: 'PUT' }),
   getMyHelpWanted: () => request('/help-wanted/user/mine'),
+  getMyHelping: () => request('/help-wanted/user/helping'),
 
   // Achievements
   getMyAchievements: () => request('/users/achievements'),
