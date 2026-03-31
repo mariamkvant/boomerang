@@ -285,21 +285,6 @@ export default function DashboardPage() {
               )}
             </div>
           ))}
-          {/* Completed history */}
-          {incoming.filter(r => ['completed','cancelled'].includes(r.status)).length > 0 && (
-            <>
-              <h4 className="text-xs font-semibold text-gray-400 mt-6">Past</h4>
-              {incoming.filter(r => ['completed','cancelled'].includes(r.status)).map((r: any) => (
-                <div key={r.id} className="bg-white p-4 rounded-xl shadow-card opacity-60">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{r.service_title}</span>
-                    {badge(r.status)}
-                  </div>
-                  <p className="text-xs text-gray-500">From {r.requester_name} · {r.points_cost} 🪃</p>
-                </div>
-              ))}
-            </>
-          )}
         </div>
       )}
 
