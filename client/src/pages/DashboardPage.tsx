@@ -371,7 +371,8 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
               </Link>
               <div className="flex items-center gap-2 ml-3 shrink-0">
-                <Link to={`/services/${s.id}`} className="text-xs text-primary-500 hover:text-primary-600">View</Link>
+                <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">✏️</Link>
+                <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
                 <button onClick={async () => { if (confirm('Delete this service?')) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
               </div>
             </div>

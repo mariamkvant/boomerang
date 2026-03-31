@@ -25,6 +25,7 @@ import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import EditServicePage from './pages/EditServicePage';
 import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
@@ -194,6 +195,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/services/new" element={user ? <CreateServicePage /> : <Navigate to="/login" />} />
+          <Route path="/services/:id/edit" element={user ? <EditServicePage /> : <Navigate to="/login" />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
           <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />

@@ -66,10 +66,15 @@ export default function ServiceDetailPage() {
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link to="/browse" className="hover:text-primary-600">Browse</Link>
-        <span>›</span>
-        <span className="text-gray-600">{service.title}</span>
+      <div className="flex items-center justify-between text-sm text-gray-400 mb-6">
+        <div className="flex items-center gap-2">
+          <Link to="/browse" className="hover:text-primary-600">Browse</Link>
+          <span>›</span>
+          <span className="text-gray-600">{service.title}</span>
+        </div>
+        {isOwner && (
+          <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">✏️ Edit</Link>
+        )}
       </div>
 
       <div className="bg-white p-8 rounded-2xl shadow-card mb-6">
