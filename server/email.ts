@@ -14,7 +14,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
     });
-    const data = await res.json();
+    const data: any = await res.json();
     if (!res.ok) {
       console.error(`[EMAIL FAILED] Status: ${res.status}`, data);
       return false;
