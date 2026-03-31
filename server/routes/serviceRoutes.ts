@@ -55,7 +55,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     u.username as provider_name, u.city as provider_city, u.id as provider_user_id, sc.name as subcategory_name,
     (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
     FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
-    LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.is_active = 1`;
+    LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.is_active = 1 AND s.group_id IS NULL`;
   const params: any[] = [];
   let n = 0;
   if (provider) { query += ` AND s.provider_id = $${++n}`; params.push(provider); }
@@ -142,7 +142,7 @@ router.get('/:id/favorited', authMiddleware, async (req: AuthRequest, res: Respo
 
 // Popular services this week
 router.get('/trending/popular', async (_req, res: Response) => {
-  const services = await db.all("SELECT s.*, c.name as category_name, c.icon as category_icon, u.username as provider_name, u.city as provider_city, COUNT(sr.id) as request_count, (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr2 ON r.request_id = sr2.id WHERE sr2.service_id = s.id) as avg_rating FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id LEFT JOIN service_requests sr ON sr.service_id = s.id AND sr.created_at > NOW() - INTERVAL '7 days' WHERE s.is_active = 1 GROUP BY s.id, c.name, c.icon, u.username, u.city ORDER BY request_count DESC, s.created_at DESC LIMIT 10");
+  const services = await db.all("SELECT s.*, c.name as category_name, c.icon as category_icon, u.username as provider_name, u.city as provider_city, COUNT(sr.id) as request_count, (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr2 ON r.request_id = sr2.id WHERE sr2.service_id = s.id) as avg_rating FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id LEFT JOIN service_requests sr ON sr.service_id = s.id AND sr.created_at > NOW() - INTERVAL '7 days' WHERE s.is_active = 1 AND s.group_id IS NULL GROUP BY s.id, c.name, c.icon, u.username, u.city ORDER BY request_count DESC, s.created_at DESC LIMIT 10");
   res.json(services);
 });
 
