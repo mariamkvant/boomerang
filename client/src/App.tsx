@@ -18,6 +18,7 @@ import SettingsPage from './pages/SettingsPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import HelpWantedPage from './pages/HelpWantedPage';
+import { getLang, setLang, LANGUAGES } from './i18n';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -140,8 +141,16 @@ function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-100 mt-8 pt-6 text-center text-xs text-gray-400">
-          © 2026 Boomerang. Built with community in mind.
+        <div className="border-t border-gray-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+          <span>© 2026 Boomerang. Built with community in mind.</span>
+          <div className="flex items-center gap-2">
+            {LANGUAGES.map(l => (
+              <button key={l.code} onClick={() => setLang(l.code)}
+                className={`px-2 py-1 rounded text-xs ${getLang() === l.code ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:text-gray-600'}`}>
+                {l.flag} {l.code.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

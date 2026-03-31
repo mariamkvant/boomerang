@@ -51,6 +51,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                 {profile.city && <span>📍 {profile.city}</span>}
+                {profile.languages_spoken && <span>🗣️ {profile.languages_spoken}</span>}
                 {trust && <span>⭐ {trust.avg_rating ? Number(trust.avg_rating).toFixed(1) : 'New'} ({trust.review_count} reviews)</span>}
                 <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
               </div>

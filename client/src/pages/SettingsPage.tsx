@@ -8,11 +8,12 @@ export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const [bio, setBio] = useState(user?.bio || '');
   const [city, setCity] = useState(user?.city || '');
+  const [languagesSpoken, setLanguagesSpoken] = useState(user?.languages_spoken || '');
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
 
   const handleSave = async () => {
-    try { await api.updateProfile({ bio, city }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    try { await api.updateProfile({ bio, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     catch (err: any) { alert(err.message); }
   };
 
@@ -58,6 +59,13 @@ export default function SettingsPage() {
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-1">This helps people find services near them</p>
+        </div>
+
+        <div>
+          <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1.5">🗣️ Languages I Speak</label>
+          <input id="languages" value={languagesSpoken} onChange={e => setLanguagesSpoken(e.target.value)} placeholder="e.g. English, French, Portuguese, Luxembourgish"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+          <p className="text-xs text-gray-400 mt-1">Comma-separated. Helps others know they can communicate with you.</p>
         </div>
 
         <div className="flex items-center gap-3">

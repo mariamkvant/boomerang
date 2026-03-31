@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../api';
 
-interface User { id: number; username: string; email: string; points: number; bio: string; avg_rating: number | null; review_count: number; email_verified: boolean; city: string | null; latitude: number | null; longitude: number | null; }
+interface User { id: number; username: string; email: string; points: number; bio: string; avg_rating: number | null; review_count: number; email_verified: boolean; city: string | null; latitude: number | null; longitude: number | null; languages_spoken: string | null; }
 interface AuthCtx { user: User | null; login: (email: string, password: string) => Promise<void>; register: (username: string, email: string, password: string) => Promise<void>; logout: () => void; refreshUser: () => Promise<void>; }
 
 const AuthContext = createContext<AuthCtx>(null!);
