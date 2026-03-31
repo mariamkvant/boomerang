@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
-import { notify } from '../notify';
+import { notify, notificationEmailHtml } from '../notify';
 
 const router = Router();
 
@@ -47,7 +47,15 @@ router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) 
   if (Number(req.params.userId) === req.userId) return res.status(400).json({ error: 'Cannot message yourself' });
   const result = await db.run('INSERT INTO direct_messages (sender_id, receiver_id, body) VALUES (?, ?, ?)', req.userId, req.params.userId, body.trim());
   const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
-  await notify({ userId: Number(req.params.userId), type: 'new_dm', title: 'New message', body: (sender?.username || 'Someone') + ' sent you a message', link: '/messages' });
+  const receiver = await db.get('SELECT email, username FROM users WHERE id = ?', req.params.userId);
+  const senderName = sender?.username || 'Someone';
+  await notify({
+    userId: Number(req.params.userId), type: 'new_dm',
+    title: 'New message from ' + senderName,
+    body: body.trim().substring(0, 100),
+    link: '/messages',
+    email: receiver ? { to: receiver.email, subject: senderName + ' sent you a message on Boomerang', html: notificationEmailHtml('New message from ' + senderName, '"' + body.trim().substring(0, 200) + '"', '') } : undefined,
+  });
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
