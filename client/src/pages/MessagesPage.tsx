@@ -43,6 +43,18 @@ export default function MessagesPage() {
   };
 
   const activeConvo = convos.find(c => c.id === activeUser);
+  const [activeUserInfo, setActiveUserInfo] = useState<any>(null);
+
+  // Fetch user info when activeUser changes and isn't in convos
+  useEffect(() => {
+    if (activeUser && !convos.find(c => c.id === activeUser)) {
+      api.getUser(activeUser).then(setActiveUserInfo).catch(() => {});
+    } else {
+      setActiveUserInfo(null);
+    }
+  }, [activeUser, convos]);
+
+  const activeName = activeConvo?.username || activeUserInfo?.username || 'User';
   const showChat = activeUser !== null;
 
   return (
@@ -89,9 +101,9 @@ export default function MessagesPage() {
                     ← 
                   </button>
                   <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {activeConvo?.username?.charAt(0).toUpperCase() || '?'}
+                    {activeName.charAt(0).toUpperCase()}
                   </div>
-                  <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeConvo?.username || 'User'}</Link>
+                  <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeName}</Link>
                 </div>
                 <a href={`https://meet.jit.si/boomerang-${[user?.id, activeUser].sort().join('-')}`} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-600">
