@@ -89,4 +89,36 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
   res.json({ message: 'Service deleted' });
 });
 
+// Favorite a service
+router.post('/:id/favorite', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await db.run('INSERT INTO favorites (user_id, service_id) VALUES (?, ?)', req.userId, req.params.id);
+    res.status(201).json({ message: 'Favorited' });
+  } catch { res.status(409).json({ error: 'Already favorited' }); }
+});
+
+// Unfavorite
+router.delete('/:id/favorite', authMiddleware, async (req: AuthRequest, res: Response) => {
+  await db.run('DELETE FROM favorites WHERE user_id = ? AND service_id = ?', req.userId, req.params.id);
+  res.json({ message: 'Unfavorited' });
+});
+
+// Get my favorites
+router.get('/user/favorites', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const favs = await db.all('SELECT s.*, c.name as category_name, c.icon as category_icon, u.username as provider_name FROM favorites f JOIN services s ON f.service_id = s.id JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id WHERE f.user_id = ? ORDER BY f.created_at DESC', req.userId);
+  res.json(favs);
+});
+
+// Check if I favorited a service
+router.get('/:id/favorited', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const fav = await db.get('SELECT id FROM favorites WHERE user_id = ? AND service_id = ?', req.userId, req.params.id);
+  res.json({ favorited: !!fav });
+});
+
+// Popular services this week
+router.get('/trending/popular', async (_req, res: Response) => {
+  const services = await db.all("SELECT s.*, c.name as category_name, c.icon as category_icon, u.username as provider_name, u.city as provider_city, COUNT(sr.id) as request_count, (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr2 ON r.request_id = sr2.id WHERE sr2.service_id = s.id) as avg_rating FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id LEFT JOIN service_requests sr ON sr.service_id = s.id AND sr.created_at > NOW() - INTERVAL '7 days' WHERE s.is_active = 1 GROUP BY s.id, c.name, c.icon, u.username, u.city ORDER BY request_count DESC, s.created_at DESC LIMIT 10");
+  res.json(services);
+});
+
 export default router;

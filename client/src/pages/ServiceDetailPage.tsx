@@ -14,8 +14,15 @@ export default function ServiceDetailPage() {
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [favorited, setFavorited] = useState(false);
 
   useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); }, [id]);
+  useEffect(() => { if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {}); }, [id, user]);
+
+  const toggleFavorite = async () => {
+    if (favorited) { await api.unfavoriteService(Number(id)); setFavorited(false); }
+    else { await api.favoriteService(Number(id)); setFavorited(true); }
+  };
 
   // Load available slots when date changes
   useEffect(() => {
@@ -81,7 +88,14 @@ export default function ServiceDetailPage() {
           )}
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold mb-3">{service.title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-3 flex items-center gap-3">
+          {service.title}
+          {user && (
+            <button onClick={toggleFavorite} className="text-2xl hover:scale-110 transition-transform" aria-label={favorited ? 'Unfavorite' : 'Favorite'}>
+              {favorited ? '❤️' : '🤍'}
+            </button>
+          )}
+        </h1>
         <p className="text-gray-600 leading-relaxed mb-6">{service.description}</p>
 
         <div className="flex flex-wrap gap-4 mb-6">

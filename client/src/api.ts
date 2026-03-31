@@ -35,6 +35,11 @@ export const api = {
   createService: (body: any) => request('/services', { method: 'POST', body: JSON.stringify(body) }),
   updateService: (id: number, body: any) => request(`/services/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteService: (id: number) => request(`/services/${id}`, { method: 'DELETE' }),
+  favoriteService: (id: number) => request(`/services/${id}/favorite`, { method: 'POST' }),
+  unfavoriteService: (id: number) => request(`/services/${id}/favorite`, { method: 'DELETE' }),
+  getMyFavorites: () => request('/services/user/favorites'),
+  isFavorited: (id: number) => request(`/services/${id}/favorited`),
+  getPopularServices: () => request('/services/trending/popular'),
 
   // Requests
   createRequest: (body: any) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),

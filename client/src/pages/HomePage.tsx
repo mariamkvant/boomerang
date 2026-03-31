@@ -7,10 +7,12 @@ export default function HomePage() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
   const [recentServices, setRecentServices] = useState<any[]>([]);
+  const [popularServices, setPopularServices] = useState<any[]>([]);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
     api.getServices('').then(setRecentServices).catch(() => {});
+    api.getPopularServices().then(setPopularServices).catch(() => {});
   }, []);
 
   return (
@@ -83,7 +85,36 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Recent services */}
+      {/* Popular this week */}
+      {popularServices.length > 0 && (
+        <section className="py-12">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold">🔥 Popular This Week</h2>
+              <p className="text-gray-500 text-sm mt-1">Most requested services</p>
+            </div>
+            <Link to="/browse" className="text-sm font-medium text-primary-600 hover:text-primary-700">See more →</Link>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {popularServices.slice(0, 6).map((s: any) => (
+              <Link key={s.id} to={`/services/${s.id}`}
+                className="bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover group animate-slide-up">
+                <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                  <span className="bg-gray-50 px-2 py-1 rounded-full">{s.category_icon} {s.category_name}</span>
+                  {s.avg_rating && <span className="text-accent-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">🪃 {s.points_cost} pts</span>
+                  <span className="text-xs text-gray-400">{s.provider_name}{s.provider_city ? ` · ${s.provider_city}` : ''}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recently Added */}
       {recentServices.length > 0 && (
         <section className="py-12">
           <div className="flex items-center justify-between mb-8">
