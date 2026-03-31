@@ -72,4 +72,13 @@ export const api = {
   getUnreadCount: () => request('/notifications/unread'),
   markRead: (id: number) => request(`/notifications/${id}/read`, { method: 'PUT' }),
   markAllRead: () => request('/notifications/read-all', { method: 'PUT' }),
+
+  // Groups
+  createGroup: (body: any) => request('/groups', { method: 'POST', body: JSON.stringify(body) }),
+  getPublicGroups: () => request('/groups'),
+  getMyGroups: () => request('/groups/mine'),
+  getGroup: (id: number) => request(`/groups/${id}`),
+  joinGroup: (id: number, invite_code?: string) => request(`/groups/${id}/join`, { method: 'POST', body: JSON.stringify({ invite_code }) }),
+  joinByCode: (code: string) => request(`/groups/join/${code}`, { method: 'POST' }),
+  leaveGroup: (id: number) => request(`/groups/${id}/leave`, { method: 'DELETE' }),
 };

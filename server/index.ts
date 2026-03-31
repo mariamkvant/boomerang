@@ -8,6 +8,7 @@ import requestRoutes from './routes/requestRoutes';
 import availabilityRoutes from './routes/availabilityRoutes';
 import trustRoutes from './routes/trustRoutes';
 import notificationRoutes from './routes/notificationRoutes';
+import groupRoutes from './routes/groupRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/trust', trustRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/groups', groupRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
