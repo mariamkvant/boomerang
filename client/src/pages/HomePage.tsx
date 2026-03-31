@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { t } from '../i18n';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -23,11 +24,11 @@ export default function HomePage() {
       <section className="text-center py-16 md:py-24">
         <img src="/logo.svg" alt="Boomerang" className="w-20 h-20 mx-auto mb-8 animate-slide-up" />
         <h1 className="text-4xl md:text-6xl font-extrabold mb-5 leading-tight">
-          What You Give, <span className="bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">Comes Back</span>
+          {t('hero.title1')} <span className="bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent">{t('hero.title2')}</span>
         </h1>
-        <p className="text-sm text-gray-400 italic mb-6">— Shota Rustaveli</p>
+        <p className="text-sm text-gray-400 italic mb-6">{t('hero.quote')}</p>
         <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Share your talents with your community and earn points. Use those points to get help when you need it. No money involved — just people helping people.
+          {t('hero.subtitle')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
           {user ? (
@@ -37,18 +38,18 @@ export default function HomePage() {
             </>
           ) : (
             <>
-              <Link to="/register" className="bg-primary-500 text-white px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5">Get Started Free</Link>
-              <Link to="/browse" className="border-2 border-gray-200 text-gray-700 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-gray-50 hover:border-gray-300">Browse Services</Link>
+              <Link to="/register" className="bg-primary-500 text-white px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5">{t('hero.getStarted')}</Link>
+              <Link to="/browse" className="border-2 border-gray-200 text-gray-700 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-gray-50 hover:border-gray-300">{t('hero.browse')}</Link>
             </>
           )}
         </div>
-        <p className="text-sm text-gray-400">🪃 New members start with 50 free points</p>
+        <p className="text-sm text-gray-400">{t('hero.freePoints')}</p>
       </section>
 
       {/* How it works */}
       <section className="py-12">
-        <h2 className="text-center text-2xl font-bold mb-2">How Boomerang Works</h2>
-        <p className="text-center text-gray-500 mb-10 text-sm">Three simple steps to start exchanging</p>
+        <h2 className="text-center text-2xl font-bold mb-2">{t('how.title')}</h2>
+        <p className="text-center text-gray-500 mb-10 text-sm">{t('how.subtitle')}</p>
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {[
             { step: '1', icon: '🎯', title: 'Share What You Know', desc: 'List your skills — gardening, guitar, cooking, tech help, anything you\'re good at.' },
@@ -182,9 +183,9 @@ export default function HomePage() {
       {!user && (
         <section className="py-16">
           <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 md:p-16 text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to join the community?</h2>
-            <p className="text-primary-100 mb-8 max-w-lg mx-auto">Start with 50 free points. Offer your skills, help your neighbors, and get help when you need it.</p>
-            <Link to="/register" className="inline-block bg-white text-primary-600 px-8 py-3.5 rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Create Free Account</Link>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('cta.title')}</h2>
+            <p className="text-primary-100 mb-8 max-w-lg mx-auto">{t('cta.subtitle')}</p>
+            <Link to="/register" className="inline-block bg-white text-primary-600 px-8 py-3.5 rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">{t('cta.button')}</Link>
           </div>
         </section>
       )}

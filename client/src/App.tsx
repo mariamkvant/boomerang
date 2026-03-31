@@ -20,7 +20,7 @@ import GroupDetailPage from './pages/GroupDetailPage';
 import HelpWantedPage from './pages/HelpWantedPage';
 import AccountPage from './pages/AccountPage';
 import PeoplePage from './pages/PeoplePage';
-import { getLang, setLang, LANGUAGES } from './i18n';
+import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -46,11 +46,11 @@ function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
-          {navLink('/browse', 'Browse Services')}
-          {user && navLink('/services/new', 'Offer Service')}
-          {navLink('/help-wanted', 'Help Needed')}
-          {navLink('/groups', 'Communities')}
-          {user && navLink('/dashboard', 'My Dashboard')}
+          {navLink('/browse', t('nav.browse'))}
+          {user && navLink('/services/new', t('nav.offer'))}
+          {navLink('/help-wanted', t('nav.help'))}
+          {navLink('/groups', t('nav.communities'))}
+          {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -97,11 +97,11 @@ function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
-          {navLink('/browse', 'Browse Services')}
-          {user && navLink('/services/new', 'Offer a Service')}
-          {navLink('/help-wanted', 'Help Needed')}
-          {navLink('/groups', 'Communities')}
-          {user && navLink('/dashboard', 'My Dashboard')}
+          {navLink('/browse', t('nav.browse'))}
+          {user && navLink('/services/new', t('nav.offer'))}
+          {navLink('/help-wanted', t('nav.help'))}
+          {navLink('/groups', t('nav.communities'))}
+          {user && navLink('/dashboard', t('nav.dashboard'))}
           {!user && navLink('/login', 'Log in')}
           {!user && navLink('/register', 'Sign up free')}
           {user && (
@@ -124,7 +124,7 @@ function Footer() {
               <img src="/logo.svg" alt="" className="w-7 h-7" />
               <span className="text-lg font-light font-logo text-gray-900 tracking-wide">boomerang</span>
             </div>
-            <p className="text-sm text-gray-500 max-w-xs">What you give, comes back. Share your skills, earn points, get help — no money needed.</p>
+            <p className="text-sm text-gray-500 max-w-xs">{t('footer.tagline')}</p>
           </div>
           <div className="flex gap-12 text-sm">
             <div>
@@ -147,11 +147,11 @@ function Footer() {
         </div>
         <div className="border-t border-gray-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
           <span>© 2026 Boomerang. Built with community in mind.</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {LANGUAGES.map(l => (
               <button key={l.code} onClick={() => setLang(l.code)}
                 className={`px-2 py-1 rounded text-xs ${getLang() === l.code ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:text-gray-600'}`}>
-                {l.flag} {l.code.toUpperCase()}
+                {l.flag}
               </button>
             ))}
           </div>
