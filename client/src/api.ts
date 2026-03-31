@@ -101,4 +101,10 @@ export const api = {
   // Achievements
   getMyAchievements: () => request('/users/achievements'),
   getUserAchievements: (id: number) => request(`/users/${id}/achievements`),
+
+  // Direct Messages
+  getConversations: () => request('/dm/conversations'),
+  getDMs: (userId: number) => request(`/dm/${userId}`),
+  sendDM: (userId: number, body: string) => request(`/dm/${userId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+  getUnreadDMCount: () => request('/dm/unread/count'),
 };

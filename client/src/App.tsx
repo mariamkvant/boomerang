@@ -20,6 +20,7 @@ import GroupDetailPage from './pages/GroupDetailPage';
 import HelpWantedPage from './pages/HelpWantedPage';
 import AccountPage from './pages/AccountPage';
 import PeoplePage from './pages/PeoplePage';
+import MessagesPage from './pages/MessagesPage';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 function Navbar() {
@@ -183,6 +184,7 @@ export default function App() {
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/people" element={<PeoplePage />} />
+          <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>

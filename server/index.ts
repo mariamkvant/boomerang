@@ -10,6 +10,7 @@ import trustRoutes from './routes/trustRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import groupRoutes from './routes/groupRoutes';
 import helpWantedRoutes from './routes/helpWantedRoutes';
+import dmRoutes from './routes/dmRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,6 +26,7 @@ app.use('/api/trust', trustRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/help-wanted', helpWantedRoutes);
+app.use('/api/dm', dmRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

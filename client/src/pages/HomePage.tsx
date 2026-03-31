@@ -52,9 +52,9 @@ export default function HomePage() {
         <p className="text-center text-gray-500 mb-10 text-sm">{t('how.subtitle')}</p>
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {[
-            { step: '1', icon: '🎯', title: 'Share What You Know', desc: 'List your skills — gardening, guitar, cooking, tech help, anything you\'re good at.' },
-            { step: '2', icon: '🪃', title: 'Help & Earn Points', desc: 'When someone requests your service and you complete it, you earn points automatically.' },
-            { step: '3', icon: '✨', title: 'Get Help Back', desc: 'Use your earned points to request services from others. The cycle continues.' },
+            { step: '1', icon: '🎯', title: t('step1.title'), desc: t('step1.desc') },
+            { step: '2', icon: '🪃', title: t('step2.title'), desc: t('step2.desc') },
+            { step: '3', icon: '✨', title: t('step3.title'), desc: t('step3.desc') },
           ].map(f => (
             <div key={f.step} className="relative bg-white p-7 rounded-2xl shadow-card hover:shadow-card-hover transition-shadow group">
               <div className="absolute -top-3 -left-3 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">{f.step}</div>

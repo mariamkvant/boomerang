@@ -59,6 +59,7 @@ export default function ProfilePage() {
           </div>
           {user && !isMe && (
             <div className="flex gap-2">
+              <Link to={`/messages?to=${id}`} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">💬 Message</Link>
               <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Report</button>
               <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">{isBlocked ? 'Unblock' : 'Block'}</button>
             </div>
