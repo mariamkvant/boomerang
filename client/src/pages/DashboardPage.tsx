@@ -249,7 +249,7 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{r.service_title}</span>
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
                     {badge(r.status)}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{r.service_title}</span>
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
                     {badge(r.status)}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
@@ -367,10 +367,13 @@ export default function DashboardPage() {
           {myServices.map((s: any) => (
             <div key={s.id} className="bg-white p-5 rounded-xl shadow-card flex items-center justify-between">
               <Link to={`/services/${s.id}`} className="flex-1 group">
-                <h3 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h3>
+                <h3 className="font-semibold text-sm group-hover:text-primary-600 cursor-pointer">{s.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
               </Link>
-              <button onClick={async () => { if (confirm('Delete this service?')) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500 ml-3 shrink-0">🗑️</button>
+              <div className="flex items-center gap-2 ml-3 shrink-0">
+                <Link to={`/services/${s.id}`} className="text-xs text-primary-500 hover:text-primary-600">View</Link>
+                <button onClick={async () => { if (confirm('Delete this service?')) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+              </div>
             </div>
           ))}
         </div>
