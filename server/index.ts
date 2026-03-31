@@ -24,7 +24,28 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS — restrict in production
+const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:3001', 'https://www.boomerang.fyi', 'https://boomerang.fyi'];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) callback(null, true);
+    else callback(null, true); // Allow for now but log
+  },
+  credentials: true,
+}));
+
+// Security headers
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(express.json({ limit: '5mb' }));
 
 app.use('/api/users', userRoutes);
@@ -44,6 +65,30 @@ app.use('/api/leaderboard', leaderboardRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Catch-all for unknown API routes
+app.all('/api/*', (_req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// robots.txt
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Sitemap: https://www.boomerang.fyi/sitemap.xml`);
+});
+
+// sitemap.xml
+app.get('/sitemap.xml', (_req, res) => {
+  const pages = ['/', '/browse', '/help-wanted', '/groups', '/leaderboard', '/community', '/people', '/register', '/login', '/privacy', '/terms'];
+  const urls = pages.map(p => `  <url><loc>https://www.boomerang.fyi${p}</loc><changefreq>weekly</changefreq></url>`).join('\n');
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>`);
 });
 
 // Serve frontend

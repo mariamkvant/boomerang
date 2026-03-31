@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
     <title>Boomerang - What You Give, Comes Back</title>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/logo.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/logo.svg" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#f97316" />
     <meta name="description" content="What you give, comes back. Share your skills, earn points, get help — no money needed." />
@@ -30,7 +32,15 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Loading skeleton shown before React hydrates -->
+      <div style="min-height:100vh;background:#f9fafb;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif">
+        <img src="/logo.svg" alt="" width="48" height="48" style="animation:pulse 1.5s ease-in-out infinite" />
+        <p style="margin-top:16px;color:#f97316;font-size:20px;font-weight:300;letter-spacing:2px;font-family:Outfit,sans-serif">boomerang</p>
+        <p style="margin-top:8px;color:#9ca3af;font-size:12px">Loading...</p>
+      </div>
+      <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
