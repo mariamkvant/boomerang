@@ -48,7 +48,7 @@ router.get('/calculate-points', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, subcategory, search, page = '1' } = req.query;
+  const { category, subcategory, search, provider, page = '1' } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   let query = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
@@ -58,6 +58,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.is_active = 1`;
   const params: any[] = [];
   let n = 0;
+  if (provider) { query += ` AND s.provider_id = $${++n}`; params.push(provider); }
   if (category) { query += ` AND s.category_id = $${++n}`; params.push(category); }
   if (subcategory) { query += ` AND s.subcategory_id = $${++n}`; params.push(subcategory); }
   if (search) { query += ` AND (s.title ILIKE $${++n} OR s.description ILIKE $${++n})`; params.push(`%${search}%`, `%${search}%`); n++; }
