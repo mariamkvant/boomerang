@@ -93,6 +93,8 @@ export default function OnboardingPage() {
             className="w-full mt-6 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
             Next →
           </button>
+          <button onClick={() => { localStorage.setItem('onboarding_done', 'true'); navigate('/dashboard'); }}
+            className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2">Skip for now</button>
         </div>
       )}
 

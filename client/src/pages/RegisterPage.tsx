@@ -57,6 +57,7 @@ export default function RegisterPage() {
         </button>
         <p className="text-center text-sm text-gray-500">Already have an account? <Link to="/login" className="text-primary-600 font-medium hover:underline">Log in</Link></p>
       </form>
+      <p className="text-center text-xs text-gray-400 mt-4">By signing up you agree to our <Link to="/terms" className="hover:underline">Terms</Link> and <Link to="/privacy" className="hover:underline">Privacy Policy</Link>.</p>
       <div className="mt-6 text-center text-xs text-gray-400">
         🪃 What you give comes back to you
       </div>
