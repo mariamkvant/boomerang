@@ -37,7 +37,12 @@ app.use('/api/social', socialRoutes);
 app.use('/api/push', pushRoutes);
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    vapid_configured: !!(process.env.VAPID_PUBLIC_KEY || '').trim(),
+    env_keys: Object.keys(process.env).filter(k => k.includes('VAPID')).join(','),
+  });
 });
 
 // Serve frontend
