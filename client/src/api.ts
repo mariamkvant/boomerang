@@ -141,4 +141,9 @@ export const api = {
   getAdminReports: () => request('/admin/reports'),
   resolveReport: (id: number, status: string) => request(`/admin/reports/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
   adminDeleteService: (id: number) => request(`/admin/services/${id}`, { method: 'DELETE' }),
+
+  // Leaderboard
+  getWeeklyLeaders: () => request('/leaderboard/weekly'),
+  getAllTimeLeaders: () => request('/leaderboard/alltime'),
+  getTopCommunities: () => request('/leaderboard/communities'),
 };

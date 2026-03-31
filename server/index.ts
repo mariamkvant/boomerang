@@ -18,6 +18,7 @@ import socialRoutes from './routes/socialRoutes';
 import pushRoutes from './routes/pushRoutes';
 import adminRoutes from './routes/adminRoutes';
 import digestRoutes from './routes/digestRoutes';
+import leaderboardRoutes from './routes/leaderboardRoutes';
 
 const app = express();
 const server = createServer(app);
@@ -39,6 +40,7 @@ app.use('/api/social', socialRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/digest', digestRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

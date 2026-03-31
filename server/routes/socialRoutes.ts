@@ -87,14 +87,37 @@ router.get('/daily-match', authMiddleware, async (req: AuthRequest, res: Respons
 // Community feed
 router.get('/feed', async (_req, res: Response) => {
   const shoutouts = await db.all(`SELECT s.id, 'shoutout' as type, s.message, s.created_at,
-    fu.username as from_username, tu.username as to_username
+    fu.username as from_username, fu.id as from_user_id, fu.avatar as from_avatar,
+    tu.username as to_username, tu.id as to_user_id, tu.avatar as to_avatar
     FROM shoutouts s JOIN users fu ON s.from_user_id = fu.id JOIN users tu ON s.to_user_id = tu.id
     ORDER BY s.created_at DESC LIMIT 10`);
-  const recentExchanges = await db.get("SELECT COUNT(*) as count FROM service_requests WHERE status = 'completed' AND completed_at > NOW() - INTERVAL '7 days'");
+  const recentExchanges = await db.all(`SELECT sr.id, 'exchange' as type, sr.completed_at as created_at,
+    s.title as service_title, s.id as service_id, s.points_cost,
+    p.username as provider_name, p.id as provider_id, p.avatar as provider_avatar,
+    r.username as requester_name, r.id as requester_id
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id
+    JOIN users p ON s.provider_id = p.id JOIN users r ON sr.requester_id = r.id
+    WHERE sr.status = 'completed' AND sr.completed_at > NOW() - INTERVAL '7 days'
+    ORDER BY sr.completed_at DESC LIMIT 10`);
+  const newServices = await db.all(`SELECT s.id, 'new_service' as type, s.title, s.created_at, s.points_cost,
+    c.icon as category_icon, c.name as category_name,
+    u.username as provider_name, u.id as provider_id, u.avatar as provider_avatar
+    FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
+    WHERE s.is_active = 1 AND s.created_at > NOW() - INTERVAL '7 days'
+    ORDER BY s.created_at DESC LIMIT 10`);
+  const exchangeCount = await db.get("SELECT COUNT(*) as count FROM service_requests WHERE status = 'completed' AND completed_at > NOW() - INTERVAL '7 days'");
   const totalMembers = await db.get('SELECT COUNT(*) as count FROM users');
+  const totalPoints = await db.get("SELECT COALESCE(SUM(s.points_cost), 0) as total FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.status = 'completed'");
+  // Merge and sort all feed items by date
+  const allItems = [...shoutouts, ...recentExchanges, ...newServices].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 20);
   res.json({
     shoutouts,
-    stats: { week_exchanges: parseInt(recentExchanges?.count || '0'), total_members: parseInt(totalMembers?.count || '0') }
+    feed: allItems,
+    stats: {
+      week_exchanges: parseInt(exchangeCount?.count || '0'),
+      total_members: parseInt(totalMembers?.count || '0'),
+      total_points_exchanged: parseInt(totalPoints?.total || '0'),
+    }
   });
 });
 

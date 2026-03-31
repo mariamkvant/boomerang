@@ -146,6 +146,9 @@ export async function initDatabase() {
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS image TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT false'); } catch(e) {}
+    try { await client.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurrence TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE bookings ADD COLUMN IF NOT EXISTS recurrence_end DATE'); } catch(e) {}
 try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_bundle BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS sessions_count INTEGER DEFAULT 1'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS bundle_discount INTEGER DEFAULT 0'); } catch(e) {}

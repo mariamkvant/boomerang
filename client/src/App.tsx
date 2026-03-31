@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSocketConnection } from './hooks/useSocket';
+import { useDarkMode } from './hooks/useDarkMode';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -28,6 +29,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import EditServicePage from './pages/EditServicePage';
 import AdminPage from './pages/AdminPage';
+import LeaderboardPage from './pages/LeaderboardPage';
 import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
@@ -36,6 +38,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { dark, toggle: toggleDark } = useDarkMode();
 
   const isActive = (path: string) => location.pathname === path;
   const isHome = location.pathname === '/';
@@ -67,6 +70,7 @@ function Navbar() {
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
+          {navLink('/leaderboard', '🏆')}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 
@@ -78,6 +82,9 @@ function Navbar() {
                 <span className="text-xs text-primary-500">🪃</span>
               </div>
               <NotificationBell />
+              <button onClick={toggleDark} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Toggle dark mode">
+                {dark ? '☀️' : '🌙'}
+              </button>
               <div className="relative group">
                 <button className="w-9 h-9 rounded-full bg-primary-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-primary-600">
                   {user.username.charAt(0).toUpperCase()}
@@ -214,6 +221,7 @@ export default function App() {
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>

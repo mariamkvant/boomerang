@@ -7,6 +7,29 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+.dark body, body.dark {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.dark .bg-white { @apply !bg-gray-800; }
+.dark .bg-gray-50 { @apply !bg-gray-900; }
+.dark .bg-gray-100 { @apply !bg-gray-700; }
+.dark .text-gray-900 { @apply !text-gray-100; }
+.dark .text-gray-700 { @apply !text-gray-300; }
+.dark .text-gray-600 { @apply !text-gray-400; }
+.dark .text-gray-500 { @apply !text-gray-400; }
+.dark .text-gray-400 { @apply !text-gray-500; }
+.dark .border-gray-100 { @apply !border-gray-700; }
+.dark .border-gray-200 { @apply !border-gray-600; }
+.dark .border-gray-50 { @apply !border-gray-700; }
+.dark .shadow-card { box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2); }
+.dark .shadow-nav { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.dark .bg-white\/80 { background: rgba(31, 41, 55, 0.9) !important; }
+.dark .hover\:bg-gray-50:hover { @apply !bg-gray-700; }
+.dark .hover\:bg-gray-100:hover { @apply !bg-gray-600; }
+.dark input, .dark textarea, .dark select { @apply bg-gray-700 border-gray-600 text-gray-100; }
+.dark input::placeholder, .dark textarea::placeholder { @apply text-gray-500; }
+
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;

@@ -79,29 +79,59 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      {/* Shoutouts feed */}
-      <h3 className="font-semibold mb-4">🎉 Recent Shoutouts</h3>
-      {feed.shoutouts?.length === 0 && (
+      {/* Activity Feed */}
+      <h3 className="font-semibold mb-4">📰 Activity Feed</h3>
+      {(!feed.feed || feed.feed.length === 0) && (
         <div className="bg-white p-8 rounded-2xl shadow-card text-center">
-          <div className="text-3xl mb-3">🎉</div>
-          <p className="text-gray-400 text-sm">No shoutouts yet. Be the first to thank someone!</p>
+          <div className="text-3xl mb-3">🪃</div>
+          <p className="text-gray-400 text-sm">No activity yet. Start exchanging skills!</p>
         </div>
       )}
       <div className="space-y-3">
-        {feed.shoutouts?.map((s: any) => (
-          <div key={s.id} className="bg-white p-5 rounded-xl shadow-card">
-            <div className="flex items-start gap-3">
-              <div className="text-2xl">🎉</div>
-              <div>
-                <p className="text-sm">
-                  <Link to={`/users/${s.from_user_id || 0}`} className="font-semibold text-primary-600 hover:underline">{s.from_username}</Link>
-                  {' '}thanked{' '}
-                  <Link to={`/users/${s.to_user_id || 0}`} className="font-semibold text-primary-600 hover:underline">{s.to_username}</Link>
-                </p>
-                <p className="text-sm text-gray-600 mt-1">"{s.message}"</p>
-                <p className="text-[10px] text-gray-300 mt-2">{new Date(s.created_at).toLocaleDateString()}</p>
+        {feed.feed?.map((item: any, i: number) => (
+          <div key={`${item.type}-${item.id}-${i}`} className="bg-white p-4 rounded-xl shadow-card">
+            {item.type === 'shoutout' && (
+              <div className="flex items-start gap-3">
+                <div className="text-xl shrink-0">🎉</div>
+                <div>
+                  <p className="text-sm">
+                    <Link to={`/users/${item.from_user_id}`} className="font-semibold text-primary-600 hover:underline">{item.from_username}</Link>
+                    {' '}thanked{' '}
+                    <Link to={`/users/${item.to_user_id}`} className="font-semibold text-primary-600 hover:underline">{item.to_username}</Link>
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">"{item.message}"</p>
+                </div>
               </div>
-            </div>
+            )}
+            {item.type === 'exchange' && (
+              <div className="flex items-start gap-3">
+                <div className="text-xl shrink-0">✅</div>
+                <div>
+                  <p className="text-sm">
+                    <Link to={`/users/${item.provider_id}`} className="font-semibold text-primary-600 hover:underline">{item.provider_name}</Link>
+                    {' '}helped{' '}
+                    <Link to={`/users/${item.requester_id}`} className="font-semibold text-primary-600 hover:underline">{item.requester_name}</Link>
+                    {' '}with{' '}
+                    <Link to={`/services/${item.service_id}`} className="text-primary-600 hover:underline">{item.service_title}</Link>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{item.points_cost} 🪃 exchanged</p>
+                </div>
+              </div>
+            )}
+            {item.type === 'new_service' && (
+              <div className="flex items-start gap-3">
+                <div className="text-xl shrink-0">🆕</div>
+                <div>
+                  <p className="text-sm">
+                    <Link to={`/users/${item.provider_id}`} className="font-semibold text-primary-600 hover:underline">{item.provider_name}</Link>
+                    {' '}is now offering{' '}
+                    <Link to={`/services/${item.id}`} className="text-primary-600 hover:underline">{item.category_icon} {item.title}</Link>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{item.points_cost} 🪃</p>
+                </div>
+              </div>
+            )}
+            <p className="text-[10px] text-gray-300 mt-2">{new Date(item.created_at).toLocaleDateString()}</p>
           </div>
         ))}
       </div>

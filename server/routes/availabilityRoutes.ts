@@ -50,12 +50,30 @@ router.get('/slots', async (req: AuthRequest, res: Response) => {
   res.json(available);
 });
 
-// Book a slot when creating a request
+// Book a slot when creating a request (supports recurring)
 router.post('/book', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { request_id, booked_date, start_time, end_time } = req.body;
+  const { request_id, booked_date, start_time, end_time, is_recurring, recurrence, recurrence_end } = req.body;
   if (!request_id || !booked_date || !start_time || !end_time) return res.status(400).json({ error: 'All fields required' });
-  await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time) VALUES (?, ?, ?, ?)', request_id, booked_date, start_time, end_time);
-  res.status(201).json({ message: 'Slot booked' });
+
+  if (is_recurring && recurrence && recurrence_end) {
+    // Create multiple bookings for recurring schedule
+    const start = new Date(booked_date);
+    const end = new Date(recurrence_end);
+    const intervalDays = recurrence === 'weekly' ? 7 : recurrence === 'biweekly' ? 14 : 30;
+    let current = new Date(start);
+    let count = 0;
+    while (current <= end && count < 52) {
+      const dateStr = current.toISOString().split('T')[0];
+      await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time, is_recurring, recurrence, recurrence_end) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        request_id, dateStr, start_time, end_time, true, recurrence, recurrence_end);
+      current.setDate(current.getDate() + intervalDays);
+      count++;
+    }
+    res.status(201).json({ message: `${count} recurring bookings created` });
+  } else {
+    await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time) VALUES (?, ?, ?, ?)', request_id, booked_date, start_time, end_time);
+    res.status(201).json({ message: 'Slot booked' });
+  }
 });
 
 // Get booking for a request
