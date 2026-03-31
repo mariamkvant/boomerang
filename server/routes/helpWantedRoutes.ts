@@ -105,4 +105,11 @@ router.put('/:id/close', authMiddleware, async (req: AuthRequest, res: Response)
   res.json({ message: 'Closed' });
 });
 
+// Delete help wanted
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const result = await db.run('DELETE FROM help_wanted WHERE id = ? AND requester_id = ?', req.params.id, req.userId);
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found or not yours' });
+  res.json({ message: 'Deleted' });
+});
+
 export default router;

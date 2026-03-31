@@ -100,6 +100,7 @@ export const api = {
   deliverHelp: (id: number) => request(`/help-wanted/${id}/deliver`, { method: 'PUT' }),
   confirmHelp: (id: number) => request(`/help-wanted/${id}/confirm`, { method: 'PUT' }),
   closeHelpWanted: (id: number) => request(`/help-wanted/${id}/close`, { method: 'PUT' }),
+  deleteHelpWanted: (id: number) => request(`/help-wanted/${id}`, { method: 'DELETE' }),
   getMyHelpWanted: () => request('/help-wanted/user/mine'),
   getMyHelping: () => request('/help-wanted/user/helping'),
 

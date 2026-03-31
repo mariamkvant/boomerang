@@ -380,15 +380,13 @@ export default function DashboardPage() {
             <span className="text-lg">+</span> Offer a new service
           </Link>
           {myServices.map((s: any) => (
-            <Link key={s.id} to={`/services/${s.id}`} className="block bg-white p-5 rounded-xl shadow-card hover:shadow-card-hover group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
-                </div>
-                <span className="text-gray-300 group-hover:text-primary-400">→</span>
-              </div>
-            </Link>
+            <div key={s.id} className="bg-white p-5 rounded-xl shadow-card flex items-center justify-between">
+              <Link to={`/services/${s.id}`} className="flex-1 group">
+                <h3 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h3>
+                <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
+              </Link>
+              <button onClick={async () => { if (confirm('Delete this service?')) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500 ml-3 shrink-0">🗑️</button>
+            </div>
           ))}
         </div>
       )}
@@ -419,6 +417,9 @@ export default function DashboardPage() {
                   )}
                   {h.status === 'open' && (
                     <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
+                  )}
+                  {['open', 'closed'].includes(h.status) && (
+                    <button onClick={async () => { if (confirm('Delete this request?')) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
                   )}
                 </div>
               </div>
