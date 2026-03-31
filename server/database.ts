@@ -28,6 +28,9 @@ export async function initDatabase() {
       ['Sports & Fitness', '\uD83C\uDFF8', 1.3], ['Cooking', '\uD83C\uDF73', 1.3],
       ['Tutoring', '\uD83D\uDCDA', 1.5], ['Languages', '\uD83D\uDDE3\uFE0F', 1.5], ['Music', '\uD83C\uDFB8', 1.5],
       ['Tech Help', '\uD83D\uDCBB', 1.8], ['Home Repair', '\uD83D\uDD27', 2.0], ['Other', '\u2728', 1.0],
+      ['Arts & Crafts', '\uD83C\uDFA8', 1.3], ['Health & Wellness', '\uD83E\uDDD8', 1.5],
+      ['Business & Career', '\uD83D\uDCBC', 1.8], ['Design & Creative', '\uD83C\uDFAC', 1.5],
+      ['Childcare & Education', '\uD83D\uDC76', 1.3], ['Auto & Mechanics', '\uD83D\uDE97', 2.0],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
@@ -63,6 +66,33 @@ export async function initDatabase() {
       ['Home Repair','General Handyman','Odd jobs'],
       ['Other','Photography','Photo services'],['Other','Event Help','Event organization'],
       ['Other','Administrative','Paperwork help'],['Other','Other','Anything else'],
+      ['Arts & Crafts','Drawing & Painting','Sketching, watercolor, oil painting'],
+      ['Arts & Crafts','Pottery & Ceramics','Pottery wheel, hand building, glazing'],
+      ['Arts & Crafts','Knitting & Sewing','Knitting, crocheting, sewing, embroidery'],
+      ['Arts & Crafts','Jewelry Making','Beading, wire wrapping, metalwork'],
+      ['Arts & Crafts','Woodworking','Carving, furniture making, wood crafts'],
+      ['Health & Wellness','Yoga Instruction','Yoga poses, breathing, meditation'],
+      ['Health & Wellness','Nutrition Advice','Meal planning, diet guidance'],
+      ['Health & Wellness','Massage','Relaxation and therapeutic massage'],
+      ['Health & Wellness','Mental Health Support','Peer support, stress management'],
+      ['Health & Wellness','First Aid Training','CPR, basic first aid skills'],
+      ['Business & Career','Resume Writing','CV writing, cover letters, LinkedIn'],
+      ['Business & Career','Interview Prep','Mock interviews, coaching'],
+      ['Business & Career','Accounting & Tax','Basic bookkeeping, tax filing help'],
+      ['Business & Career','Marketing Help','Social media, content, branding'],
+      ['Business & Career','Legal Basics','Contract review, basic legal guidance'],
+      ['Design & Creative','Graphic Design','Logos, flyers, social media graphics'],
+      ['Design & Creative','Video Editing','Cutting, effects, YouTube content'],
+      ['Design & Creative','UI/UX Design','App and website design'],
+      ['Design & Creative','Content Writing','Blog posts, copywriting, editing'],
+      ['Design & Creative','Social Media Management','Posting, scheduling, strategy'],
+      ['Childcare & Education','Babysitting','Watching children at home'],
+      ['Childcare & Education','Homework Help','School subjects, study skills'],
+      ['Childcare & Education','Special Needs Support','Adapted learning, patience'],
+      ['Childcare & Education','Reading & Storytelling','Reading aloud, literacy help'],
+      ['Auto & Mechanics','Car Maintenance','Oil change, tire rotation, basic checks'],
+      ['Auto & Mechanics','Bike Repair','Flat tires, chain, brakes, tune-ups'],
+      ['Auto & Mechanics','Diagnostics','Check engine light, troubleshooting'],
     ];
     for (const [catName, subName, desc] of subs) {
       const catRes = await client.query('SELECT id FROM categories WHERE name = $1', [catName]);
