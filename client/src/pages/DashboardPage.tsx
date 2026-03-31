@@ -104,7 +104,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
 
 export default function DashboardPage() {
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services' | 'helpneeded' | 'schedule'>('incoming');
+  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services' | 'schedule'>('incoming');
   const [incoming, setIncoming] = useState<any[]>([]);
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [myServices, setMyServices] = useState<any[]>([]);
@@ -152,9 +152,8 @@ export default function DashboardPage() {
 
   const tabs = [
     { key: 'incoming' as const, label: 'Incoming', count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
-    { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length },
+    { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length + myHelpWanted.filter(h => !['completed','closed'].includes(h.status)).length },
     { key: 'services' as const, label: 'My Services', count: myServices.length },
-    { key: 'helpneeded' as const, label: 'Ask for Help', count: myHelpWanted.filter(h => h.status === 'open').length },
     { key: 'schedule' as const, label: '📅 Schedule', count: 0 },
   ];
 
@@ -355,6 +354,62 @@ export default function DashboardPage() {
               )}
             </div>
           ))}
+
+          {/* Help wanted requests */}
+          {myHelpWanted.length > 0 && <h4 className="text-xs font-semibold text-gray-400 mt-6">Help Requests</h4>}
+          <Link to="/help-wanted" className="flex items-center justify-center gap-2 bg-white p-4 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-primary-300 hover:text-primary-600 transition-colors">
+            <span>+</span> Ask for help
+          </Link>
+          {myHelpWanted.map((h: any) => (
+            <div key={'hw-'+h.id} className="bg-white p-5 rounded-xl shadow-card">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-sm">{h.title}</span>
+                    {badge(h.status)}
+                  </div>
+                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · {h.points_budget} 🪃</p>
+                  {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
+                </div>
+                <div className="flex gap-2">
+                  {h.status === 'delivered' && (
+                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600">Confirm ✓</button>
+                  )}
+                  {h.status === 'open' && (
+                    <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
+                  )}
+                  {['open', 'closed'].includes(h.status) && (
+                    <button onClick={async () => { if (confirm('Delete?')) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Items I'm helping with */}
+          {myHelping.length > 0 && <h4 className="text-xs font-semibold text-gray-400 mt-6">I'm Helping With</h4>}
+          {myHelping.map((h: any) => (
+            <div key={'helping-'+h.id} className="bg-white p-5 rounded-xl shadow-card">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-sm">{h.title}</span>
+                    {badge(h.status)}
+                  </div>
+                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · {h.points_budget} 🪃</p>
+                  <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
+                </div>
+                <div className="flex gap-2">
+                  {h.status === 'accepted' && (
+                    <button onClick={() => handleAction(api.deliverHelp, h.id)} className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600">Mark Delivered ✓</button>
+                  )}
+                  {h.status === 'delivered' && (
+                    <span className="text-xs text-purple-500">Waiting for confirmation...</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -377,72 +432,6 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Ask for Help */}
-      {tab === 'helpneeded' && (
-        <div className="space-y-3">
-          <Link to="/help-wanted" className="flex items-center justify-center gap-2 bg-white p-5 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-primary-300 hover:text-primary-600 transition-colors">
-            <span className="text-lg">+</span> Post a new help request
-          </Link>
-
-          {/* My help requests */}
-          {myHelpWanted.length > 0 && <h4 className="text-sm font-semibold text-gray-500 mt-4">My Requests</h4>}
-          {myHelpWanted.map((h: any) => (
-            <div key={h.id} className="bg-white p-5 rounded-xl shadow-card">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{h.title}</span>
-                    {badge(h.status)}
-                  </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} 🪃</p>
-                  {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
-                </div>
-                <div className="flex gap-2">
-                  {h.status === 'delivered' && (
-                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600">Confirm ✓</button>
-                  )}
-                  {h.status === 'open' && (
-                    <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
-                  )}
-                  {['open', 'closed'].includes(h.status) && (
-                    <button onClick={async () => { if (confirm('Delete this request?')) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Items I'm helping with */}
-          {myHelping.length > 0 && <h4 className="text-sm font-semibold text-gray-500 mt-6">I'm Helping With</h4>}
-          {myHelping.map((h: any) => (
-            <div key={h.id} className="bg-white p-5 rounded-xl shadow-card">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{h.title}</span>
-                    {badge(h.status)}
-                  </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} 🪃</p>
-                  <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
-                </div>
-                <div className="flex gap-2">
-                  {h.status === 'accepted' && (
-                    <button onClick={() => handleAction(api.deliverHelp, h.id)} className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600">Mark Delivered ✓</button>
-                  )}
-                  {h.status === 'delivered' && (
-                    <span className="text-xs text-purple-500">Waiting for confirmation...</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {myHelpWanted.length === 0 && myHelping.length === 0 && (
-            <p className="text-gray-400 text-sm text-center py-8">No help requests yet.</p>
-          )}
         </div>
       )}
 
