@@ -91,6 +91,10 @@ export default function AccountPage() {
           <p>Username: {user?.username}</p>
           <p>Boomerangs: {user?.points}</p>
         </div>
+        <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
+          <Link to="/privacy" className="text-xs text-gray-400 hover:text-primary-600">Privacy Policy</Link>
+          <Link to="/terms" className="text-xs text-gray-400 hover:text-primary-600">Terms of Service</Link>
+        </div>
       </div>
 
       <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
