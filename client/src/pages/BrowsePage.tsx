@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import MapView from '../components/MapView';
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -15,6 +16,8 @@ export default function BrowsePage() {
   const [loading, setLoading] = useState(true);
   const [nearMe, setNearMe] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -42,6 +45,7 @@ export default function BrowsePage() {
       setLocating(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           api.getNearbyServices(pos.coords.latitude, pos.coords.longitude).then(s => { setServices(s); setLoading(false); setLocating(false); }).catch(() => { setLoading(false); setLocating(false); });
         },
         () => { setNearMe(false); setLoading(false); setLocating(false); alert('Could not get your location'); }
@@ -81,6 +85,10 @@ export default function BrowsePage() {
         <button onClick={() => setNearMe(!nearMe)}
           className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${nearMe ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
           {locating ? '...' : '📍 Near Me'}
+        </button>
+        <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
+          className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
+          {viewMode === 'map' ? '📋 List' : '🗺️ Map'}
         </button>
       </div>
 
@@ -127,6 +135,11 @@ export default function BrowsePage() {
           <p className="text-gray-500 text-sm mb-6">Be the first to offer something in this category</p>
           <Link to="/services/new" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Offer a Service</Link>
         </div>
+      ) : viewMode === 'map' ? (
+        <>
+          <p className="text-sm text-gray-400 mb-4">{services.filter((s: any) => s.provider_latitude && s.provider_longitude).length} services with location on map</p>
+          <MapView services={services} userLat={userCoords?.lat} userLng={userCoords?.lng} />
+        </>
       ) : (
         <>
           <p className="text-sm text-gray-400 mb-4">{services.length} service{services.length !== 1 ? 's' : ''} found</p>
