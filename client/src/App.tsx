@@ -51,7 +51,6 @@ function Navbar() {
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
-          {user && navLink('/messages', '💬 Messages')}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 
@@ -73,6 +72,7 @@ function Navbar() {
                     <p className="text-sm font-medium text-gray-900">{user.username}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
+                  <Link to="/messages" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">💬 Messages</Link>
                   <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">My Profile</Link>
                   <Link to="/account" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
                   <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
