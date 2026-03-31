@@ -127,16 +127,16 @@ export default function BrowsePage() {
                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
                 </Link>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                  <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">🪃 {s.points_cost} 🪃</span>
+                  <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">{s.points_cost} boomerangs</span>
                   <div className="flex items-center gap-2">
                     {user && user.id !== (s.provider_user_id || s.provider_id) && (
                       <button onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); quickRequest(s.id, e); }} className="bg-primary-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-medium hover:bg-primary-600">Request</button>
                     )}
-                    <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600">
-                    <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
-                    {s.provider_name}
-                    {s.provider_city && <span className="text-gray-300">· {s.provider_city}</span>}
-                  </Link>
+                    <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600" onClick={(e: any) => e.stopPropagation()}>
+                      <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
+                      {s.provider_name}
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
