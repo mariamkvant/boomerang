@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 
 export default function AccountPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [showDeactivate, setShowDeactivate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -13,6 +13,20 @@ export default function AccountPage() {
   const [newPassword, setNewPassword] = useState('');
   const [pwSaved, setPwSaved] = useState(false);
   const [error, setError] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [verifySent, setVerifySent] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+
+  const handleResendVerify = async () => {
+    try { await api.resendVerify(); setVerifySent(true); setTimeout(() => setVerifySent(false), 5000); }
+    catch (err: any) { setVerifyError(err.message); }
+  };
+
+  const handleVerify = async () => {
+    setVerifyError('');
+    try { await api.verifyEmail(verifyCode); await refreshUser(); setVerifyCode(''); }
+    catch (err: any) { setVerifyError(err.message); }
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault(); setError('');
@@ -44,6 +58,31 @@ export default function AccountPage() {
       <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
 
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
+
+      {/* Email verification banner */}
+      {user && !user.email_verified && (
+        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl mb-6">
+          <h3 className="font-semibold text-amber-700 mb-2">📧 Verify your email</h3>
+          <p className="text-sm text-amber-600 mb-3">Your email ({user.email}) is not verified yet. Enter the 6-digit code we sent you, or request a new one.</p>
+          {verifyError && <p className="text-sm text-red-500 mb-2">{verifyError}</p>}
+          <div className="flex gap-2 mb-2">
+            <input value={verifyCode} onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))} maxLength={6}
+              placeholder="Enter 6-digit code" className="border border-amber-300 rounded-xl px-4 py-2.5 text-center text-lg tracking-widest font-bold w-40 focus:ring-2 focus:ring-amber-400 outline-none" />
+            <button onClick={handleVerify} disabled={verifyCode.length !== 6}
+              className="bg-amber-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-amber-600 disabled:opacity-50">Verify</button>
+          </div>
+          <button onClick={handleResendVerify} className="text-xs text-amber-600 hover:underline">
+            {verifySent ? '✓ Code sent! Check your email.' : 'Resend verification code'}
+          </button>
+        </div>
+      )}
+
+      {user?.email_verified && (
+        <div className="bg-green-50 border border-green-200 p-4 rounded-2xl mb-6 flex items-center gap-2">
+          <span className="text-green-500">✓</span>
+          <span className="text-sm text-green-700">Email verified</span>
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
         <h3 className="font-semibold mb-3">Account Info</h3>
