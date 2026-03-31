@@ -8,16 +8,17 @@ export default function GroupsPage() {
   const [tab, setTab] = useState<'browse' | 'mine' | 'create'>('browse');
   const [publicGroups, setPublicGroups] = useState<any[]>([]);
   const [myGroups, setMyGroups] = useState<any[]>([]);
+  const [groupSearch, setGroupSearch] = useState('');
   const [form, setForm] = useState({ name: '', description: '', is_public: true });
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const load = () => {
-    api.getPublicGroups().then(setPublicGroups).catch(() => {});
+    api.getPublicGroups(groupSearch || undefined).then(setPublicGroups).catch(() => {});
     if (user) api.getMyGroups().then(setMyGroups).catch(() => {});
   };
-  useEffect(load, [user]);
+  useEffect(load, [user, groupSearch]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault(); setError('');
@@ -64,7 +65,15 @@ export default function GroupsPage() {
       </div>
 
       {tab === 'browse' && (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <div className="relative mb-4">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input value={groupSearch} onChange={e => setGroupSearch(e.target.value)} placeholder="Search communities..."
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-card" aria-label="Search communities" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
           {publicGroups.map((g: any) => (
             <div key={g.id} className="bg-white p-5 rounded-2xl shadow-card">
               <Link to={`/groups/${g.id}`} className="font-semibold text-gray-900 hover:text-primary-600">{g.name}</Link>
@@ -76,7 +85,8 @@ export default function GroupsPage() {
               </div>
             </div>
           ))}
-          {publicGroups.length === 0 && <p className="text-gray-400 text-sm col-span-2 text-center py-8">No public groups yet. Create the first one!</p>}
+          {publicGroups.length === 0 && <p className="text-gray-400 text-sm col-span-2 text-center py-8">{groupSearch ? 'No communities found' : 'No public groups yet. Create the first one!'}</p>}
+          </div>
         </div>
       )}
 

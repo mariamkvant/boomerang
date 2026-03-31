@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 
 export default function CreateServicePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get('group');
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10' });
@@ -47,6 +49,7 @@ export default function CreateServicePage() {
         subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
         points_cost: Number(form.points_cost), duration_minutes: Number(form.duration_minutes),
         is_bundle: form.is_bundle, sessions_count: Number(form.sessions_count), bundle_discount: Number(form.bundle_discount),
+        group_id: groupId ? Number(groupId) : null,
       });
       navigate(`/services/${res.id}`);
     } catch (err: any) { setError(err.message); setLoading(false); }
@@ -58,7 +61,9 @@ export default function CreateServicePage() {
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
       <h2 className="text-2xl font-bold mb-2">Offer a Service</h2>
-      <p className="text-gray-500 text-sm mb-6">Share what you're good at with the community</p>
+      <p className="text-gray-500 text-sm mb-6">
+        {groupId ? '📌 This service will be posted to your community only' : 'Share what you\'re good at with the community'}
+      </p>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
           <span>⚠️</span> {error}

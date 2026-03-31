@@ -61,6 +61,7 @@ export default function GroupDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold">Services</h3>
             {isMember && <Link to={`/services/new?group=${id}`} className="text-xs text-primary-600 hover:underline">+ Add service</Link>}
+            {isMember && <Link to={`/help-wanted?group=${id}`} className="text-xs text-primary-600 hover:underline ml-3">+ Ask for help</Link>}
           </div>
           {group.services?.length > 0 ? (
             <div className="space-y-3">

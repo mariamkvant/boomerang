@@ -83,7 +83,7 @@ export const api = {
 
   // Groups
   createGroup: (body: any) => request('/groups', { method: 'POST', body: JSON.stringify(body) }),
-  getPublicGroups: () => request('/groups'),
+  getPublicGroups: (search?: string) => request(`/groups${search ? `?search=${encodeURIComponent(search)}` : ''}`),
   getMyGroups: () => request('/groups/mine'),
   getGroup: (id: number) => request(`/groups/${id}`),
   joinGroup: (id: number, invite_code?: string) => request(`/groups/${id}/join`, { method: 'POST', body: JSON.stringify({ invite_code }) }),

@@ -23,11 +23,19 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// List public groups
-router.get('/', async (_req, res: Response) => {
-  const groups = await db.all(`SELECT g.*, u.username as creator_name,
+// List public groups with optional search
+router.get('/', async (req: AuthRequest, res: Response) => {
+  const { search } = req.query;
+  let query = `SELECT g.*, u.username as creator_name,
     (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) as member_count
-    FROM groups g JOIN users u ON g.created_by = u.id WHERE g.is_public = true ORDER BY g.created_at DESC`);
+    FROM groups g JOIN users u ON g.created_by = u.id WHERE g.is_public = true`;
+  const params: any[] = [];
+  if (search) {
+    query += ` AND (g.name ILIKE $1 OR g.description ILIKE $1)`;
+    params.push(`%${search}%`);
+  }
+  query += ' ORDER BY g.created_at DESC';
+  const groups = await db.all(query, ...params);
   res.json(groups);
 });
 
