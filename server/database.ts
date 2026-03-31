@@ -32,6 +32,7 @@ export async function initDatabase() {
       ['Business & Career', '\uD83D\uDCBC', 1.8], ['Design & Creative', '\uD83C\uDFAC', 1.5],
       ['Childcare & Education', '\uD83D\uDC76', 1.3], ['Auto & Mechanics', '\uD83D\uDE97', 2.0],
       ['Listening & Support', '\uD83D\uDC9C', 1.0],
+      ['Beauty & Skincare', '\uD83D\uDC85', 1.3],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
@@ -100,6 +101,12 @@ export async function initDatabase() {
       ['Listening & Support','Grief & Loss Support','Compassionate ear during tough times'],
       ['Listening & Support','Loneliness & Connection','Company for those feeling isolated'],
       ['Listening & Support','Career & Life Transitions','Talking through big decisions'],
+      ['Beauty & Skincare','Haircuts & Styling','Cutting, styling, braiding hair'],
+      ['Beauty & Skincare','Makeup','Everyday and event makeup application'],
+      ['Beauty & Skincare','Skincare Routine','Skincare advice, facials, product guidance'],
+      ['Beauty & Skincare','Nail Care','Manicure, pedicure, nail art'],
+      ['Beauty & Skincare','Eyebrow & Lash','Eyebrow shaping, lash extensions'],
+      ['Beauty & Skincare','Natural Remedies','Homemade masks, natural beauty tips'],
     ];
     for (const [catName, subName, desc] of subs) {
       const catRes = await client.query('SELECT id FROM categories WHERE name = $1', [catName]);
