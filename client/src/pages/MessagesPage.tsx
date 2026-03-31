@@ -69,11 +69,17 @@ export default function MessagesPage() {
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Select a conversation or message someone from their profile</div>
           ) : (
             <>
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {activeConvo?.username?.charAt(0).toUpperCase() || '?'}
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    {activeConvo?.username?.charAt(0).toUpperCase() || '?'}
+                  </div>
+                  <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeConvo?.username || 'User'}</Link>
                 </div>
-                <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeConvo?.username || 'User'}</Link>
+                <a href={`https://meet.jit.si/boomerang-${[user?.id, activeUser].sort().join('-')}`} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-600">
+                  📞 Call
+                </a>
               </div>
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
                 {messages.map((m: any) => (
