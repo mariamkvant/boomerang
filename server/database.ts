@@ -120,7 +120,8 @@ export async function initDatabase() {
 try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_bundle BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS sessions_count INTEGER DEFAULT 1'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS bundle_discount INTEGER DEFAULT 0'); } catch(e) {}
-        try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES groups(id)'); } catch(e) {}
+            await client.query("CREATE TABLE IF NOT EXISTS group_join_requests (id SERIAL PRIMARY KEY, group_id INTEGER NOT NULL REFERENCES groups(id), user_id INTEGER NOT NULL REFERENCES users(id), status TEXT DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(group_id, user_id))");
+try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES groups(id)'); } catch(e) {}
 try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help_wanted_status_check"); } catch(e) {}
     try { await client.query("ALTER TABLE help_wanted ADD CONSTRAINT help_wanted_status_check CHECK(status IN ('open','accepted','delivered','completed','closed'))"); } catch(e) {}
                 await client.query('CREATE TABLE IF NOT EXISTS favorites (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), service_id INTEGER NOT NULL REFERENCES services(id), created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, service_id))');

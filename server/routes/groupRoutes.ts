@@ -60,18 +60,59 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   res.json({ ...group, members, services });
 });
 
-// Join a group (public or by invite code)
+// Request to join a group
 router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response) => {
   const group = await db.get('SELECT * FROM groups WHERE id = ?', req.params.id);
   if (!group) return res.status(404).json({ error: 'Group not found' });
-  if (!group.is_public) {
-    const { invite_code } = req.body;
-    if (invite_code !== group.invite_code) return res.status(403).json({ error: 'Invalid invite code' });
-  }
-  try {
+  // Check if already a member
+  const existing = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (existing) return res.status(409).json({ error: 'Already a member' });
+  // If joining by invite code, add directly
+  const { invite_code } = req.body;
+  if (invite_code && invite_code === group.invite_code) {
     await db.run('INSERT INTO group_members (group_id, user_id) VALUES (?, ?)', req.params.id, req.userId);
-    res.json({ message: 'Joined group' });
-  } catch { res.status(409).json({ error: 'Already a member' }); }
+    return res.json({ message: 'Joined group' });
+  }
+  // Otherwise create a join request
+  try {
+    await db.run("INSERT INTO group_join_requests (group_id, user_id) VALUES (?, ?)", req.params.id, req.userId);
+    // Notify admin
+    const admin = await db.get("SELECT user_id FROM group_members WHERE group_id = ? AND role = 'admin' LIMIT 1", req.params.id);
+    if (admin) {
+      const requester = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
+      await notify({ userId: admin.user_id, type: 'join_request', title: 'New join request', body: (requester?.username || 'Someone') + ' wants to join ' + group.name, link: '/groups/' + req.params.id });
+    }
+    res.json({ message: 'Join request sent! The admin will review it.' });
+  } catch { res.status(409).json({ error: 'Already requested' }); }
+});
+
+// Get pending join requests (admin only)
+router.get('/:id/requests', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  const requests = await db.all("SELECT jr.*, u.username, u.city FROM group_join_requests jr JOIN users u ON jr.user_id = u.id WHERE jr.group_id = ? AND jr.status = 'pending' ORDER BY jr.created_at DESC", req.params.id);
+  res.json(requests);
+});
+
+// Approve join request (admin only)
+router.put('/:id/requests/:requestId/approve', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  const jr = await db.get("SELECT * FROM group_join_requests WHERE id = ? AND group_id = ? AND status = 'pending'", req.params.requestId, req.params.id);
+  if (!jr) return res.status(404).json({ error: 'Request not found' });
+  await db.run('INSERT INTO group_members (group_id, user_id) VALUES (?, ?)', req.params.id, jr.user_id);
+  await db.run("UPDATE group_join_requests SET status = 'approved' WHERE id = ?", req.params.requestId);
+  const group = await db.get('SELECT name FROM groups WHERE id = ?', req.params.id);
+  await notify({ userId: jr.user_id, type: 'join_approved', title: 'Welcome!', body: 'You were accepted into ' + (group?.name || 'the group'), link: '/groups/' + req.params.id });
+  res.json({ message: 'Approved' });
+});
+
+// Deny join request
+router.put('/:id/requests/:requestId/deny', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  await db.run("UPDATE group_join_requests SET status = 'denied' WHERE id = ?", req.params.requestId);
+  res.json({ message: 'Denied' });
 });
 
 // Join by invite code

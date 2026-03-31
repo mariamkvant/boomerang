@@ -7,10 +7,19 @@ export default function GroupDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const [group, setGroup] = useState<any>(null);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [inviteUsername, setInviteUsername] = useState('');
   const [inviteMsg, setInviteMsg] = useState('');
 
-  const reload = () => api.getGroup(Number(id)).then(setGroup).catch(() => {});
+  const reload = () => {
+    api.getGroup(Number(id)).then(g => {
+      setGroup(g);
+      // Load join requests if admin
+      if (g.members?.some((m: any) => m.id === user?.id && m.role === 'admin')) {
+        api.getJoinRequests(Number(id)).then(setJoinRequests).catch(() => {});
+      }
+    }).catch(() => {});
+  };
   useEffect(() => { reload(); }, [id]);
 
   if (!group) return <div className="text-center py-20 text-gray-400">Loading...</div>;
@@ -40,8 +49,8 @@ export default function GroupDetailPage() {
             <div className="text-xs text-gray-400">{group.member_count} members · Created by {group.creator_name}</div>
           </div>
           <div>
-            {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Join</button>}
-            {user && isMember && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
+            {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Request to Join</button>}
+            {user && isMember && !isAdmin && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
           </div>
         </div>
         {isMember && group.invite_code && (
@@ -94,6 +103,27 @@ export default function GroupDetailPage() {
                 <button onClick={handleInvite} className="bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Invite</button>
               </div>
               {inviteMsg && <p className="text-xs text-primary-600 mt-1">{inviteMsg}</p>}
+            </div>
+          )}
+          {/* Join requests (admin only) */}
+          {isAdmin && joinRequests.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-3">
+              <h4 className="text-sm font-semibold text-amber-700 mb-2">Pending Join Requests ({joinRequests.length})</h4>
+              {joinRequests.map((jr: any) => (
+                <div key={jr.id} className="flex items-center justify-between py-2 border-b border-amber-100 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center text-white text-xs">{jr.username?.charAt(0).toUpperCase()}</div>
+                    <div>
+                      <span className="text-sm font-medium">{jr.username}</span>
+                      {jr.city && <span className="text-xs text-gray-400 ml-1">{jr.city}</span>}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={async () => { await api.approveJoinRequest(Number(id), jr.id); reload(); }} className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Approve</button>
+                    <button onClick={async () => { await api.denyJoinRequest(Number(id), jr.id); reload(); }} className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded hover:bg-gray-300">Deny</button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
           <div className="bg-white rounded-xl shadow-card divide-y divide-gray-50">
