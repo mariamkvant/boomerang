@@ -72,7 +72,6 @@ function Navbar() {
           {user ? (
             <>
               <div className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-full">
-                <span className="text-xs text-primary-600">🪃</span>
                 <span className="text-sm font-semibold text-primary-700">{user.points}</span>
                 <span className="text-xs text-primary-500">🪃</span>
               </div>

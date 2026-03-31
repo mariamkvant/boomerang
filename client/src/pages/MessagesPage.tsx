@@ -56,6 +56,16 @@ export default function MessagesPage() {
 
   const activeName = activeConvo?.username || activeUserInfo?.username || 'User';
   const showChat = activeUser !== null;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const searchPeople = async (q: string) => {
+    setSearchQuery(q);
+    if (q.length >= 2) {
+      const results = await api.searchPeople(q);
+      setSearchResults(results.filter((u: any) => u.id !== user?.id));
+    } else { setSearchResults([]); }
+  };
 
   return (
     <div className="animate-fade-in">
@@ -64,6 +74,23 @@ export default function MessagesPage() {
 
         {/* Conversation list — hidden on mobile when chat is open */}
         <div className={`${showChat ? 'hidden md:block' : 'block'} w-full md:w-72 shrink-0 bg-white rounded-2xl shadow-card overflow-y-auto`}>
+          {/* Search people */}
+          <div className="p-3 border-b border-gray-50">
+            <input value={searchQuery} onChange={e => searchPeople(e.target.value)} placeholder="Search people..."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+          </div>
+          {/* Search results */}
+          {searchResults.length > 0 && (
+            <div className="border-b border-gray-100">
+              {searchResults.slice(0, 5).map((u: any) => (
+                <button key={u.id} onClick={() => { setActiveUser(u.id); setSearchQuery(''); setSearchResults([]); }}
+                  className="w-full text-left px-4 py-2 hover:bg-primary-50 flex items-center gap-2">
+                  <div className="w-7 h-7 bg-primary-400 rounded-full flex items-center justify-center text-white text-xs">{u.username?.charAt(0).toUpperCase()}</div>
+                  <span className="text-sm">{u.username}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {convos.length === 0 && (
             <div className="text-center py-12 px-4">
               <div className="text-3xl mb-3">💬</div>

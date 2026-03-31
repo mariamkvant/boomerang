@@ -149,6 +149,9 @@ export default function ServiceDetailPage() {
               <div className="text-xs text-gray-400">View profile →</div>
             </div>
           </Link>
+          {user && !isOwner && (
+            <Link to={`/messages?to=${service.provider_id}`} className="ml-3 bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium hover:bg-gray-200">💬 Message</Link>
+          )}
         </div>
 
         {/* Request form */}
