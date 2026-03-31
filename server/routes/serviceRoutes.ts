@@ -48,7 +48,7 @@ router.get('/calculate-points', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, subcategory, search, provider, page = '1' } = req.query;
+  const { category, subcategory, search, provider, page = '1', lat, lng, radius } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   let query = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
@@ -143,6 +143,24 @@ router.get('/user/favorites', authMiddleware, async (req: AuthRequest, res: Resp
 router.get('/:id/favorited', authMiddleware, async (req: AuthRequest, res: Response) => {
   const fav = await db.get('SELECT id FROM favorites WHERE user_id = ? AND service_id = ?', req.userId, req.params.id);
   res.json({ favorited: !!fav });
+});
+
+// Nearby services — location-based search
+router.get('/nearby', async (req: AuthRequest, res: Response) => {
+  const { lat, lng, radius = '50' } = req.query;
+  if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+  const maxDist = Number(radius);
+  const services = await db.all(
+    `SELECT s.*, c.name as category_name, c.icon as category_icon,
+      u.username as provider_name, u.city as provider_city, u.id as provider_user_id, u.avatar as provider_avatar,
+      (6371 * acos(LEAST(1.0, cos(radians($1)) * cos(radians(u.latitude)) * cos(radians(u.longitude) - radians($2)) + sin(radians($1)) * sin(radians(u.latitude))))) as distance
+    FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
+    WHERE s.is_active = 1 AND s.group_id IS NULL AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
+      AND (6371 * acos(LEAST(1.0, cos(radians($1)) * cos(radians(u.latitude)) * cos(radians(u.longitude) - radians($2)) + sin(radians($1)) * sin(radians(u.latitude))))) < $3
+    ORDER BY distance ASC LIMIT 30`,
+    Number(lat), Number(lng), maxDist
+  );
+  res.json(services);
 });
 
 // Popular services this week

@@ -13,6 +13,8 @@ export default function BrowsePage() {
   const [selectedSub, setSelectedSub] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [nearMe, setNearMe] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -36,12 +38,22 @@ export default function BrowsePage() {
 
   useEffect(() => {
     setLoading(true);
+    if (nearMe) {
+      setLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          api.getNearbyServices(pos.coords.latitude, pos.coords.longitude).then(s => { setServices(s); setLoading(false); setLocating(false); }).catch(() => { setLoading(false); setLocating(false); });
+        },
+        () => { setNearMe(false); setLoading(false); setLocating(false); alert('Could not get your location'); }
+      );
+      return;
+    }
     const params = new URLSearchParams();
     if (selectedCat) params.set('category', selectedCat);
     if (selectedSub) params.set('subcategory', selectedSub);
     if (search) params.set('search', search);
     api.getServices(params.toString()).then(s => { setServices(s); setLoading(false); }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, search]);
+  }, [selectedCat, selectedSub, search, nearMe]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -57,13 +69,19 @@ export default function BrowsePage() {
       </div>
 
       {/* Search bar */}
-      <div className="relative mb-6">
-        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input type="text" placeholder="Search for services..." value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none shadow-card"
-          aria-label="Search services" />
+      <div className="flex gap-2 mb-6">
+        <div className="relative flex-1">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" placeholder="Search for services..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none shadow-card"
+            aria-label="Search services" />
+        </div>
+        <button onClick={() => setNearMe(!nearMe)}
+          className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${nearMe ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
+          {locating ? '...' : '📍 Near Me'}
+        </button>
       </div>
 
       {/* Category pills */}
@@ -129,6 +147,7 @@ export default function BrowsePage() {
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                   <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">{s.points_cost} boomerangs</span>
                   <div className="flex items-center gap-2">
+                    {s.distance != null && <span className="text-xs text-gray-400">📍 {Number(s.distance).toFixed(1)} km</span>}
                     {user && user.id !== (s.provider_user_id || s.provider_id) && (
                       <button onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); quickRequest(s.id, e); }} className="bg-primary-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-medium hover:bg-primary-600">Request</button>
                     )}

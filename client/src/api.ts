@@ -42,6 +42,7 @@ export const api = {
   getMyFavorites: () => request('/services/user/favorites'),
   isFavorited: (id: number) => request(`/services/${id}/favorited`),
   getPopularServices: () => request('/services/trending/popular'),
+  getNearbyServices: (lat: number, lng: number, radius?: number) => request(`/services/nearby?lat=${lat}&lng=${lng}${radius ? `&radius=${radius}` : ''}`),
   getStats: () => request('/services/stats'),
 
   // Requests
