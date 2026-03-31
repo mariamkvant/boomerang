@@ -107,4 +107,12 @@ export const api = {
   getDMs: (userId: number) => request(`/dm/${userId}`),
   sendDM: (userId: number, body: string) => request(`/dm/${userId}`, { method: 'POST', body: JSON.stringify({ body }) }),
   getUnreadDMCount: () => request('/dm/unread/count'),
+
+  // Social
+  postShoutout: (body: any) => request('/social/shoutouts', { method: 'POST', body: JSON.stringify(body) }),
+  getShoutouts: () => request('/social/shoutouts'),
+  getUserShoutouts: (id: number) => request(`/social/shoutouts/user/${id}`),
+  getSuperhelperStatus: (id: number) => request(`/social/superhelper/${id}`),
+  getSmartMatches: () => request('/social/matches'),
+  getCommunityFeed: () => request('/social/feed'),
 };

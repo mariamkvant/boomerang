@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [trust, setTrust] = useState<any>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [superhelper, setSuperhelper] = useState<any>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -19,6 +20,7 @@ export default function ProfilePage() {
     api.getUser(Number(id)).then(setProfile).catch(() => {});
     api.getTrustScore(Number(id)).then(setTrust).catch(() => {});
     api.getUserAchievements(Number(id)).then(setAchievements).catch(() => {});
+    api.getSuperhelperStatus(Number(id)).then(setSuperhelper).catch(() => {});
     if (user) api.isBlocked(Number(id)).then(r => setIsBlocked(r.blocked)).catch(() => {});
   }, [id, user]);
 
@@ -48,6 +50,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{profile.username}</h1>
                 {trust && <span className="text-sm" title={`Trust: ${trust.score}/100`}>{trust.emoji} {trust.level}</span>}
+                {superhelper?.is_superhelper && <span className="bg-gradient-to-r from-primary-500 to-primary-400 text-white text-xs px-2 py-0.5 rounded-full font-medium">⭐ Superhelper</span>}
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                 {profile.city && <span>📍 {profile.city}</span>}

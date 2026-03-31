@@ -21,6 +21,7 @@ import HelpWantedPage from './pages/HelpWantedPage';
 import AccountPage from './pages/AccountPage';
 import PeoplePage from './pages/PeoplePage';
 import MessagesPage from './pages/MessagesPage';
+import CommunityPage from './pages/CommunityPage';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 function Navbar() {
@@ -136,6 +137,7 @@ function Footer() {
                 <Link to="/browse" className="block text-gray-500 hover:text-primary-600">Browse Services</Link>
                 <Link to="/help-wanted" className="block text-gray-500 hover:text-primary-600">Help Needed</Link>
                 <Link to="/people" className="block text-gray-500 hover:text-primary-600">Find People</Link>
+                <Link to="/community" className="block text-gray-500 hover:text-primary-600">Community Feed</Link>
                 <Link to="/services/new" className="block text-gray-500 hover:text-primary-600">Offer a Service</Link>
               </div>
             </div>
@@ -186,6 +188,7 @@ export default function App() {
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/people" element={<PeoplePage />} />
+          <Route path="/community" element={<CommunityPage />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
