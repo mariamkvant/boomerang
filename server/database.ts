@@ -78,6 +78,7 @@ export async function initDatabase() {
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score INTEGER DEFAULT 0'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by INTEGER'); } catch(e) {}
+        await client.query('CREATE TABLE IF NOT EXISTS notifications (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), type TEXT NOT NULL, title TEXT NOT NULL, body TEXT NOT NULL, link TEXT, is_read BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW())');
     await client.query("CREATE TABLE IF NOT EXISTS reports (id SERIAL PRIMARY KEY, reporter_id INTEGER NOT NULL REFERENCES users(id), reported_id INTEGER NOT NULL REFERENCES users(id), reason TEXT NOT NULL, details TEXT DEFAULT '', status TEXT DEFAULT 'pending', created_at TIMESTAMPTZ DEFAULT NOW())");
     await client.query('CREATE TABLE IF NOT EXISTS blocks (id SERIAL PRIMARY KEY, blocker_id INTEGER NOT NULL REFERENCES users(id), blocked_id INTEGER NOT NULL REFERENCES users(id), created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(blocker_id, blocked_id))');
     console.log('Database initialized with PostgreSQL');

@@ -65,4 +65,10 @@ export const api = {
   unblockUser: (userId: number) => request(`/trust/block/${userId}`, { method: 'DELETE' }),
   getBlockedUsers: () => request('/trust/blocked'),
   isBlocked: (userId: number) => request(`/trust/blocked/${userId}`),
+
+  // Notifications
+  getNotifications: () => request('/notifications'),
+  getUnreadCount: () => request('/notifications/unread'),
+  markRead: (id: number) => request(`/notifications/${id}/read`, { method: 'PUT' }),
+  markAllRead: () => request('/notifications/read-all', { method: 'PUT' }),
 };

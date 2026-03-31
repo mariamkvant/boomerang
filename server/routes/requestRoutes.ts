@@ -1,6 +1,7 @@
-﻿import { Router, Response } from 'express';
+import { Router, Response } from 'express';
 import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
+import { notify, notificationEmailHtml } from '../notify';
 
 const router = Router();
 
@@ -13,6 +14,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   const user = await db.get('SELECT points FROM users WHERE id = ?', req.userId);
   if (user.points < service.points_cost) return res.status(400).json({ error: 'Not enough points' });
   const result = await db.run('INSERT INTO service_requests (service_id, requester_id, message) VALUES (?, ?, ?)', service_id, req.userId, message || '');
+  const provider = await db.get('SELECT id, email, username FROM users WHERE id = ?', service.provider_id);
+  if (provider) { await notify({ userId: provider.id, type: 'new_request', title: 'New service request', body: 'Someone requested your service: ' + service.title, link: '/dashboard', email: { to: provider.email, subject: 'New request on Boomerang', html: notificationEmailHtml('New Service Request', 'Someone wants your help with: ' + service.title, '') } }); }
   res.status(201).json({ id: result.lastInsertRowid, message: 'Request created' });
 });
 
@@ -32,6 +35,8 @@ router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'pending') return res.status(400).json({ error: 'Request is not pending' });
   await db.run("UPDATE service_requests SET status = 'accepted' WHERE id = ?", req.params.id);
+  const requesterAccept = await db.get('SELECT id, email FROM users WHERE id = ?', r.requester_id);
+  if (requesterAccept) { await notify({ userId: requesterAccept.id, type: 'request_accepted', title: 'Request accepted!', body: 'Your service request has been accepted.', link: '/dashboard' }); }
   res.json({ message: 'Request accepted' });
 });
 
@@ -42,6 +47,8 @@ router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Respons
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'accepted') return res.status(400).json({ error: 'Request must be accepted first' });
   await db.run("UPDATE service_requests SET status = 'delivered' WHERE id = ?", req.params.id);
+  const requesterDeliver = await db.get('SELECT id, email FROM users WHERE id = ?', r.requester_id);
+  if (requesterDeliver) { await notify({ userId: requesterDeliver.id, type: 'service_delivered', title: 'Service delivered!', body: 'The provider marked your service as delivered. Please confirm.', link: '/dashboard' }); }
   res.json({ message: 'Service marked as delivered. Waiting for requester confirmation.' });
 });
 
@@ -56,6 +63,8 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
   await db.run('UPDATE users SET points = points - ? WHERE id = ?', r.points_cost, r.requester_id);
   await db.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, r.provider_id);
   await db.run("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?", req.params.id);
+  const providerConfirm = await db.get('SELECT id, email FROM users WHERE id = ?', r.provider_id);
+  if (providerConfirm) { await notify({ userId: providerConfirm.id, type: 'delivery_confirmed', title: 'Delivery confirmed!', body: 'Points have been transferred to your account.', link: '/dashboard' }); }
   res.json({ message: 'Delivery confirmed! Points transferred.' });
 });
 

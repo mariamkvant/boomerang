@@ -13,6 +13,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AvailabilityPage from './pages/AvailabilityPage';
 import InstallPrompt from './components/InstallPrompt';
+import NotificationBell from './components/NotificationBell';
 import SettingsPage from './pages/SettingsPage';
 
 function Navbar() {
@@ -53,6 +54,7 @@ function Navbar() {
                 <span className="text-sm font-semibold text-primary-700">{user.points}</span>
                 <span className="text-xs text-primary-500">pts</span>
               </div>
+              <NotificationBell />
               <div className="relative group">
                 <button className="w-9 h-9 rounded-full bg-primary-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-primary-600">
                   {user.username.charAt(0).toUpperCase()}
