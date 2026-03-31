@@ -189,13 +189,13 @@ export default function DashboardPage() {
       {/* Incoming */}
       {tab === 'incoming' && (
         <div className="space-y-3">
-          {incoming.length === 0 && (
+          {incoming.filter(r => !['completed','cancelled'].includes(r.status)).length === 0 && incoming.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
               <div className="text-4xl mb-3">📬</div>
               <p className="text-gray-500 text-sm">No incoming requests yet</p>
             </div>
           )}
-          {incoming.map((r: any) => (
+          {incoming.filter(r => !['completed','cancelled'].includes(r.status)).map((r: any) => (
             <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -236,6 +236,21 @@ export default function DashboardPage() {
               )}
             </div>
           ))}
+          {/* Completed history */}
+          {incoming.filter(r => ['completed','cancelled'].includes(r.status)).length > 0 && (
+            <>
+              <h4 className="text-xs font-semibold text-gray-400 mt-6">Past</h4>
+              {incoming.filter(r => ['completed','cancelled'].includes(r.status)).map((r: any) => (
+                <div key={r.id} className="bg-white p-4 rounded-xl shadow-card opacity-60">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{r.service_title}</span>
+                    {badge(r.status)}
+                  </div>
+                  <p className="text-xs text-gray-500">From {r.requester_name} · {r.points_cost} 🪃</p>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 
