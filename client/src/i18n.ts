@@ -96,7 +96,7 @@ const translations: Record<string, Record<string, string>> = {
   ka: {
     'nav.browse': 'სერვისების ძიება', 'nav.offer': 'სერვისის შეთავაზება', 'nav.help': 'დახმარება საჭიროა',
     'nav.communities': 'თემები', 'nav.dashboard': 'ჩემი პანელი',
-    'hero.title1': 'რასაც მისცემ,', 'hero.title2': 'დაგიბრუნდება',
+    'hero.title1': 'რასაცა გასცემ,', 'hero.title2': 'შენია',
     'hero.subtitle': 'გაუზიარე შენი ნიჭი საზოგადოებას და დააგროვე ქულები. გამოიყენე ქულები დახმარების მისაღებად. ფულის გარეშე — მხოლოდ ადამიანები, რომლებიც ერთმანეთს ეხმარებიან.',
     'hero.quote': '— შოთა რუსთაველი',
     'hero.getStarted': 'დაიწყე უფასოდ', 'hero.browse': 'სერვისების ძიება',
