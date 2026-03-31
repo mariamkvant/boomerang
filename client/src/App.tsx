@@ -23,6 +23,8 @@ import PeoplePage from './pages/PeoplePage';
 import MessagesPage from './pages/MessagesPage';
 import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
@@ -156,6 +158,8 @@ function Footer() {
               <div className="space-y-2">
                 <Link to="/register" className="block text-gray-500 hover:text-primary-600">Sign Up</Link>
                 <Link to="/login" className="block text-gray-500 hover:text-primary-600">Log In</Link>
+                <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">Privacy Policy</Link>
+                <Link to="/terms" className="block text-gray-500 hover:text-primary-600">Terms of Service</Link>
               </div>
             </div>
           </div>
@@ -200,6 +204,8 @@ export default function App() {
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
