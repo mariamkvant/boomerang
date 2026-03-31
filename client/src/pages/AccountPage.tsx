@@ -17,7 +17,7 @@ export default function AccountPage() {
   const [verifyCode, setVerifyCode] = useState('');
   const [verifySent, setVerifySent] = useState(false);
   const [verifyError, setVerifyError] = useState('');
-  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, error: pushError, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
   const [pushToggling, setPushToggling] = useState(false);
 
   const handleResendVerify = async () => {
@@ -104,6 +104,7 @@ export default function AccountPage() {
         <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
           <h3 className="font-semibold mb-3">🔔 Push Notifications</h3>
           <p className="text-sm text-gray-500 mb-4">Get notified about new messages, service requests, and community activity even when the app is closed.</p>
+          {pushError && <p className="text-sm text-red-500 mb-3">⚠️ {pushError}</p>}
           {pushLoading ? (
             <p className="text-sm text-gray-400">Checking...</p>
           ) : pushSubscribed ? (

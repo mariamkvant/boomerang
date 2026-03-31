@@ -3,17 +3,22 @@ import db from './database';
 
 // VAPID keys — set these as env vars on Railway
 // Generate once with: npx web-push generate-vapid-keys
-const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || '';
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_EMAIL = process.env.VAPID_EMAIL || 'mailto:hello@boomerang.fyi';
+const VAPID_PUBLIC = (process.env.VAPID_PUBLIC_KEY || '').trim();
+const VAPID_PRIVATE = (process.env.VAPID_PRIVATE_KEY || '').trim();
+const rawEmail = (process.env.VAPID_EMAIL || 'mailto:hello@boomerang.fyi').trim();
+const VAPID_EMAIL = rawEmail.startsWith('mailto:') ? rawEmail : `mailto:${rawEmail}`;
 
 let pushEnabled = false;
 
 export function initPush() {
   if (VAPID_PUBLIC && VAPID_PRIVATE) {
-    webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
-    pushEnabled = true;
-    console.log('[PUSH] Web push notifications enabled');
+    try {
+      webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
+      pushEnabled = true;
+      console.log('[PUSH] Web push notifications enabled');
+    } catch (err) {
+      console.error('[PUSH] Failed to initialize VAPID — check your keys:', err);
+    }
   } else {
     console.log('[PUSH] No VAPID keys set — push notifications disabled. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars.');
   }

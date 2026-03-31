@@ -14,13 +14,13 @@ export function usePushNotifications() {
   const [supported, setSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const ok = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setSupported(ok);
     if (!ok) { setLoading(false); return; }
 
-    // Check current subscription state
     navigator.serviceWorker.ready.then((reg) => {
       reg.pushManager.getSubscription().then((sub) => {
         setSubscribed(!!sub);
@@ -31,12 +31,26 @@ export function usePushNotifications() {
 
   const subscribe = useCallback(async () => {
     if (!supported) return false;
+    setError(null);
     try {
       const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return false;
+      if (permission !== 'granted') {
+        setError('Notification permission denied. Please allow notifications in your browser settings.');
+        return false;
+      }
 
-      const { publicKey } = await api.getVapidKey();
-      if (!publicKey) return false;
+      let publicKey: string;
+      try {
+        const res = await api.getVapidKey();
+        publicKey = res.publicKey;
+      } catch {
+        setError('Push notifications are not configured on the server yet.');
+        return false;
+      }
+      if (!publicKey) {
+        setError('Push notifications are not configured on the server yet.');
+        return false;
+      }
 
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
@@ -47,13 +61,15 @@ export function usePushNotifications() {
       await api.subscribePush(sub.toJSON());
       setSubscribed(true);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Push] Subscribe failed:', err);
+      setError(err?.message || 'Failed to enable push notifications. Please try again.');
       return false;
     }
   }, [supported]);
 
   const unsubscribe = useCallback(async () => {
+    setError(null);
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
@@ -63,11 +79,12 @@ export function usePushNotifications() {
       }
       setSubscribed(false);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Push] Unsubscribe failed:', err);
+      setError(err?.message || 'Failed to disable push notifications.');
       return false;
     }
   }, []);
 
-  return { supported, subscribed, loading, subscribe, unsubscribe };
+  return { supported, subscribed, loading, error, subscribe, unsubscribe };
 }
