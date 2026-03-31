@@ -7,28 +7,25 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.dark body, body.dark {
-  @apply bg-gray-900 text-gray-100;
-}
-
-.dark .bg-white { @apply !bg-gray-800; }
-.dark .bg-gray-50 { @apply !bg-gray-900; }
-.dark .bg-gray-100 { @apply !bg-gray-700; }
-.dark .text-gray-900 { @apply !text-gray-100; }
-.dark .text-gray-700 { @apply !text-gray-300; }
-.dark .text-gray-600 { @apply !text-gray-400; }
-.dark .text-gray-500 { @apply !text-gray-400; }
-.dark .text-gray-400 { @apply !text-gray-500; }
-.dark .border-gray-100 { @apply !border-gray-700; }
-.dark .border-gray-200 { @apply !border-gray-600; }
-.dark .border-gray-50 { @apply !border-gray-700; }
+/* Dark mode overrides */
+.dark body, body.dark { background: #111827; color: #f3f4f6; }
+.dark .bg-white { background: #1f2937 !important; }
+.dark .bg-gray-50 { background: #111827 !important; }
+.dark .bg-gray-100 { background: #374151 !important; }
+.dark .text-gray-900 { color: #f3f4f6 !important; }
+.dark .text-gray-700 { color: #d1d5db !important; }
+.dark .text-gray-600 { color: #9ca3af !important; }
+.dark .text-gray-500 { color: #9ca3af !important; }
+.dark .border-gray-100 { border-color: #374151 !important; }
+.dark .border-gray-200 { border-color: #4b5563 !important; }
+.dark .border-gray-50 { border-color: #374151 !important; }
 .dark .shadow-card { box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2); }
 .dark .shadow-nav { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 .dark .bg-white\/80 { background: rgba(31, 41, 55, 0.9) !important; }
-.dark .hover\:bg-gray-50:hover { @apply !bg-gray-700; }
-.dark .hover\:bg-gray-100:hover { @apply !bg-gray-600; }
-.dark input, .dark textarea, .dark select { @apply bg-gray-700 border-gray-600 text-gray-100; }
-.dark input::placeholder, .dark textarea::placeholder { @apply text-gray-500; }
+.dark .hover\:bg-gray-50:hover { background: #374151 !important; }
+.dark .hover\:bg-gray-100:hover { background: #4b5563 !important; }
+.dark input, .dark textarea, .dark select { background: #374151; border-color: #4b5563; color: #f3f4f6; }
+.dark input::placeholder, .dark textarea::placeholder { color: #6b7280; }
 
 @layer utilities {
   .line-clamp-2 {
