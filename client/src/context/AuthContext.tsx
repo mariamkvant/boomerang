@@ -23,7 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (username: string, email: string, password: string) => {
-    const { token, user: u } = await api.register({ username, email, password });
+    const referral_code = new URLSearchParams(window.location.search).get('ref');
+    const { token, user: u } = await api.register({ username, email, password, referral_code });
     localStorage.setItem('token', token);
     setUser(u);
   };

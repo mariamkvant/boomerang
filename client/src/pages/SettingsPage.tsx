@@ -71,6 +71,17 @@ export default function SettingsPage() {
           <p>Points: {user?.points}</p>
         </div>
       </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
+        <h3 className="font-semibold mb-3">🪃 Invite Friends</h3>
+        <p className="text-sm text-gray-500 mb-3">Share your referral link. You both get 25 bonus points when they sign up.</p>
+        <div className="flex gap-2">
+          <input readOnly value={`${window.location.origin}/register?ref=${user?.id}`}
+            className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600" />
+          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.id}`); }}
+            className="bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 shrink-0">Copy</button>
+        </div>
+      </div>
     </div>
   );
 }

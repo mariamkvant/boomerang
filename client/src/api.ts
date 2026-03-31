@@ -14,6 +14,7 @@ export const api = {
   // Auth
   register: (body: any) => request('/users/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body: any) => request('/users/login', { method: 'POST', body: JSON.stringify(body) }),
+  getReferralInfo: () => request('/users/referral'),
   verifyEmail: (code: string) => request('/users/verify-email', { method: 'POST', body: JSON.stringify({ code }) }),
   resendVerify: () => request('/users/resend-verify', { method: 'POST' }),
   forgotPassword: (email: string) => request('/users/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),

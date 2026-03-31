@@ -8,20 +8,31 @@ const router = Router();
 
 // Register
 router.post('/register', async (req: AuthRequest, res: Response) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, referral_code } = req.body;
   if (!username || !email || !password) return res.status(400).json({ error: 'All fields are required' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
   try {
     const hash = bcrypt.hashSync(password, 10);
     const code = generateCode();
     const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    // Check referral
+    let referrerId: number | null = null;
+    if (referral_code) {
+      const referrer = await db.get('SELECT id FROM users WHERE id = ?', referral_code);
+      if (referrer) referrerId = referrer.id;
+    }
+    const startPoints = referrerId ? 75 : 50; // 25 bonus for referred users
     const result = await db.run(
-      'INSERT INTO users (username, email, password, verify_code, verify_expires) VALUES (?, ?, ?, ?, ?)',
-      username, email, hash, code, expires
+      'INSERT INTO users (username, email, password, verify_code, verify_expires, referred_by, points) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      username, email, hash, code, expires, referrerId, startPoints
     );
+    // Give referrer bonus points
+    if (referrerId) {
+      await db.run('UPDATE users SET points = points + 25 WHERE id = ?', referrerId);
+    }
     await sendEmail(email, 'Verify your Boomerang account', verifyEmailHtml(code));
     const token = generateToken(result.lastInsertRowid);
-    res.status(201).json({ token, user: { id: result.lastInsertRowid, username, email, points: 50, email_verified: false } });
+    res.status(201).json({ token, user: { id: result.lastInsertRowid, username, email, points: startPoints, email_verified: false } });
   } catch (err: any) {
     if (err.message?.includes('unique') || err.message?.includes('duplicate')) {
       return res.status(409).json({ error: 'Username or email already exists' });
@@ -91,6 +102,12 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
   }
   const token = generateToken(user.id);
   res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude } });
+});
+
+// Get my referral info
+router.get('/referral', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const count = await db.get('SELECT COUNT(*) as count FROM users WHERE referred_by = ?', req.userId);
+  res.json({ referral_code: req.userId, referral_count: parseInt(count?.count || '0') });
 });
 
 // Get current user profile
