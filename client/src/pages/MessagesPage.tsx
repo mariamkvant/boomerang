@@ -157,7 +157,7 @@ export default function MessagesPage() {
                   </div>
                   <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeName}</Link>
                 </div>
-                <a href={`https://meet.jit.si/boomerang-${[user?.id, activeUser].sort().join('-')}`} target="_blank" rel="noopener noreferrer"
+                <a href={`https://talk.brave.com/boomerang-${[user?.id, activeUser].sort().join('-')}`} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-600">
                   📞 Call
                 </a>
