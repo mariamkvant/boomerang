@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useSocket } from '../hooks/useSocket';
 
 export default function NotificationBell() {
   const [count, setCount] = useState(0);
@@ -9,11 +10,15 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const load = () => api.getUnreadCount().then(r => setCount(r.count)).catch(() => {});
-    load();
-    const i = setInterval(load, 15000);
-    return () => clearInterval(i);
+    api.getUnreadCount().then(r => setCount(r.count)).catch(() => {});
   }, []);
+
+  // Real-time notification updates via WebSocket
+  useSocket('notification', (data) => {
+    setCount((c) => c + 1);
+    // If dropdown is open, prepend the new notification
+    setNotifications((prev) => [{ ...data, is_read: false, type: data.notificationType }, ...prev]);
+  });
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };

@@ -1,7 +1,10 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import path from 'path';
 import { initDatabase } from './database';
+import { initWebSocket } from './ws';
+import { initPush } from './push';
 import userRoutes from './routes/userRoutes';
 import serviceRoutes from './routes/serviceRoutes';
 import requestRoutes from './routes/requestRoutes';
@@ -12,8 +15,10 @@ import groupRoutes from './routes/groupRoutes';
 import helpWantedRoutes from './routes/helpWantedRoutes';
 import dmRoutes from './routes/dmRoutes';
 import socialRoutes from './routes/socialRoutes';
+import pushRoutes from './routes/pushRoutes';
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
@@ -29,6 +34,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/help-wanted', helpWantedRoutes);
 app.use('/api/dm', dmRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/push', pushRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -45,7 +51,9 @@ app.get('*', (_req, res) => {
 });
 
 initDatabase().then(() => {
-  app.listen(PORT, () => {
+  initPush();
+  initWebSocket(server);
+  server.listen(PORT, () => {
     console.log(`Boomerang server running on port ${PORT}`);
   });
 }).catch(err => {

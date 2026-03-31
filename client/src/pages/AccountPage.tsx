@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 export default function AccountPage() {
   const { user, logout, refreshUser } = useAuth();
@@ -16,6 +17,8 @@ export default function AccountPage() {
   const [verifyCode, setVerifyCode] = useState('');
   const [verifySent, setVerifySent] = useState(false);
   const [verifyError, setVerifyError] = useState('');
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const [pushToggling, setPushToggling] = useState(false);
 
   const handleResendVerify = async () => {
     try { await api.resendVerify(); setVerifySent(true); setTimeout(() => setVerifySent(false), 5000); }
@@ -96,6 +99,27 @@ export default function AccountPage() {
           <Link to="/terms" className="text-xs text-gray-400 hover:text-primary-600">Terms of Service</Link>
         </div>
       </div>
+
+      {pushSupported && (
+        <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
+          <h3 className="font-semibold mb-3">🔔 Push Notifications</h3>
+          <p className="text-sm text-gray-500 mb-4">Get notified about new messages, service requests, and community activity even when the app is closed.</p>
+          {pushLoading ? (
+            <p className="text-sm text-gray-400">Checking...</p>
+          ) : pushSubscribed ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-green-600">✓ Push notifications enabled</span>
+              <button onClick={async () => { setPushToggling(true); await pushUnsubscribe(); setPushToggling(false); }}
+                disabled={pushToggling} className="text-xs text-gray-400 hover:text-red-500 underline">Disable</button>
+            </div>
+          ) : (
+            <button onClick={async () => { setPushToggling(true); await pushSubscribe(); setPushToggling(false); }}
+              disabled={pushToggling} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50">
+              {pushToggling ? 'Enabling...' : 'Enable Push Notifications'}
+            </button>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
         <h3 className="font-semibold">Change Password</h3>

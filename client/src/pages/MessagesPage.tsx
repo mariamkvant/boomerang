@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../hooks/useSocket';
 
 const EMOJIS = ['😀','😂','❤️','👍','🙏','🎉','🔥','💪','🪃','⭐','👋','🤝','✅','📅','📍'];
 
@@ -20,12 +21,23 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (activeUser) {
-      const loadMsgs = () => api.getDMs(activeUser).then(setMessages).catch(() => {});
-      loadMsgs();
-      const i = setInterval(loadMsgs, 5000);
-      return () => clearInterval(i);
+      api.getDMs(activeUser).then(setMessages).catch(() => {});
     }
   }, [activeUser]);
+
+  // Real-time incoming DMs via WebSocket
+  useSocket('dm', (data) => {
+    const otherId = data.sender_id === user?.id ? data.receiver_id : data.sender_id;
+    // If this DM belongs to the active conversation, append it
+    if (activeUser && (data.sender_id === activeUser || data.receiver_id === activeUser)) {
+      setMessages((prev) => {
+        if (prev.some((m: any) => m.id === data.id)) return prev;
+        return [...prev, data];
+      });
+    }
+    // Refresh conversation list
+    api.getConversations().then(setConvos).catch(() => {});
+  });
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -35,9 +47,6 @@ export default function MessagesPage() {
     try {
       await api.sendDM(activeUser, newMsg);
       setNewMsg('');
-      const msgs = await api.getDMs(activeUser);
-      setMessages(msgs);
-      api.getConversations().then(setConvos).catch(() => {});
     } catch (err: any) { alert(err.message); }
     setSending(false); setShowEmoji(false);
   };

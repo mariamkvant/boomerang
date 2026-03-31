@@ -15,7 +15,9 @@
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.0"
+    "pg": "^8.13.0",
+    "web-push": "^3.6.7",
+    "ws": "^8.20.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -23,6 +25,8 @@
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/pg": "^8.11.0",
+    "@types/web-push": "^3.6.4",
+    "@types/ws": "^8.18.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.0"
   },

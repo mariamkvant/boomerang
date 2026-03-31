@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useSocketConnection } from './hooks/useSocket';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -182,6 +183,7 @@ function Footer() {
 
 export default function App() {
   const { user } = useAuth();
+  useSocketConnection();
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />

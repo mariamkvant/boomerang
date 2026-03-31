@@ -1,5 +1,7 @@
 import db from './database';
 import { sendEmail } from './email';
+import { sendToUser } from './ws';
+import { sendPushToUser } from './push';
 
 interface NotifyOptions {
   userId: number;
@@ -12,14 +14,25 @@ interface NotifyOptions {
 
 export async function notify(opts: NotifyOptions) {
   // Save in-app notification
-  await db.run(
+  const result = await db.run(
     'INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
     opts.userId, opts.type, opts.title, opts.body, opts.link || null
   );
+  // Push real-time via WebSocket
+  sendToUser(opts.userId, 'notification', {
+    id: result.lastInsertRowid,
+    notificationType: opts.type,
+    title: opts.title,
+    body: opts.body,
+    link: opts.link || null,
+    created_at: new Date().toISOString(),
+  });
   // Send email if provided
   if (opts.email) {
     await sendEmail(opts.email.to, opts.email.subject, opts.email.html);
   }
+  // Send push notification
+  await sendPushToUser(opts.userId, opts.title, opts.body, opts.link);
 }
 
 export function notificationEmailHtml(title: string, body: string, link?: string): string {

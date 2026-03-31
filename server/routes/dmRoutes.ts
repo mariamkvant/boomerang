@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
 import { notify, notificationEmailHtml } from '../notify';
+import { sendToUser } from '../ws';
 
 const router = Router();
 
@@ -49,6 +50,27 @@ router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) 
   const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
   const receiver = await db.get('SELECT email, username FROM users WHERE id = ?', req.params.userId);
   const senderName = sender?.username || 'Someone';
+  const now = new Date().toISOString();
+
+  // Push real-time DM to receiver
+  sendToUser(Number(req.params.userId), 'dm', {
+    id: result.lastInsertRowid,
+    sender_id: req.userId,
+    receiver_id: Number(req.params.userId),
+    sender_name: senderName,
+    body: body.trim(),
+    created_at: now,
+  });
+  // Also echo back to sender (for multi-tab sync)
+  sendToUser(req.userId!, 'dm', {
+    id: result.lastInsertRowid,
+    sender_id: req.userId,
+    receiver_id: Number(req.params.userId),
+    sender_name: senderName,
+    body: body.trim(),
+    created_at: now,
+  });
+
   await notify({
     userId: Number(req.params.userId), type: 'new_dm',
     title: 'New message from ' + senderName,

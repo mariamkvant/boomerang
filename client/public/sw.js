@@ -38,3 +38,37 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
   );
 });
+
+// Push notifications
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  const data = event.data.json();
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Boomerang', {
+      body: data.body || '',
+      icon: data.icon || '/icons/icon-192.svg',
+      badge: data.badge || '/icons/icon-192.svg',
+      data: data.data || {},
+      tag: 'boomerang-' + Date.now(),
+    })
+  );
+});
+
+// Notification click — open the app at the right page
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // Focus existing tab if open
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Otherwise open new tab
+      return self.clients.openWindow(url);
+    })
+  );
+});

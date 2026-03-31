@@ -160,6 +160,7 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     await client.query("CREATE TABLE IF NOT EXISTS direct_messages (id SERIAL PRIMARY KEY, sender_id INTEGER NOT NULL REFERENCES users(id), receiver_id INTEGER NOT NULL REFERENCES users(id), body TEXT NOT NULL, is_read BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW())");
     await client.query("CREATE TABLE IF NOT EXISTS help_wanted (id SERIAL PRIMARY KEY, requester_id INTEGER NOT NULL REFERENCES users(id), category_id INTEGER NOT NULL REFERENCES categories(id), title TEXT NOT NULL, description TEXT NOT NULL, points_budget INTEGER NOT NULL DEFAULT 10, status TEXT DEFAULT 'open', accepted_by INTEGER REFERENCES users(id), created_at TIMESTAMPTZ DEFAULT NOW())");
     await client.query("CREATE TABLE IF NOT EXISTS user_achievements (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), badge TEXT NOT NULL, awarded_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, badge))");
+    await client.query("CREATE TABLE IF NOT EXISTS push_subscriptions (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), endpoint TEXT UNIQUE NOT NULL, subscription TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())");
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

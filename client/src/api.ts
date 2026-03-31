@@ -125,4 +125,9 @@ export const api = {
   getSmartMatches: () => request('/social/matches'),
   getCommunityFeed: () => request('/social/feed'),
   getDailyMatch: () => request('/social/daily-match'),
+
+  // Push Notifications
+  getVapidKey: () => request('/push/vapid-key'),
+  subscribePush: (subscription: any) => request('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription }) }),
+  unsubscribePush: (endpoint: string) => request('/push/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint }) }),
 };

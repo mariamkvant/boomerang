@@ -6,7 +6,11 @@
 2. Click "New Project" → "Deploy from GitHub repo"
 3. Connect your GitHub account and select the boomerang repo
 4. Railway auto-detects the Dockerfile and deploys
-5. Add environment variable: `JWT_SECRET` = any random string (e.g. `my-super-secret-key-2026`)
+5. Add environment variables:
+   - `JWT_SECRET` = any random string (e.g. `my-super-secret-key-2026`)
+   - `VAPID_PUBLIC_KEY` = your VAPID public key (generate with `npx web-push generate-vapid-keys`)
+   - `VAPID_PRIVATE_KEY` = your VAPID private key (from same command)
+   - `VAPID_EMAIL` = `mailto:your@email.com`
 6. Railway gives you a public URL like `boomerang-production.up.railway.app`
 
 ## Option 2: Render.com
