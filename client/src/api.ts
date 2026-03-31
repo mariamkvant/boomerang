@@ -29,7 +29,7 @@ export const api = {
   getCategories: () => request('/services/categories'),
   getSubcategories: (categoryId: number) => request(`/services/categories/${categoryId}/subcategories`),
   getAllSubcategories: () => request('/services/subcategories'),
-  calculatePoints: (categoryId: number, durationMinutes: number) => request(`/services/calculate-points?category_id=${categoryId}&duration_minutes=${durationMinutes}`),
+  calculateBoomerangs: (categoryId: number, durationMinutes: number) => request(`/services/calculate-boomerangs?category_id=${categoryId}&duration_minutes=${durationMinutes}`),
 
   // Services
   getServices: (params?: string) => request(`/services${params ? `?${params}` : ''}`),

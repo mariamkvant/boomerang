@@ -169,7 +169,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex gap-6">
-            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">Points</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">Boomerangs</div></div>
             <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">Services</div></div>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{r.service_title}</span>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} pts</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
                   {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{r.service_title}</span>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} pts</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (
@@ -317,7 +317,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} pts</p>
+                  <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-400">→</span>
               </div>
@@ -343,7 +343,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} pts</p>
+                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} 🪃</p>
                   {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
                 </div>
                 <div className="flex gap-2">
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} pts</p>
+                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · 🪃 {h.points_budget} 🪃</p>
                   <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
                 </div>
                 <div className="flex gap-2">

@@ -25,10 +25,10 @@ export default function CreateServicePage() {
     }
   }, [form.category_id]);
 
-  // Auto-calculate points when category or duration changes
+  // Auto-calculate boomerangs when category or duration changes
   useEffect(() => {
     if (form.category_id && form.duration_minutes) {
-      api.calculatePoints(Number(form.category_id), Number(form.duration_minutes))
+      api.calculateBoomerangs(Number(form.category_id), Number(form.duration_minutes))
         .then(data => {
           setSuggested(data);
           setForm(f => ({ ...f, points_cost: String(data.suggested) }));
@@ -40,7 +40,7 @@ export default function CreateServicePage() {
     e.preventDefault();
     setError(''); setLoading(true);
     if (suggested && (Number(form.points_cost) < suggested.min || Number(form.points_cost) > suggested.max)) {
-      setError(`Points must be between ${suggested.min} and ${suggested.max} for this category and duration`);
+      setError(`Boomerangs must be between ${suggested.min} and ${suggested.max} for this category and duration`);
       setLoading(false); return;
     }
     try {
@@ -132,26 +132,26 @@ export default function CreateServicePage() {
           </div>
         </div>
 
-        {/* Points — auto-calculated */}
+        {/* Boomerangs — auto-calculated */}
         <div>
-          <label htmlFor="points" className="block text-sm font-medium text-gray-700 mb-1.5">Points Cost</label>
+          <label htmlFor="boomerangs" className="block text-sm font-medium text-gray-700 mb-1.5">Boomerangs Cost</label>
           {suggested && (
             <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-primary-700">Suggested: {suggested.suggested} pts</span>
+                <span className="text-sm font-medium text-primary-700">Suggested: {suggested.suggested} 🪃</span>
                 <span className="text-xs text-primary-500">{selectedCat?.multiplier}x multiplier</span>
               </div>
               <div className="text-xs text-primary-600">
-                Formula: {Number(form.duration_minutes)} min ÷ 60 × {selectedCat?.base_rate || 10} base × {selectedCat?.multiplier} = {suggested.suggested} pts
+                Formula: {Number(form.duration_minutes)} min ÷ 60 × {selectedCat?.base_rate || 10} base × {selectedCat?.multiplier} = {suggested.suggested} 🪃
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                Allowed range: {suggested.min} – {suggested.max} pts (±20%)
+                Allowed range: {suggested.min} – {suggested.max} 🪃 (±20%)
               </div>
             </div>
           )}
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm">🪃</span>
-            <input id="points" type="number" min={suggested?.min || 1} max={suggested?.max || 999} required
+            <input id="boomerangs" type="number" min={suggested?.min || 1} max={suggested?.max || 999} required
               value={form.points_cost} onChange={set('points_cost')}
               className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
           </div>

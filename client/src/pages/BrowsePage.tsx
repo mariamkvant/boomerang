@@ -116,7 +116,7 @@ export default function BrowsePage() {
                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
                 </Link>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                  <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">🪃 {s.points_cost} pts</span>
+                  <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">🪃 {s.points_cost} 🪃</span>
                   <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600">
                     <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
                     {s.provider_name}

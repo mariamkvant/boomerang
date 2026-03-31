@@ -78,7 +78,7 @@ export default function SettingsPage() {
         <h3 className="font-semibold mb-3">Account Info</h3>
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
-          <p>Points: {user?.points}</p>
+          <p>Boomerangs: {user?.points}</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default function SettingsPage() {
 
       <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
         <h3 className="font-semibold mb-3">🪃 Invite Friends</h3>
-        <p className="text-sm text-gray-500 mb-3">Share your referral link. You both get 25 bonus points when they sign up.</p>
+        <p className="text-sm text-gray-500 mb-3">Share your referral link. You both get 25 bonus boomerangs when they sign up.</p>
         <div className="flex gap-2">
           <input readOnly value={`${window.location.origin}/register?ref=${user?.id}`}
             className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600" />

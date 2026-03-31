@@ -89,7 +89,7 @@ export default function AccountPage() {
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Username: {user?.username}</p>
-          <p>Points: {user?.points}</p>
+          <p>Boomerangs: {user?.points}</p>
         </div>
       </div>
 

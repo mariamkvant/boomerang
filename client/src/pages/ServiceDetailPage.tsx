@@ -103,7 +103,7 @@ export default function ServiceDetailPage() {
             <span className="text-lg">🪃</span>
             <div>
               <div className="text-lg font-bold text-primary-700">{service.points_cost}</div>
-              <div className="text-xs text-primary-500">points</div>
+              <div className="text-xs text-primary-500">boomerangs</div>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl">
@@ -197,7 +197,7 @@ export default function ServiceDetailPage() {
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" aria-label="Request message" />
             <button onClick={handleRequest} disabled={requesting}
               className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md">
-              {requesting ? 'Sending...' : `Request for ${service.points_cost} pts`}
+              {requesting ? 'Sending...' : `Request for ${service.points_cost} 🪃`}
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
           </div>

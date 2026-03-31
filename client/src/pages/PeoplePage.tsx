@@ -46,7 +46,7 @@ export default function PeoplePage() {
               <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1">
                 {u.city && <span>📍 {u.city}</span>}
                 {u.languages_spoken && <span>🗣️ {u.languages_spoken}</span>}
-                <span>🪃 {u.points} pts</span>
+                <span>🪃 {u.points} 🪃</span>
               </div>
               {u.bio && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{u.bio}</p>}
             </div>

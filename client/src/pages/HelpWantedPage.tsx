@@ -60,7 +60,7 @@ export default function HelpWantedPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="bg-gray-50 text-xs px-2 py-1 rounded-full">{r.category_icon} {r.category_name}</span>
-                    <span className="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full font-medium">🪃 {r.points_budget} pts</span>
+                    <span className="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full font-medium">🪃 {r.points_budget} 🪃</span>
                   </div>
                   <h3 className="font-semibold text-sm mt-2">{r.title}</h3>
                   <p className="text-sm text-gray-500 mt-1">{r.description}</p>
@@ -87,7 +87,7 @@ export default function HelpWantedPage() {
                 <span className="font-semibold text-sm">{r.title}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${r.status === 'open' ? 'bg-green-50 text-green-600 border-green-200' : r.status === 'accepted' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>{r.status}</span>
               </div>
-              <p className="text-xs text-gray-500">{r.category_icon} {r.category_name} · 🪃 {r.points_budget} pts</p>
+              <p className="text-xs text-gray-500">{r.category_icon} {r.category_name} · 🪃 {r.points_budget} 🪃</p>
               {r.helper_name && <p className="text-xs text-primary-600 mt-2">Helper: {r.helper_name}</p>}
             </div>
           ))}
@@ -115,7 +115,7 @@ export default function HelpWantedPage() {
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
           <div>
-            <label htmlFor="hw-pts" className="block text-sm font-medium text-gray-700 mb-1.5">Points you'll pay</label>
+            <label htmlFor="hw-pts" className="block text-sm font-medium text-gray-700 mb-1.5">Boomerangs you'll pay</label>
             <input id="hw-pts" type="number" min="1" required value={form.points_budget} onChange={e => setForm(f => ({...f, points_budget: e.target.value}))}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>

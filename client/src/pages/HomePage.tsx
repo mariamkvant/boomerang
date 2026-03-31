@@ -86,7 +86,7 @@ export default function HomePage() {
             </div>
             <div className="bg-white p-5 rounded-2xl shadow-card text-center">
               <div className="text-2xl font-bold text-primary-600">{stats.total_points_exchanged}</div>
-              <div className="text-xs text-gray-500 mt-1">Points Exchanged</div>
+              <div className="text-xs text-gray-500 mt-1">Boomerangs Exchanged</div>
             </div>
           </div>
           {(stats.week_completed > 0 || stats.week_new_services > 0) && (
@@ -139,7 +139,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
                 <div className="flex items-center justify-between mt-3">
-                  <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">🪃 {s.points_cost} pts</span>
+                  <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">🪃 {s.points_cost} 🪃</span>
                   <span className="text-xs text-gray-400">{s.provider_name}{s.provider_city ? ` · ${s.provider_city}` : ''}</span>
                 </div>
               </Link>
@@ -170,7 +170,7 @@ export default function HomePage() {
                 <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
                 <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">🪃 {s.points_cost} pts</span>
+                  <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-sm font-semibold px-3 py-1 rounded-full">🪃 {s.points_cost} 🪃</span>
                   <span className="text-xs text-gray-400">by {s.provider_name}</span>
                 </div>
               </Link>

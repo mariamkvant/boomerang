@@ -70,7 +70,7 @@ export default function GroupDetailPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} pts · by {s.provider_name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} 🪃 · by {s.provider_name}</p>
                     </div>
                     <span className="text-gray-300 group-hover:text-primary-400">→</span>
                   </div>

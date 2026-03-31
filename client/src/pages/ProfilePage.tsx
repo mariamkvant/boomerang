@@ -73,7 +73,7 @@ export default function ProfilePage() {
           <div className="flex gap-4">
             <div className="bg-primary-50 px-4 py-3 rounded-xl text-center">
               <div className="text-xl font-bold text-primary-600">{profile.points}</div>
-              <div className="text-xs text-primary-500">Points</div>
+              <div className="text-xs text-primary-500">Boomerangs</div>
             </div>
             <div className="bg-gray-50 px-4 py-3 rounded-xl text-center">
               <div className="text-xl font-bold text-gray-700">{trust.completed}</div>
@@ -131,7 +131,7 @@ export default function ProfilePage() {
             {profile.services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="bg-white p-5 rounded-xl shadow-card hover:shadow-card-hover group">
                 <h4 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} pts</p>
+                <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} 🪃</p>
               </Link>
             ))}
           </div>

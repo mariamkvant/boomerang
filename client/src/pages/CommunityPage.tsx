@@ -58,7 +58,7 @@ export default function CommunityPage() {
               <Link key={m.id} to="/help-wanted" className="flex items-center justify-between bg-white p-3 rounded-xl hover:shadow-sm">
                 <div>
                   <span className="text-sm font-medium">{m.title}</span>
-                  <span className="text-xs text-gray-500 ml-2">{m.category_icon} {m.category_name} · 🪃 {m.points_budget} pts</span>
+                  <span className="text-xs text-gray-500 ml-2">{m.category_icon} {m.category_name} · 🪃 {m.points_budget} 🪃</span>
                 </div>
                 <span className="text-xs text-primary-600 font-medium">Help →</span>
               </Link>
