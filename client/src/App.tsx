@@ -17,6 +17,7 @@ import NotificationBell from './components/NotificationBell';
 import SettingsPage from './pages/SettingsPage';
 import GroupsPage from './pages/GroupsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
+import HelpWantedPage from './pages/HelpWantedPage';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -43,6 +44,7 @@ function Navbar() {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
           {navLink('/browse', 'Browse')}
+          {navLink('/help-wanted', 'Help Wanted')}
           {navLink('/groups', 'Communities')}
           {user && navLink('/services/new', 'Offer Service')}
           {user && navLink('/availability', 'My Schedule')}
@@ -94,6 +96,7 @@ function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
           {navLink('/browse', 'Browse Services')}
+          {navLink('/help-wanted', 'Help Wanted')}
           {navLink('/groups', 'Communities')}
           {user && navLink('/services/new', 'Offer a Service')}
           {user && navLink('/availability', 'My Schedule')}
@@ -167,6 +170,7 @@ export default function App() {
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/login" />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/:id" element={<GroupDetailPage />} />
+          <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/users/:id" element={<ProfilePage />} />
         </Routes>
       </main>

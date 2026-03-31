@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import db from '../database';
 import { generateToken, authMiddleware, AuthRequest } from '../auth';
 import { sendEmail, generateCode, verifyEmailHtml, resetPasswordHtml } from '../email';
+import { checkAchievements, BADGES } from '../achievements';
 
 const router = Router();
 
@@ -108,6 +109,21 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
 router.get('/referral', authMiddleware, async (req: AuthRequest, res: Response) => {
   const count = await db.get('SELECT COUNT(*) as count FROM users WHERE referred_by = ?', req.userId);
   res.json({ referral_code: req.userId, referral_count: parseInt(count?.count || '0') });
+});
+
+// Get my achievements
+router.get('/achievements', authMiddleware, async (req: AuthRequest, res: Response) => {
+  await checkAchievements(req.userId!);
+  const earned = await db.all('SELECT * FROM user_achievements WHERE user_id = ? ORDER BY awarded_at DESC', req.userId);
+  const all = BADGES.map(b => ({ ...b, check: undefined, earned: earned.some((e: any) => e.badge === b.id), awarded_at: earned.find((e: any) => e.badge === b.id)?.awarded_at }));
+  res.json(all);
+});
+
+// Get any user's achievements
+router.get('/:id/achievements', async (req: AuthRequest, res: Response) => {
+  const earned = await db.all('SELECT * FROM user_achievements WHERE user_id = ? ORDER BY awarded_at DESC', req.params.id);
+  const all = BADGES.map(b => ({ ...b, check: undefined, earned: earned.some((e: any) => e.badge === b.id) }));
+  res.json(all.filter(a => a.earned));
 });
 
 // Get current user profile

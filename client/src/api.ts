@@ -86,4 +86,16 @@ export const api = {
   joinGroup: (id: number, invite_code?: string) => request(`/groups/${id}/join`, { method: 'POST', body: JSON.stringify({ invite_code }) }),
   joinByCode: (code: string) => request(`/groups/join/${code}`, { method: 'POST' }),
   leaveGroup: (id: number) => request(`/groups/${id}/leave`, { method: 'DELETE' }),
+
+  // Help Wanted
+  postHelpWanted: (body: any) => request('/help-wanted', { method: 'POST', body: JSON.stringify(body) }),
+  getHelpWanted: (params?: string) => request(`/help-wanted${params ? `?${params}` : ''}`),
+  getHelpWantedDetail: (id: number) => request(`/help-wanted/${id}`),
+  offerHelp: (id: number) => request(`/help-wanted/${id}/offer`, { method: 'PUT' }),
+  closeHelpWanted: (id: number) => request(`/help-wanted/${id}/close`, { method: 'PUT' }),
+  getMyHelpWanted: () => request('/help-wanted/user/mine'),
+
+  // Achievements
+  getMyAchievements: () => request('/users/achievements'),
+  getUserAchievements: (id: number) => request(`/users/${id}/achievements`),
 };

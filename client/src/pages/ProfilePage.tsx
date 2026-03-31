@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [trust, setTrust] = useState<any>(null);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [isBlocked, setIsBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   useEffect(() => {
     api.getUser(Number(id)).then(setProfile).catch(() => {});
     api.getTrustScore(Number(id)).then(setTrust).catch(() => {});
+    api.getUserAchievements(Number(id)).then(setAchievements).catch(() => {});
     if (user) api.isBlocked(Number(id)).then(r => setIsBlocked(r.blocked)).catch(() => {});
   }, [id, user]);
 
@@ -101,6 +103,21 @@ export default function ProfilePage() {
         </div>
       )}
       {reportSent && <div className="bg-green-50 border border-green-100 text-green-600 p-3 rounded-xl mb-6 text-sm">✓ Report submitted. We'll review it.</div>}
+
+      {/* Achievements */}
+      {achievements.length > 0 && (
+        <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
+          <h3 className="font-bold text-lg mb-3">Achievements</h3>
+          <div className="flex flex-wrap gap-3">
+            {achievements.map((a: any) => (
+              <div key={a.id} className="flex items-center gap-2 bg-primary-50 px-3 py-2 rounded-xl" title={a.desc}>
+                <span className="text-xl">{a.emoji}</span>
+                <span className="text-sm font-medium text-primary-700">{a.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {profile.services?.length > 0 && (
         <div>
