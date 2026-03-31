@@ -3,14 +3,22 @@ import db from './database';
 
 // VAPID keys — set these as env vars on Railway
 // Generate once with: npx web-push generate-vapid-keys
-const VAPID_PUBLIC = (process.env.VAPID_PUBLIC_KEY || '').trim();
-const VAPID_PRIVATE = (process.env.VAPID_PRIVATE_KEY || '').trim();
-const rawEmail = (process.env.VAPID_EMAIL || 'mailto:hello@boomerang.fyi').trim();
+// Also check for trimmed keys in case Railway adds whitespace
+function getEnv(name: string): string {
+  return (process.env[name] || process.env[` ${name}`] || Object.entries(process.env).find(([k]) => k.trim() === name)?.[1] || '').trim();
+}
+
+const VAPID_PUBLIC = getEnv('VAPID_PUBLIC_KEY');
+const VAPID_PRIVATE = getEnv('VAPID_PRIVATE_KEY');
+const rawEmail = getEnv('VAPID_EMAIL') || 'mailto:hello@boomerang.fyi';
 const VAPID_EMAIL = rawEmail.startsWith('mailto:') ? rawEmail : `mailto:${rawEmail}`;
 
 let pushEnabled = false;
 
 export function initPush() {
+  console.log(`[PUSH] VAPID_PUBLIC_KEY present: ${!!VAPID_PUBLIC} (${VAPID_PUBLIC.length} chars)`);
+  console.log(`[PUSH] VAPID_PRIVATE_KEY present: ${!!VAPID_PRIVATE} (${VAPID_PRIVATE.length} chars)`);
+  console.log(`[PUSH] VAPID_EMAIL: ${VAPID_EMAIL}`);
   if (VAPID_PUBLIC && VAPID_PRIVATE) {
     try {
       webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
