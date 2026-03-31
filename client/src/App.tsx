@@ -51,6 +51,7 @@ function Navbar() {
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
+          {user && navLink('/messages', '💬 Messages')}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 
@@ -102,6 +103,7 @@ function Navbar() {
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
+          {user && navLink('/messages', '💬 Messages')}
           {user && navLink('/dashboard', t('nav.dashboard'))}
           {!user && navLink('/login', 'Log in')}
           {!user && navLink('/register', 'Sign up free')}
