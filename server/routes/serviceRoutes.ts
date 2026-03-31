@@ -72,7 +72,9 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   const service = await db.get(`SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier, c.base_rate,
     u.username as provider_name, u.id as provider_id, u.bio as provider_bio, sc.name as subcategory_name,
     (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating,
-    (SELECT COUNT(r.id) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as review_count
+    (SELECT COUNT(r.id) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as review_count,
+    (SELECT COUNT(*) FROM service_requests sr2 WHERE sr2.service_id = s.id) as total_requests,
+    (SELECT COUNT(*) FROM service_requests sr3 WHERE sr3.service_id = s.id AND sr3.status = 'completed') as total_completed
     FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.id = ?`, req.params.id);
   if (!service) return res.status(404).json({ error: 'Service not found' });

@@ -7,18 +7,27 @@ export default function GroupDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const [group, setGroup] = useState<any>(null);
+  const [inviteUsername, setInviteUsername] = useState('');
+  const [inviteMsg, setInviteMsg] = useState('');
 
-  useEffect(() => { api.getGroup(Number(id)).then(setGroup).catch(() => {}); }, [id]);
+  const reload = () => api.getGroup(Number(id)).then(setGroup).catch(() => {});
+  useEffect(() => { reload(); }, [id]);
 
   if (!group) return <div className="text-center py-20 text-gray-400">Loading...</div>;
 
   const isMember = group.members?.some((m: any) => m.id === user?.id);
+  const isAdmin = group.members?.some((m: any) => m.id === user?.id && m.role === 'admin');
 
-  const handleJoin = async () => {
-    try { await api.joinGroup(Number(id)); api.getGroup(Number(id)).then(setGroup); } catch {}
+  const handleJoin = async () => { try { await api.joinGroup(Number(id)); reload(); } catch {} };
+  const handleLeave = async () => { try { await api.leaveGroup(Number(id)); reload(); } catch {} };
+  const handleInvite = async () => {
+    if (!inviteUsername.trim()) return;
+    try { await api.inviteToGroup(Number(id), inviteUsername.trim()); setInviteMsg('Invited!'); setInviteUsername(''); reload(); setTimeout(() => setInviteMsg(''), 3000); }
+    catch (err: any) { setInviteMsg(err.message); }
   };
-  const handleLeave = async () => {
-    try { await api.leaveGroup(Number(id)); api.getGroup(Number(id)).then(setGroup); } catch {}
+  const handleRemove = async (userId: number) => {
+    if (!confirm('Remove this member?')) return;
+    try { await api.removeMember(Number(id), userId); reload(); } catch (err: any) { alert(err.message); }
   };
 
   return (
@@ -75,15 +84,32 @@ export default function GroupDetailPage() {
         {/* Members */}
         <div>
           <h3 className="font-bold mb-4">Members ({group.members?.length})</h3>
+          {/* Invite form */}
+          {isMember && (
+            <div className="bg-white p-4 rounded-xl shadow-card mb-3">
+              <div className="flex gap-2">
+                <input value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} placeholder="Username to invite"
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                <button onClick={handleInvite} className="bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Invite</button>
+              </div>
+              {inviteMsg && <p className="text-xs text-primary-600 mt-1">{inviteMsg}</p>}
+            </div>
+          )}
           <div className="bg-white rounded-xl shadow-card divide-y divide-gray-50">
             {group.members?.map((m: any) => (
-              <Link key={m.id} to={`/users/${m.id}`} className="flex items-center gap-3 p-3 hover:bg-gray-50">
-                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-medium">{m.username?.charAt(0).toUpperCase()}</div>
-                <div>
-                  <p className="text-sm font-medium">{m.username}</p>
-                  <p className="text-[10px] text-gray-400">{m.role}{m.city ? ` · ${m.city}` : ''}</p>
-                </div>
-              </Link>
+              <div key={m.id} className="flex items-center justify-between p-3 hover:bg-gray-50">
+                <Link to={`/users/${m.id}`} className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-medium">{m.username?.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <p className="text-sm font-medium">{m.username}</p>
+                    <p className="text-[10px] text-gray-400">{m.role}{m.city ? ` · ${m.city}` : ''}</p>
+                  </div>
+                </Link>
+                {isAdmin && m.id !== user?.id && (
+                  <button onClick={() => handleRemove(m.id)} className="text-xs text-gray-400 hover:text-red-500">Remove</button>
+                )}
+              </div>
+            ))}
             ))}
           </div>
         </div>

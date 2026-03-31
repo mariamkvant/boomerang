@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
+import { notify } from '../notify';
 
 const router = Router();
 
@@ -79,6 +80,32 @@ router.post('/join/:code', authMiddleware, async (req: AuthRequest, res: Respons
 router.delete('/:id/leave', authMiddleware, async (req: AuthRequest, res: Response) => {
   await db.run('DELETE FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   res.json({ message: 'Left group' });
+});
+
+// Invite a user by username
+router.post('/:id/invite', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: 'Username required' });
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member) return res.status(403).json({ error: 'You must be a member to invite' });
+  const invitee = await db.get('SELECT id, username FROM users WHERE username = ?', username);
+  if (!invitee) return res.status(404).json({ error: 'User not found' });
+  const existing = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, invitee.id);
+  if (existing) return res.status(409).json({ error: 'Already a member' });
+  await db.run('INSERT INTO group_members (group_id, user_id) VALUES (?, ?)', req.params.id, invitee.id);
+  const group = await db.get('SELECT name FROM groups WHERE id = ?', req.params.id);
+  const inviter = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
+  await notify({ userId: invitee.id, type: 'group_invite', title: 'You were added to a group!', body: (inviter?.username || 'Someone') + ' added you to ' + (group?.name || 'a group'), link: '/groups/' + req.params.id });
+  res.json({ message: 'User invited' });
+});
+
+// Remove a member (admin only)
+router.delete('/:id/members/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Only admins can remove members' });
+  if (Number(req.params.userId) === req.userId) return res.status(400).json({ error: 'Cannot remove yourself' });
+  await db.run('DELETE FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.params.userId);
+  res.json({ message: 'Member removed' });
 });
 
 export default router;

@@ -113,6 +113,24 @@ export default function ServiceDetailPage() {
               <div className="text-xs text-gray-500">minutes</div>
             </div>
           </div>
+          {service.total_requests > 0 && (
+            <div className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl">
+              <span className="text-lg">📊</span>
+              <div>
+                <div className="text-lg font-bold text-gray-700">{service.total_completed}/{service.total_requests}</div>
+                <div className="text-xs text-gray-500">completed</div>
+              </div>
+            </div>
+          )}
+          {service.avg_rating && (
+            <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2.5 rounded-xl">
+              <span className="text-lg">⭐</span>
+              <div>
+                <div className="text-lg font-bold text-yellow-700">{Number(service.avg_rating).toFixed(1)}</div>
+                <div className="text-xs text-yellow-600">{service.review_count} reviews</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Provider card */}

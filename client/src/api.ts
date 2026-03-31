@@ -89,6 +89,8 @@ export const api = {
   joinGroup: (id: number, invite_code?: string) => request(`/groups/${id}/join`, { method: 'POST', body: JSON.stringify({ invite_code }) }),
   joinByCode: (code: string) => request(`/groups/join/${code}`, { method: 'POST' }),
   leaveGroup: (id: number) => request(`/groups/${id}/leave`, { method: 'DELETE' }),
+  inviteToGroup: (id: number, username: string) => request(`/groups/${id}/invite`, { method: 'POST', body: JSON.stringify({ username }) }),
+  removeMember: (groupId: number, userId: number) => request(`/groups/${groupId}/members/${userId}`, { method: 'DELETE' }),
 
   // Help Wanted
   postHelpWanted: (body: any) => request('/help-wanted', { method: 'POST', body: JSON.stringify(body) }),
