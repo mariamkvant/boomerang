@@ -327,6 +327,9 @@ export default function DashboardPage() {
                   {r.status === 'pending' && (
                     <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
                   )}
+                  {r.status === 'accepted' && (
+                    <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                  )}
                   {r.status === 'delivered' && (
                     <>
                       <button onClick={() => handleAction(api.confirmRequest, r.id)} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>

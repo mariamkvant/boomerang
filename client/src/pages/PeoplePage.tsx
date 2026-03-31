@@ -7,8 +7,10 @@ export default function PeoplePage() {
   const [results, setResults] = useState<any[]>([]);
   const [searched, setSearched] = useState(false);
 
+  // Load all members on mount
+  useEffect(() => { api.searchPeople('').then(setResults).catch(() => {}); }, []);
+
   const handleSearch = async () => {
-    if (!query.trim()) return;
     const people = await api.searchPeople(query.trim());
     setResults(people);
     setSearched(true);

@@ -141,10 +141,13 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   res.json({ message: 'Profile updated' });
 });
 
-// Search people by skill/language/city
+// Search people — show all if no query
 router.get('/search/people', async (req: AuthRequest, res: Response) => {
   const { q } = req.query;
-  if (!q) return res.json([]);
+  if (!q) {
+    const users = await db.all('SELECT id, username, bio, city, languages_spoken, points FROM users ORDER BY created_at DESC LIMIT 50');
+    return res.json(users);
+  }
   const users = await db.all(
     "SELECT id, username, bio, city, languages_spoken, points FROM users WHERE username ILIKE ? OR city ILIKE ? OR languages_spoken ILIKE ? OR bio ILIKE ? LIMIT 20",
     `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`
