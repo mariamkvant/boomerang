@@ -35,7 +35,7 @@ export default function HomePage() {
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
-    api.getServices('').then(setRecentServices).catch(() => {});
+    api.getServices('').then((res: any) => setRecentServices(Array.isArray(res) ? res : res.services || [])).catch(() => {});
     api.getPopularServices().then(setPopularServices).catch(() => {});
     api.getStats().then(setStats).catch(() => {});
   }, []);

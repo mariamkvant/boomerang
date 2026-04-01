@@ -119,7 +119,8 @@ export default function DashboardPage() {
 
   const load = async () => {
     try {
-      const [inc, out, svc] = await Promise.all([api.getIncoming(), api.getOutgoing(), api.getServices(`provider=${user?.id}`)]);
+      const [inc, out, svcRes] = await Promise.all([api.getIncoming(), api.getOutgoing(), api.getServices(`provider=${user?.id}`)]);
+      const svc = Array.isArray(svcRes) ? svcRes : svcRes.services || [];
       setIncoming(inc); setOutgoing(out); setMyServices(svc);
       api.getMyHelpWanted().then(setMyHelpWanted).catch(() => {});
       api.getMyHelping().then(setMyHelping).catch(() => {});
