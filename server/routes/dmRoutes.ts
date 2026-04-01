@@ -3,6 +3,7 @@ import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
 import { notify, notificationEmailHtml } from '../notify';
 import { sendToUser } from '../ws';
+import { isContentClean } from '../contentFilter';
 
 const router = Router();
 
@@ -45,6 +46,8 @@ router.get('/:userId', authMiddleware, async (req: AuthRequest, res: Response) =
 router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { body } = req.body;
   if (!body || !body.trim()) return res.status(400).json({ error: 'Message cannot be empty' });
+  const contentCheck = isContentClean(body);
+  if (!contentCheck.clean) return res.status(400).json({ error: contentCheck.reason });
   if (Number(req.params.userId) === req.userId) return res.status(400).json({ error: 'Cannot message yourself' });
   const result = await db.run('INSERT INTO direct_messages (sender_id, receiver_id, body) VALUES (?, ?, ?)', req.userId, req.params.userId, body.trim());
   const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);

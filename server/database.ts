@@ -167,6 +167,24 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     await client.query("CREATE TABLE IF NOT EXISTS help_wanted (id SERIAL PRIMARY KEY, requester_id INTEGER NOT NULL REFERENCES users(id), category_id INTEGER NOT NULL REFERENCES categories(id), title TEXT NOT NULL, description TEXT NOT NULL, points_budget INTEGER NOT NULL DEFAULT 10, status TEXT DEFAULT 'open', accepted_by INTEGER REFERENCES users(id), created_at TIMESTAMPTZ DEFAULT NOW())");
     await client.query("CREATE TABLE IF NOT EXISTS user_achievements (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), badge TEXT NOT NULL, awarded_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(user_id, badge))");
     await client.query("CREATE TABLE IF NOT EXISTS push_subscriptions (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), endpoint TEXT UNIQUE NOT NULL, subscription TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())");
+
+    // Performance indexes
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_provider ON services(provider_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_category ON services(category_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_active ON services(is_active)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_requests_service ON service_requests(service_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_requests_requester ON service_requests(requester_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_requests_status ON service_requests(status)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_reviews_request ON reviews(request_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_sender ON direct_messages(sender_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_receiver ON direct_messages(receiver_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_status ON help_wanted(status)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

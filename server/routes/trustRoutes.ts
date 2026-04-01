@@ -40,6 +40,11 @@ router.post('/report', authMiddleware, async (req: AuthRequest, res: Response) =
   if (!reported_id || !reason) return res.status(400).json({ error: 'reported_id and reason required' });
   if (reported_id === req.userId) return res.status(400).json({ error: 'Cannot report yourself' });
   await db.run('INSERT INTO reports (reporter_id, reported_id, reason, details) VALUES (?, ?, ?, ?)', req.userId, reported_id, reason, details || '');
+  // Auto-suspend if user has 5+ pending reports
+  const reportCount = await db.get("SELECT COUNT(*) as c FROM reports WHERE reported_id = ? AND status = 'pending'", reported_id);
+  if (parseInt(reportCount?.c || '0') >= 5) {
+    await db.run('UPDATE users SET points = -1 WHERE id = ? AND points != -1', reported_id);
+  }
   res.status(201).json({ message: 'Report submitted. We will review it.' });
 });
 

@@ -1,38 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSocketConnection } from './hooks/useSocket';
 import { useDarkMode } from './hooks/useDarkMode';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import BrowsePage from './pages/BrowsePage';
-import ServiceDetailPage from './pages/ServiceDetailPage';
-import CreateServicePage from './pages/CreateServicePage';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/ProfilePage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import AvailabilityPage from './pages/AvailabilityPage';
 import InstallPrompt from './components/InstallPrompt';
 import NotificationBell from './components/NotificationBell';
-import SettingsPage from './pages/SettingsPage';
-import GroupsPage from './pages/GroupsPage';
-import GroupDetailPage from './pages/GroupDetailPage';
-import HelpWantedPage from './pages/HelpWantedPage';
-import AccountPage from './pages/AccountPage';
-import PeoplePage from './pages/PeoplePage';
-import MessagesPage from './pages/MessagesPage';
-import CommunityPage from './pages/CommunityPage';
-import OnboardingPage from './pages/OnboardingPage';
-import PrivacyPage from './pages/PrivacyPage';
-import TermsPage from './pages/TermsPage';
-import EditServicePage from './pages/EditServicePage';
-import AdminPage from './pages/AdminPage';
-import LeaderboardPage from './pages/LeaderboardPage';
-import NotFoundPage from './pages/NotFoundPage';
 import BottomNav from './components/BottomNav';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
+
+// Lazy-loaded pages
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const BrowsePage = lazy(() => import('./pages/BrowsePage'));
+const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'));
+const CreateServicePage = lazy(() => import('./pages/CreateServicePage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const AvailabilityPage = lazy(() => import('./pages/AvailabilityPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const GroupsPage = lazy(() => import('./pages/GroupsPage'));
+const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
+const HelpWantedPage = lazy(() => import('./pages/HelpWantedPage'));
+const AccountPage = lazy(() => import('./pages/AccountPage'));
+const PeoplePage = lazy(() => import('./pages/PeoplePage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const EditServicePage = lazy(() => import('./pages/EditServicePage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -198,6 +200,7 @@ export default function App() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full pb-20 md:pb-6">
+        <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
@@ -226,6 +229,7 @@ export default function App() {
           <Route path="/users/:id" element={<ProfilePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </main>
       <Footer />
       <BottomNav />

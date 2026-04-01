@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import MapView from '../components/MapView';
+import { SkeletonGrid } from '../components/Skeleton';
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -124,10 +125,7 @@ export default function BrowsePage() {
 
       {/* Results */}
       {loading ? (
-        <div className="text-center py-16">
-          <div className="inline-block w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
-          <p className="text-gray-400 text-sm mt-3">Loading services...</p>
-        </div>
+        <SkeletonGrid count={6} />
       ) : services.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-card">
           <div className="text-5xl mb-4">🪃</div>

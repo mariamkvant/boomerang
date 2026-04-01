@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import QRCode from '../components/QRCode';
 
 export default function ProfilePage() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export default function ProfilePage() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [showQR, setShowQR] = useState(false);
   const [reportDetails, setReportDetails] = useState('');
   const [reportSent, setReportSent] = useState(false);
 
@@ -63,6 +65,7 @@ export default function ProfilePage() {
           {user && !isMe && (
             <div className="flex gap-2">
               <Link to={`/messages?to=${id}`} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">💬 Message</Link>
+              <button onClick={() => setShowQR(q => !q)} className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200">QR</button>
               <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Report</button>
               <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">{isBlocked ? 'Unblock' : 'Block'}</button>
             </div>
@@ -86,6 +89,13 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* QR Code */}
+      {showQR && (
+        <div className="mb-6 flex justify-center">
+          <QRCode url={window.location.href} />
+        </div>
+      )}
 
       {/* Report modal */}
       {showReport && (
