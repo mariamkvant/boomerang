@@ -65,3 +65,17 @@ a, button { @apply transition-all duration-200; }
 /* Subtle pulse for CTA */
 @keyframes pulse-slow { 0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); } }
 .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+
+/* Slide up animation for cards */
+@keyframes slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+
+/* Fade in */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fade-in 0.2s ease-out; }
+
+/* Better focus styles */
+input:focus, textarea:focus, select:focus { @apply ring-2 ring-primary-500/30 border-primary-300; }
+
+/* Card hover lift */
+.shadow-card-hover { box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -5px rgba(0, 0, 0, 0.04); transform: translateY(-1px); }
