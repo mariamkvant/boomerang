@@ -162,9 +162,8 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
   const group = await db.get('SELECT * FROM groups WHERE id = ?', req.params.id);
   if (!group) return res.status(404).json({ error: 'Group not found' });
   const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
-  const siteAdmin = await db.get('SELECT is_admin FROM users WHERE id = ?', req.userId);
-  if ((!member || member.role !== 'admin') && !siteAdmin?.is_admin) {
-    return res.status(403).json({ error: 'Only group admin or site admin can delete groups' });
+  if (!member || member.role !== 'admin') {
+    return res.status(403).json({ error: 'Only the community admin can delete this group' });
   }
   // Clean up related data
   await db.run('DELETE FROM group_join_requests WHERE group_id = ?', req.params.id);
