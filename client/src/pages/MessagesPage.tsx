@@ -6,7 +6,9 @@ import { useSocket } from '../hooks/useSocket';
 import { t } from '../i18n';
 
 function formatDate(dateStr: string) {
+  if (!dateStr) return '';
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   if (diff < 86400000 && d.getDate() === now.getDate()) return 'Today';
