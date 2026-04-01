@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import db from '../database';
 import { generateToken, authMiddleware, AuthRequest } from '../auth';
 import { sendEmail, generateCode, verifyEmailHtml, resetPasswordHtml } from '../email';
+import { uploadAvatar } from '../cloudinary';
 import { checkAchievements, BADGES } from '../achievements';
 import { rateLimit } from '../rateLimit';
 
@@ -141,9 +142,9 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { bio, username, city, latitude, longitude, languages_spoken, avatar } = req.body;
   if (avatar !== undefined) {
-    // Validate base64 image (max ~2MB)
-    if (avatar && avatar.length > 2_800_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
-    await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatar || null, req.userId);
+    if (avatar && avatar.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
+    const avatarUrl = avatar ? await uploadAvatar(avatar) : null;
+    await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatarUrl, req.userId);
   }
   await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, req.userId);
   res.json({ message: 'Profile updated' });
