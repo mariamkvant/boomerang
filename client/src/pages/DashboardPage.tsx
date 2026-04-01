@@ -163,10 +163,10 @@ export default function DashboardPage() {
       <div className="bg-white rounded-2xl shadow-card p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl">{user?.username.charAt(0).toUpperCase()}</div>
+            <Link to="/settings" className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl hover:bg-primary-600 transition-colors">{user?.username.charAt(0).toUpperCase()}</Link>
             <div>
               <h2 className="text-xl font-bold">{user?.username}</h2>
-              <p className="text-sm text-gray-500">Your dashboard</p>
+              <Link to="/settings" className="text-sm text-primary-500 hover:underline">Edit profile →</Link>
             </div>
           </div>
           <div className="flex gap-6">
@@ -198,11 +198,15 @@ export default function DashboardPage() {
               <div className="bg-primary-500 h-2 rounded-full transition-all" style={{ width: `${(done/total)*100}%` }} />
             </div>
             <div className="flex flex-wrap gap-2">
-              {steps.map((s, i) => (
-                <span key={i} className={`text-xs px-2.5 py-1 rounded-full ${s.done ? 'bg-primary-500 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
-                  {s.done ? '✓' : '○'} {s.label}
-                </span>
-              ))}
+              {steps.map((s, i) => {
+                const links: Record<string, string> = { 'Add bio': '/settings', 'Set location': '/settings', 'Verify email': '/account', 'Create a service': '/services/new', 'Complete first exchange': '/browse' };
+                const el = (
+                  <span key={i} className={`text-xs px-2.5 py-1 rounded-full ${s.done ? 'bg-primary-500 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-300 cursor-pointer'}`}>
+                    {s.done ? '✓' : '○'} {s.label}
+                  </span>
+                );
+                return s.done ? el : <Link key={i} to={links[s.label] || '/settings'}>{el}</Link>;
+              })}
             </div>
             <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to earn 25 bonus boomerangs! 🪃</p>
           </div>
@@ -251,7 +255,7 @@ export default function DashboardPage() {
                     <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> <Link to={`/messages?to=${r.requester_id}`} className="text-xs">💬</Link> · {r.points_cost} 🪃</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
                   {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -305,7 +309,7 @@ export default function DashboardPage() {
                     <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
                     {badge(r.status)}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> <Link to={`/messages?to=${r.provider_id}`} className="text-xs">💬</Link> · {r.points_cost} 🪃</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (

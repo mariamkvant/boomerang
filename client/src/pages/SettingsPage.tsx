@@ -7,6 +7,7 @@ import { getLang, setLang, LANGUAGES, t } from '../i18n';
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const [bio, setBio] = useState(user?.bio || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [city, setCity] = useState(user?.city || '');
   const [languagesSpoken, setLanguagesSpoken] = useState(user?.languages_spoken || '');
   const [saved, setSaved] = useState(false);
@@ -27,7 +28,7 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    try { await api.updateProfile({ bio, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     catch (err: any) { alert(err.message); }
   };
 
@@ -73,6 +74,12 @@ export default function SettingsPage() {
             <p className="font-medium">{user?.username}</p>
             <p className="text-xs text-gray-400">{avatarUploading ? '...' : t('settings.changePhoto')}</p>
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">{t('settings.username')}</label>
+          <input id="username" value={username} onChange={e => setUsername(e.target.value)} placeholder={t('settings.usernamePlaceholder')}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
         </div>
 
         <div>

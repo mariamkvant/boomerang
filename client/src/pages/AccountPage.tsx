@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import { t } from '../i18n';
 
 export default function AccountPage() {
   const { user, logout, refreshUser } = useAuth();
@@ -58,7 +59,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
-      <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('account.title')}</h2>
 
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
 
@@ -88,7 +89,7 @@ export default function AccountPage() {
       )}
 
       <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
-        <h3 className="font-semibold mb-3">Account Info</h3>
+        <h3 className="font-semibold mb-3">{t('account.info')}</h3>
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Username: {user?.username}</p>

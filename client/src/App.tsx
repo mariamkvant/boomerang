@@ -157,22 +157,22 @@ function Footer() {
           </div>
           <div className="flex gap-12 text-sm">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Platform</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">{t('footer.platform')}</h4>
               <div className="space-y-2">
-                <Link to="/browse" className="block text-gray-500 hover:text-primary-600">Browse Services</Link>
-                <Link to="/help-wanted" className="block text-gray-500 hover:text-primary-600">Help Needed</Link>
-                <Link to="/people" className="block text-gray-500 hover:text-primary-600">Find People</Link>
-                <Link to="/community" className="block text-gray-500 hover:text-primary-600">Community Feed</Link>
-                <Link to="/services/new" className="block text-gray-500 hover:text-primary-600">Offer a Service</Link>
+                <Link to="/browse" className="block text-gray-500 hover:text-primary-600">{t('footer.browseServices')}</Link>
+                <Link to="/help-wanted" className="block text-gray-500 hover:text-primary-600">{t('footer.helpNeeded')}</Link>
+                <Link to="/people" className="block text-gray-500 hover:text-primary-600">{t('footer.findPeople')}</Link>
+                <Link to="/community" className="block text-gray-500 hover:text-primary-600">{t('footer.communityFeed')}</Link>
+                <Link to="/services/new" className="block text-gray-500 hover:text-primary-600">{t('footer.offerService')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Account</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">{t('footer.account')}</h4>
               <div className="space-y-2">
-                <Link to="/register" className="block text-gray-500 hover:text-primary-600">Sign Up</Link>
-                <Link to="/login" className="block text-gray-500 hover:text-primary-600">Log In</Link>
-                <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">Privacy Policy</Link>
-                <Link to="/terms" className="block text-gray-500 hover:text-primary-600">Terms of Service</Link>
+                <Link to="/register" className="block text-gray-500 hover:text-primary-600">{t('footer.signUp')}</Link>
+                <Link to="/login" className="block text-gray-500 hover:text-primary-600">{t('footer.logIn')}</Link>
+                <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">{t('footer.privacy')}</Link>
+                <Link to="/terms" className="block text-gray-500 hover:text-primary-600">{t('footer.terms')}</Link>
               </div>
             </div>
           </div>
