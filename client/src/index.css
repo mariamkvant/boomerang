@@ -26,6 +26,13 @@ body {
 .dark .hover\:bg-gray-100:hover { background: #4b5563 !important; }
 .dark input, .dark textarea, .dark select { background: #374151; border-color: #4b5563; color: #f3f4f6; }
 .dark input::placeholder, .dark textarea::placeholder { color: #6b7280; }
+.dark .hero-section { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important; }
+.dark .hero-section h1 { color: #f3f4f6 !important; }
+.dark .hero-section p { color: #9ca3af !important; }
+.dark .bg-gray-50, .dark .bg-orange-50, .dark .bg-amber-50 { background: #111827 !important; }
+.dark .bg-primary-50 { background: rgba(249, 115, 22, 0.1) !important; }
+.dark table th { background: #1f2937 !important; color: #9ca3af !important; }
+.dark table td { color: #d1d5db !important; }
 
 @layer utilities {
   .line-clamp-2 {
@@ -54,3 +61,7 @@ a, button { @apply transition-all duration-200; }
 
 /* Safe area for bottom nav on iOS */
 .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* Subtle pulse for CTA */
+@keyframes pulse-slow { 0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); } }
+.animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }

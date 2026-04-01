@@ -30,49 +30,50 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
       {/* Hero — above the fold */}
-      <section className="bg-gradient-to-br from-orange-50 via-white to-amber-50 px-4 pt-12 pb-16 md:pt-20 md:pb-24">
+      <section className="hero-section px-4 pt-12 pb-16 md:pt-20 md:pb-24" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fffbeb 100%)' }}>
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/80 border border-orange-100 rounded-full px-4 py-1.5 mb-6 text-sm text-orange-700 shadow-sm">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            Active in Luxembourg &amp; surrounding areas
+            {t('hero.location')}
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-5 leading-tight text-gray-900">
-            Exchange skills with your community — <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">no money needed</span>
+            {t('hero.headline')} <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">{t('hero.headline2')}</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-500 mb-4 max-w-2xl mx-auto leading-relaxed">
-            Teach guitar, get help with gardening. Fix a computer, learn to cook. Start with 50 free Boomerangs.
+            {t('hero.subtitle')}
           </p>
-          <p className="text-sm text-gray-400 italic mb-8">"What you give, comes back" — Shota Rustaveli</p>
+          <p className="text-sm text-gray-400 italic mb-8">{t('hero.quote')}</p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
             {user ? (
               <>
-                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-2xl text-base font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 shadow-md">🔍 Browse Services</Link>
-                <Link to="/services/new" className="bg-white border-2 border-primary-200 text-primary-600 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-primary-50 hover:border-primary-300 shadow-sm">➕ Offer a Service</Link>
+                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-2xl text-base font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 shadow-md">{t('hero.browseBtn')}</Link>
+                <Link to="/services/new" className="bg-white border-2 border-primary-200 text-primary-600 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-primary-50 hover:border-primary-300 shadow-sm">{t('hero.offerBtn')}</Link>
               </>
             ) : (
               <>
-                <Link to="/register" className="bg-primary-500 text-white px-10 py-4 rounded-2xl text-lg font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 shadow-md">Create Free Account →</Link>
-                <Link to="/browse" className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-gray-50 shadow-sm">Browse First</Link>
+                <Link to="/register" className="bg-primary-500 text-white px-10 py-4 rounded-2xl text-lg font-bold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 shadow-md animate-pulse-slow">{t('hero.cta')}</Link>
+                <Link to="/login" className="bg-white border-2 border-primary-300 text-primary-600 px-8 py-4 rounded-2xl text-base font-bold hover:bg-primary-50 shadow-sm">{t('login')}</Link>
+                <Link to="/browse" className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-gray-50 shadow-sm">{t('hero.browse')}</Link>
               </>
             )}
           </div>
-          {!user && <p className="text-xs text-gray-400">Free forever · No credit card · 50 🪃 to start</p>}
+          {!user && <p className="text-xs text-gray-400">{t('hero.cta.free')}</p>}
 
           {/* Social proof numbers */}
           {stats && (
             <div className="flex justify-center gap-8 mt-10">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.total_users}+</div>
-                <div className="text-xs text-gray-400">Members</div>
+                <div className="text-xs text-gray-400">{t('hero.members')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.total_services}+</div>
-                <div className="text-xs text-gray-400">Services</div>
+                <div className="text-xs text-gray-400">{t('hero.services')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.total_completed}+</div>
-                <div className="text-xs text-gray-400">Exchanges</div>
+                <div className="text-xs text-gray-400">{t('hero.exchanges')}</div>
               </div>
             </div>
           )}
@@ -82,7 +83,7 @@ export default function HomePage() {
       {/* Testimonials */}
       <section className="px-4 py-12 bg-white">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-2xl font-bold mb-8">What people are saying</h2>
+          <h2 className="text-center text-2xl font-bold mb-8">{t('testimonials.title')}</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {TESTIMONIALS.slice(0, 3).map((t, i) => (
               <div key={i} className="bg-gray-50 p-5 rounded-2xl">
