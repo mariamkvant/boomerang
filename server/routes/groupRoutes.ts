@@ -53,11 +53,32 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) as member_count
     FROM groups g JOIN users u ON g.created_by = u.id WHERE g.id = ?`, req.params.id);
   if (!group) return res.status(404).json({ error: 'Group not found' });
+
+  // Check if requester is a member (via auth header if present)
+  let isMember = false;
+  const header = req.headers.authorization;
+  if (header && header.startsWith('Bearer ')) {
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET || 'skillswap-dev-secret-change-in-production') as { userId: number };
+      const membership = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, decoded.userId);
+      isMember = !!membership;
+    } catch {}
+  }
+
+  // Public info: name, description, member count
+  const publicInfo = { ...group, members: [], services: [] };
+
+  if (!isMember) {
+    return res.json({ ...publicInfo, is_private_content: true });
+  }
+
+  // Members-only: full member list and services
   const members = await db.all('SELECT gm.role, u.id, u.username, u.city FROM group_members gm JOIN users u ON gm.user_id = u.id WHERE gm.group_id = ? ORDER BY gm.role DESC, gm.joined_at', req.params.id);
   const services = await db.all(`SELECT s.*, c.name as category_name, c.icon as category_icon, u.username as provider_name
     FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
     WHERE s.group_id = ? AND s.is_active = 1 ORDER BY s.created_at DESC`, req.params.id);
-  res.json({ ...group, members, services });
+  res.json({ ...group, members, services, is_private_content: false });
 });
 
 // Request to join a group
