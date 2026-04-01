@@ -108,18 +108,19 @@ export default function OnboardingPage() {
           <div className="text-center text-xs text-gray-400 mb-4">or enter manually</div>
           <input value={city} onChange={e => setCity(e.target.value)} placeholder="Your city or neighborhood"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none mb-6" />
-          <button onClick={async () => { if (city) await api.updateProfile({ city }); setStep(2); }}
-            className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">
+          <button onClick={async () => { if (city) { await api.updateProfile({ city }); setStep(2); } }}
+            disabled={!city.trim()}
+            className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
             Next →
           </button>
-          <button onClick={() => setStep(2)} className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2">Skip for now</button>
+          {!city.trim() && <p className="text-xs text-gray-400 text-center mt-2">Please enter your location to continue</p>}
         </div>
       )}
 
       {step === 2 && (
         <div>
           <h2 className="text-2xl font-bold mb-2">What are you good at? 🎯</h2>
-          <p className="text-gray-500 text-sm mb-6">Tap all that apply. We'll create your first service listings.</p>
+          <p className="text-gray-500 text-sm mb-6">Pick at least one skill. We'll create your first service listings.</p>
           <div className="grid grid-cols-2 gap-3">
             {SKILL_OPTIONS.map(s => (
               <button key={s.label} onClick={() => toggleSkill(s.label)}
@@ -133,8 +134,7 @@ export default function OnboardingPage() {
             className="w-full mt-6 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
             Next →
           </button>
-          <button onClick={() => { localStorage.setItem('onboarding_done', 'true'); navigate('/dashboard'); }}
-            className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2">Skip for now</button>
+          {selectedSkills.length === 0 && <p className="text-xs text-gray-400 text-center mt-2">Select at least one skill to continue</p>}
         </div>
       )}
 

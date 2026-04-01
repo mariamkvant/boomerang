@@ -4,10 +4,12 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import MapView from '../components/MapView';
 import { SkeletonGrid } from '../components/Skeleton';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 
 export default function BrowsePage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -24,6 +26,7 @@ export default function BrowsePage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState('newest');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
@@ -31,8 +34,8 @@ export default function BrowsePage() {
     if (!user) return;
     try {
       await api.createRequest({ service_id: serviceId, message: 'Quick request from browse' });
-      alert('Request sent! Check your dashboard.');
-    } catch (err: any) { alert(err.message); }
+      toast('Request sent! Check your dashboard.');
+    } catch (err: any) { toast(err.message, 'error'); }
   };
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
@@ -62,7 +65,7 @@ export default function BrowsePage() {
           setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           api.getNearbyServices(pos.coords.latitude, pos.coords.longitude).then(s => { setServices(s); setLoading(false); setLocating(false); }).catch(() => { setLoading(false); setLocating(false); });
         },
-        () => { setNearMe(false); setLoading(false); setLocating(false); alert('Could not get your location'); }
+        () => { setNearMe(false); setLoading(false); setLocating(false); toast('Could not get your location', 'error'); }
       );
       return;
     }
@@ -71,13 +74,14 @@ export default function BrowsePage() {
     if (selectedSub) params.set('subcategory', selectedSub);
     if (debouncedSearch) params.set('search', debouncedSearch);
     if (page > 1) params.set('page', String(page));
+    if (sortBy !== 'newest') params.set('sort', sortBy);
     api.getServices(params.toString()).then((res: any) => {
       // Handle both old array format and new paginated format
       if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
       else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, debouncedSearch, nearMe, page]);
+  }, [selectedCat, selectedSub, debouncedSearch, nearMe, page, sortBy]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -110,6 +114,13 @@ export default function BrowsePage() {
           className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
           {viewMode === 'map' ? t('browse.list') : t('browse.map')}
         </button>
+        <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
+          className="px-3 py-3.5 rounded-xl text-sm font-medium bg-white border border-gray-200 text-gray-600 outline-none focus:ring-2 focus:ring-primary-500">
+          <option value="newest">Newest</option>
+          <option value="price_low">Price: Low → High</option>
+          <option value="price_high">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+        </select>
       </div>
 
       {/* Category pills */}

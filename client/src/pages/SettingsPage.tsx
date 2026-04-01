@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { useToast } from '../components/Toast';
 import { getLang, setLang, LANGUAGES, t } from '../i18n';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
   const [bio, setBio] = useState(user?.bio || '');
   const [username, setUsername] = useState(user?.username || '');
   const [city, setCity] = useState(user?.city || '');
@@ -17,11 +19,11 @@ export default function SettingsPage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return alert('Image must be under 2MB');
+    if (file.size > 2 * 1024 * 1024) return toast('Image must be under 2MB', 'error');
     setAvatarUploading(true);
     const reader = new FileReader();
     reader.onload = async () => {
-      try { await api.updateProfile({ avatar: reader.result as string }); await refreshUser(); } catch (err: any) { alert(err.message); }
+      try { await api.updateProfile({ avatar: reader.result as string }); await refreshUser(); } catch (err: any) { toast(err.message, 'error'); }
       setAvatarUploading(false);
     };
     reader.readAsDataURL(file);
@@ -29,7 +31,7 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
-    catch (err: any) { alert(err.message); }
+    catch (err: any) { toast(err.message, 'error'); }
   };
 
   const detectLocation = () => {

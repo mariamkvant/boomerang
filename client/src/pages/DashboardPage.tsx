@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 
 function MessageThread({ requestId, userId }: { requestId: number; userId: number }) {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMsg, setNewMsg] = useState('');
   const [sending, setSending] = useState(false);
+  const { toast } = useToast();
 
   const loadMessages = () => { api.getMessages(requestId).then(setMessages).catch(() => {}); };
   useEffect(() => { loadMessages(); const i = setInterval(loadMessages, 10000); return () => clearInterval(i); }, [requestId]);
@@ -16,7 +18,7 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
     if (!newMsg.trim()) return;
     setSending(true);
     try { await api.sendMessage(requestId, newMsg); setNewMsg(''); loadMessages(); }
-    catch (err: any) { alert(err.message); }
+    catch (err: any) { toast(err.message, 'error'); }
     setSending(false);
   };
 
@@ -63,7 +65,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
 
   const save = async () => {
     try { await api.setMyAvailability(slots); setSaved(true); setTimeout(() => setSaved(false), 3000); }
-    catch (err: any) { alert(err.message); }
+    catch (err: any) { /* handled silently */ }
   };
 
   return (
@@ -116,6 +118,7 @@ export default function DashboardPage() {
   const [availSlots, setAvailSlots] = useState<any[]>([]);
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
   const [dailyMatch, setDailyMatch] = useState<any>(null);
+  const { toast } = useToast();
 
   const load = async () => {
     try {
@@ -131,13 +134,13 @@ export default function DashboardPage() {
   useEffect(() => { load(); }, []);
 
   const handleAction = async (action: (id: number) => Promise<any>, id: number) => {
-    try { await action(id); await load(); await refreshUser(); } catch (err: any) { alert(err.message); }
+    try { await action(id); await load(); await refreshUser(); } catch (err: any) { toast(err.message, 'error'); }
   };
 
   const submitReview = async () => {
     if (!reviewForm) return;
-    try { await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment }); setReviewForm(null); await load(); }
-    catch (err: any) { alert(err.message); }
+    try { await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment }); setReviewForm(null); toast('Review submitted!'); await load(); }
+    catch (err: any) { toast(err.message, 'error'); }
   };
 
   const badge = (s: string) => {
@@ -150,6 +153,22 @@ export default function DashboardPage() {
       disputed: 'bg-red-50 text-red-600 border-red-200',
     };
     return <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${m[s] || ''}`}>{s}</span>;
+  };
+
+  const progressSteps = ['pending', 'accepted', 'delivered', 'completed'];
+  const RequestProgress = ({ status }: { status: string }) => {
+    if (status === 'cancelled' || status === 'disputed') return null;
+    const currentIdx = progressSteps.indexOf(status);
+    return (
+      <div className="flex items-center gap-1 mt-2">
+        {progressSteps.map((step, i) => (
+          <React.Fragment key={step}>
+            <div className={`w-2 h-2 rounded-full ${i <= currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+          </React.Fragment>
+        ))}
+      </div>
+    );
   };
 
   const tabs = [
@@ -291,6 +310,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
                   {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
+                  <RequestProgress status={r.status} />
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (

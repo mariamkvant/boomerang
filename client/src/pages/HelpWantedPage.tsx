@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 
 export default function HelpWantedPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [tab, setTab] = useState<'browse' | 'mine' | 'post'>('browse');
   const [requests, setRequests] = useState<any[]>([]);
   const [myRequests, setMyRequests] = useState<any[]>([]);
@@ -30,7 +32,7 @@ export default function HelpWantedPage() {
   };
 
   const handleOffer = async (id: number) => {
-    try { await api.offerHelp(id); setSuccess('Offer sent!'); load(); } catch (err: any) { alert(err.message); }
+    try { await api.offerHelp(id); setSuccess('Offer sent!'); load(); } catch (err: any) { toast(err.message, 'error'); }
   };
 
   return (

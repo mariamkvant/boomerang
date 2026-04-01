@@ -48,7 +48,7 @@ router.get('/calculate-points', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, subcategory, search, provider, page = '1', lat, lng, radius } = req.query;
+  const { category, subcategory, search, provider, page = '1', sort, lat, lng, radius } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   const baseFrom = `FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
@@ -63,10 +63,15 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const countRes = await db.get('SELECT COUNT(*) as total ' + baseFrom + where, ...filterParams);
   const total = parseInt(countRes?.total || '0');
 
+  let orderBy = ' ORDER BY s.created_at DESC';
+  if (sort === 'price_low') orderBy = ' ORDER BY s.points_cost ASC';
+  else if (sort === 'price_high') orderBy = ' ORDER BY s.points_cost DESC';
+  else if (sort === 'rating') orderBy = ' ORDER BY avg_rating DESC NULLS LAST';
+
   const selectCols = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
     u.username as provider_name, u.city as provider_city, u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude, u.avatar as provider_avatar, sc.name as subcategory_name,
     (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating `;
-  const services = await db.all(selectCols + baseFrom + where + ' ORDER BY s.created_at DESC LIMIT ? OFFSET ?', ...filterParams, limit, offset);
+  const services = await db.all(selectCols + baseFrom + where + orderBy + ' LIMIT ? OFFSET ?', ...filterParams, limit, offset);
   res.json({ services, total, page: parseInt(page as string), totalPages: Math.ceil(total / limit) });
 });
 router.get('/:id', async (req: AuthRequest, res: Response) => {
