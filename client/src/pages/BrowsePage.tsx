@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -15,11 +15,16 @@ export default function BrowsePage() {
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [selectedSub, setSelectedSub] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [nearMe, setNearMe] = useState(false);
   const [locating, setLocating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -31,6 +36,13 @@ export default function BrowsePage() {
   };
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [search]);
 
   // Load subcategories when category changes
   useEffect(() => {
@@ -57,13 +69,19 @@ export default function BrowsePage() {
     const params = new URLSearchParams();
     if (selectedCat) params.set('category', selectedCat);
     if (selectedSub) params.set('subcategory', selectedSub);
-    if (search) params.set('search', search);
-    api.getServices(params.toString()).then(s => { setServices(s); setLoading(false); }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, search, nearMe]);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (page > 1) params.set('page', String(page));
+    api.getServices(params.toString()).then((res: any) => {
+      // Handle both old array format and new paginated format
+      if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
+      else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [selectedCat, selectedSub, debouncedSearch, nearMe, page]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
-    setSelectedCat(val); setSelectedSub('');
+    setSelectedCat(val); setSelectedSub(''); setPage(1);
     if (val) setSearchParams({ category: val }); else setSearchParams({});
   };
 
@@ -140,7 +158,7 @@ export default function BrowsePage() {
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-400 mb-4">{services.length} {t('browse.servicesFound')}</p>
+          <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="block bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover group">
@@ -160,6 +178,15 @@ export default function BrowsePage() {
               </Link>
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">←</button>
+              <span className="text-sm text-gray-500">{page} / {totalPages}</span>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">→</button>
+            </div>
+          )}
         </>
       )}
     </div>

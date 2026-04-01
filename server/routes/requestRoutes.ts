@@ -52,17 +52,25 @@ router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Respons
   res.json({ message: 'Service marked as delivered. Waiting for requester confirmation.' });
 });
 
-// Requester confirms delivery -> triggers point transfer
+// Requester confirms delivery -> triggers point transfer (in a transaction)
 router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Response) => {
   const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.requester_id !== req.userId) return res.status(403).json({ error: 'Only the requester can confirm' });
   if (r.status !== 'delivered') return res.status(400).json({ error: 'Service must be marked as delivered first' });
-  const requester = await db.get('SELECT points FROM users WHERE id = ?', r.requester_id);
-  if (requester.points < r.points_cost) return res.status(400).json({ error: 'Not enough points' });
-  await db.run('UPDATE users SET points = points - ? WHERE id = ?', r.points_cost, r.requester_id);
-  await db.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, r.provider_id);
-  await db.run("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?", req.params.id);
+
+  try {
+    await db.transaction(async (tx) => {
+      const requester = await tx.get('SELECT points FROM users WHERE id = ?', r.requester_id);
+      if (requester.points < r.points_cost) throw new Error('Not enough points');
+      await tx.run('UPDATE users SET points = points - ? WHERE id = ?', r.points_cost, r.requester_id);
+      await tx.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, r.provider_id);
+      await tx.run("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?", req.params.id);
+    });
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message || 'Transfer failed' });
+  }
+
   const providerConfirm = await db.get('SELECT id, email FROM users WHERE id = ?', r.provider_id);
   if (providerConfirm) { await notify({ userId: providerConfirm.id, type: 'delivery_confirmed', title: 'Delivery confirmed!', body: 'Points have been transferred to your account.', link: '/dashboard' }); }
   res.json({ message: 'Delivery confirmed! Points transferred.' });

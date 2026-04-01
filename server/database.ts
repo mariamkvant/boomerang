@@ -213,13 +213,40 @@ export const dbHelper = {
     const res = await pool.query(finalSql, params.flat());
     return { lastInsertRowid: res.rows[0]?.id || 0, changes: res.rowCount || 0 };
   },
-  transaction<T>(fn: () => Promise<T>): () => Promise<T> {
-    return async () => {
+  transaction<T>(fn: (tx: { get: typeof dbHelper.get; all: typeof dbHelper.all; run: typeof dbHelper.run }) => Promise<T>): Promise<T> {
+    return (async () => {
       const client = await pool.connect();
-      try { await client.query('BEGIN'); const result = await fn(); await client.query('COMMIT'); return result; }
-      catch (e) { await client.query('ROLLBACK'); throw e; }
-      finally { client.release(); }
-    };
+      const tx = {
+        async get(sql: string, ...params: any[]): Promise<any> {
+          const pgSql = convertPlaceholders(sql);
+          const res = await client.query(pgSql, params.flat());
+          return res.rows[0] || undefined;
+        },
+        async all(sql: string, ...params: any[]): Promise<any[]> {
+          const pgSql = convertPlaceholders(sql);
+          const res = await client.query(pgSql, params.flat());
+          return res.rows;
+        },
+        async run(sql: string, ...params: any[]): Promise<{ lastInsertRowid: number; changes: number }> {
+          const pgSql = convertPlaceholders(sql);
+          const isInsert = pgSql.trim().toUpperCase().startsWith('INSERT');
+          const finalSql = isInsert && !pgSql.includes('RETURNING') ? pgSql + ' RETURNING id' : pgSql;
+          const res = await client.query(finalSql, params.flat());
+          return { lastInsertRowid: res.rows[0]?.id || 0, changes: res.rowCount || 0 };
+        }
+      };
+      try {
+        await client.query('BEGIN');
+        const result = await fn(tx);
+        await client.query('COMMIT');
+        return result;
+      } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+      } finally {
+        client.release();
+      }
+    })();
   }
 };
 

@@ -51,23 +51,24 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const { category, subcategory, search, provider, page = '1', lat, lng, radius } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
-  let query = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
-    u.username as provider_name, u.city as provider_city, u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude, u.avatar as provider_avatar, sc.name as subcategory_name,
-    (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
-    FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
+  const baseFrom = `FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.is_active = 1 AND s.group_id IS NULL`;
-  const params: any[] = [];
-  let n = 0;
-  if (provider) { query += ` AND s.provider_id = $${++n}`; params.push(provider); }
-  if (category) { query += ` AND s.category_id = $${++n}`; params.push(category); }
-  if (subcategory) { query += ` AND s.subcategory_id = $${++n}`; params.push(subcategory); }
-  if (search) { query += ` AND (s.title ILIKE $${++n} OR s.description ILIKE $${++n})`; params.push(`%${search}%`, `%${search}%`); n++; }
-  query += ` ORDER BY s.created_at DESC LIMIT $${++n} OFFSET $${++n}`;
-  params.push(limit, offset);
-  const services = await db.all(query, ...params);
-  res.json(services);
-});
+  let where = '';
+  const filterParams: any[] = [];
+  if (provider) { where += ' AND s.provider_id = ?'; filterParams.push(provider); }
+  if (category) { where += ' AND s.category_id = ?'; filterParams.push(category); }
+  if (subcategory) { where += ' AND s.subcategory_id = ?'; filterParams.push(subcategory); }
+  if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
 
+  const countRes = await db.get('SELECT COUNT(*) as total ' + baseFrom + where, ...filterParams);
+  const total = parseInt(countRes?.total || '0');
+
+  const selectCols = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
+    u.username as provider_name, u.city as provider_city, u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude, u.avatar as provider_avatar, sc.name as subcategory_name,
+    (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating `;
+  const services = await db.all(selectCols + baseFrom + where + ' ORDER BY s.created_at DESC LIMIT ? OFFSET ?', ...filterParams, limit, offset);
+  res.json({ services, total, page: parseInt(page as string), totalPages: Math.ceil(total / limit) });
+});
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const service = await db.get(`SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier, c.base_rate,
     u.username as provider_name, u.id as provider_id, u.bio as provider_bio, sc.name as subcategory_name,
