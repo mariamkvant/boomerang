@@ -99,12 +99,12 @@ export default function CreateServicePage() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white">
             <option value="">Select a category</option>
             {categories.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.icon} {c.name} ({c.multiplier}x)</option>
+              <option key={c.id} value={c.id}>{c.name} ({c.multiplier}x)</option>
             ))}
           </select>
           {selectedCat && (
             <p className="text-xs text-gray-400 mt-1.5">
-              Multiplier: <span className="font-semibold text-primary-600">{selectedCat.multiplier}x</span> — {selectedCat.multiplier >= 2 ? 'Specialized skill' : selectedCat.multiplier >= 1.5 ? 'Knowledge-based' : selectedCat.multiplier >= 1.2 ? 'Moderate effort' : 'General effort'}
+              Multiplier: <span className="font-semibold text-primary-600">{selectedCat.multiplier}x</span>
             </p>
           )}
         </div>
@@ -132,7 +132,7 @@ export default function CreateServicePage() {
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-            <button type="button" onClick={generateDescription} className="text-xs text-primary-600 hover:text-primary-700 font-medium">✨ AI Generate</button>
+            <button type="button" onClick={generateDescription} className="text-xs text-primary-600 hover:text-primary-700 font-medium">AI Generate</button>
           </div>
           <textarea id="description" required value={form.description} onChange={set('description')} rows={4}
             placeholder="Describe what you offer, your experience, and what people can expect..."
@@ -141,7 +141,7 @@ export default function CreateServicePage() {
 
         {/* Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">📷 Service Image (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Image (optional)</label>
           {image ? (
             <div className="relative">
               <img src={image} alt="" className="w-full h-40 object-cover rounded-xl" />
@@ -177,24 +177,20 @@ export default function CreateServicePage() {
         <div>
           <label htmlFor="boomerangs" className="block text-sm font-medium text-gray-700 mb-1.5">Boomerangs Cost</label>
           {suggested && (
-            <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-primary-700">Suggested: {suggested.suggested} 🪃</span>
-                <span className="text-xs text-primary-500">{selectedCat?.multiplier}x multiplier</span>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Suggested: <span className="font-semibold">{suggested.suggested}</span> boomerangs</span>
+                <span className="text-xs text-gray-400">{selectedCat?.multiplier}x</span>
               </div>
-              <div className="text-xs text-primary-600">
-                Formula: {Number(form.duration_minutes)} min ÷ 60 × {selectedCat?.base_rate || 10} base × {selectedCat?.multiplier} = {suggested.suggested} 🪃
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Allowed range: {suggested.min} – {suggested.max} 🪃 (±20%)
+              <div className="text-xs text-gray-400 mt-1">
+                Range: {suggested.min} – {suggested.max}
               </div>
             </div>
           )}
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm">🪃</span>
             <input id="boomerangs" type="number" min={suggested?.min || 1} max={suggested?.max || 999} required
               value={form.points_cost} onChange={set('points_cost')}
-              className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+              className="w-full border border-gray-200 rounded-xl px-4 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
           </div>
         </div>
 
@@ -202,7 +198,7 @@ export default function CreateServicePage() {
         <div className="border-t border-gray-100 pt-5">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={form.is_bundle} onChange={e => setForm(f => ({...f, is_bundle: e.target.checked}))} className="rounded" />
-            <span className="font-medium text-gray-700">📦 Offer as a package deal</span>
+            <span className="font-medium text-gray-700">Offer as a package deal</span>
           </label>
           {form.is_bundle && (
             <div className="grid grid-cols-2 gap-4 mt-3">

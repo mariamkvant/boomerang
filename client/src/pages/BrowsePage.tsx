@@ -97,13 +97,13 @@ export default function BrowsePage() {
       {/* Category pills */}
       <div className="flex flex-wrap gap-2 mb-8">
         <button onClick={() => handleCatClick('')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:text-primary-600'}`}>
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
           {t('browse.all')}
         </button>
         {categories.map((c: any) => (
           <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:text-primary-600'}`}>
-            {c.icon} {c.name}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
+            {c.name}
           </button>
         ))}
       </div>
@@ -129,7 +129,6 @@ export default function BrowsePage() {
         <SkeletonGrid count={6} />
       ) : services.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-card">
-          <div className="text-5xl mb-4">🪃</div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('browse.noResults')}</h3>
           <p className="text-gray-500 text-sm mb-6">{t('browse.beFirst')}</p>
           <Link to="/services/new" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('browse.offerService')}</Link>
@@ -144,32 +143,21 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400 mb-4">{services.length} {t('browse.servicesFound')}</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
-              <div key={s.id} className="bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover animate-slide-up">
-                <Link to={`/services/${s.id}`} className="block group">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="bg-gray-50 text-xs px-2.5 py-1 rounded-full text-gray-500">{s.category_icon} {s.category_name}</span>
-                      {s.subcategory_name && <span className="bg-gray-50 text-xs px-2 py-0.5 rounded-full text-gray-400">{s.subcategory_name}</span>}
-                    </div>
-                    {s.avg_rating && <span className="text-xs text-accent-500 font-medium">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
-                </Link>
+              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover group">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">{s.category_name}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
+                  {s.avg_rating && <span className="text-xs text-gray-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
+                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                  <span className="inline-flex items-center gap-1 text-primary-600 font-semibold text-sm">{s.points_cost} {t('browse.boomerangs')}</span>
+                  <span className="text-primary-600 font-semibold text-sm">{s.points_cost} {t('browse.boomerangs')}</span>
                   <div className="flex items-center gap-2">
-                    {s.distance != null && <span className="text-xs text-gray-400">📍 {Number(s.distance).toFixed(1)} km</span>}
-                    {user && user.id !== (s.provider_user_id || s.provider_id) && (
-                      <button onClick={(e: any) => { e.preventDefault(); e.stopPropagation(); quickRequest(s.id, e); }} className="bg-primary-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-medium hover:bg-primary-600">{t('browse.request')}</button>
-                    )}
-                    <Link to={`/users/${s.provider_user_id || s.provider_id}`} className="text-xs text-gray-400 flex items-center gap-1 hover:text-primary-600" onClick={(e: any) => e.stopPropagation()}>
-                      <span className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-[10px] font-medium text-gray-500">{s.provider_name?.charAt(0).toUpperCase()}</span>
-                      {s.provider_name}
-                    </Link>
+                    {s.distance != null && <span className="text-xs text-gray-400">{Number(s.distance).toFixed(1)} km</span>}
+                    <span className="text-xs text-gray-400">{s.provider_name}</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </>
