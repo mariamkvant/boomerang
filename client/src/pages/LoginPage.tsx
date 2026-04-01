@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { t } from '../i18n';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -21,8 +22,8 @@ export default function LoginPage() {
     <div className="max-w-md mx-auto mt-12 animate-fade-in">
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold">Welcome back</h2>
-        <p className="text-gray-500 text-sm mt-1">Log in to your Boomerang account</p>
+        <h2 className="text-2xl font-bold">{t('login.title')}</h2>
+        <p className="text-gray-500 text-sm mt-1">{t('login.subtitle')}</p>
       </div>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
@@ -31,21 +32,21 @@ export default function LoginPage() {
       )}
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.email')}</label>
           <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="you@example.com" />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.password')}</label>
           <input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="••••••••" />
         </div>
         <button type="submit" disabled={loading}
           className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md">
-          {loading ? 'Logging in...' : 'Log In'}
+          {loading ? 'Logging in...' : t('login.btn')}
         </button>
-        <p className="text-center text-sm text-gray-500">Don't have an account? <Link to="/register" className="text-primary-600 font-medium hover:underline">Sign up free</Link></p>
-        <p className="text-center text-sm"><Link to="/forgot-password" className="text-gray-400 hover:text-primary-600">Forgot password?</Link></p>
+        <p className="text-center text-sm text-gray-500">{t('login.noAccount')} <Link to="/register" className="text-primary-600 font-medium hover:underline">{t('login.signupFree')}</Link></p>
+        <p className="text-center text-sm"><Link to="/forgot-password" className="text-gray-400 hover:text-primary-600">{t('login.forgot')}</Link></p>
       </form>
     </div>
   );

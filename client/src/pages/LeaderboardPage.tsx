@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { t } from '../i18n';
 
 export default function LeaderboardPage() {
   const [tab, setTab] = useState<'weekly' | 'alltime' | 'communities'>('weekly');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { t } from '../i18n';
 
 function MessageThread({ requestId, userId }: { requestId: number; userId: number }) {
   const [messages, setMessages] = useState<any[]>([]);
@@ -21,9 +22,9 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
 
   return (
     <div className="mt-4 border-t border-gray-100 pt-4">
-      <h4 className="text-xs font-semibold text-gray-500 mb-3">💬 Messages</h4>
+      <h4 className="text-xs font-semibold text-gray-500 mb-3">💬 {t('messages.title')}</h4>
       <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
-        {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-2">No messages yet</p>}
+        {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-2">{t('dashboard.noMessages')}</p>}
         {messages.map((m: any) => (
           <div key={m.id} className={`flex ${m.sender_id === userId ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${m.sender_id === userId ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
@@ -35,9 +36,9 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
       </div>
       <div className="flex gap-2">
         <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
-          placeholder="Type a message..." className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+          placeholder={t('dashboard.typeMessage')} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
         <button onClick={send} disabled={sending || !newMsg.trim()}
-          className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">Send</button>
+          className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{t('messages.send')}</button>
       </div>
     </div>
   );
@@ -67,7 +68,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
 
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-4">Set when you're available to provide services. Requesters will book from these slots.</p>
+      <p className="text-sm text-gray-500 mb-4">{t('dashboard.scheduleDesc')}</p>
       <div className="space-y-3">
         {DAYS.map((dayName, dayIdx) => {
           const daySlots = slots.map((s, i) => ({ ...s, idx: i })).filter(s => s.day_of_week === dayIdx);
@@ -77,7 +78,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
                 <h4 className="font-medium text-sm">{dayName}</h4>
                 <button onClick={() => addSlot(dayIdx)} className="text-xs text-primary-600 hover:text-primary-700 font-medium">+ Add</button>
               </div>
-              {daySlots.length === 0 && <p className="text-xs text-gray-400">Not available</p>}
+              {daySlots.length === 0 && <p className="text-xs text-gray-400">{t('dashboard.notAvailable')}</p>}
               {daySlots.map(s => (
                 <div key={s.idx} className="flex items-center gap-2 mt-1">
                   <select value={s.start_time} onChange={e => updateSlot(s.idx, 'start_time', e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm" aria-label="Start time">
@@ -95,8 +96,8 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
         })}
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <button onClick={save} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 text-sm">Save Schedule</button>
-        {saved && <span className="text-sm text-green-600">✓ Saved</span>}
+        <button onClick={save} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-600 text-sm">{t('dashboard.saveSchedule')}</button>
+        {saved && <span className="text-sm text-green-600">✓ {t('dashboard.saved')}</span>}
       </div>
     </div>
   );
@@ -151,10 +152,10 @@ export default function DashboardPage() {
   };
 
   const tabs = [
-    { key: 'incoming' as const, label: 'Incoming', count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
-    { key: 'outgoing' as const, label: 'My Requests', count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length + myHelpWanted.filter(h => !['completed','closed'].includes(h.status)).length },
-    { key: 'services' as const, label: 'My Services', count: myServices.length },
-    { key: 'schedule' as const, label: '📅 Schedule', count: 0 },
+    { key: 'incoming' as const, label: t('dashboard.incoming'), count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
+    { key: 'outgoing' as const, label: t('dashboard.myRequests'), count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length + myHelpWanted.filter(h => !['completed','closed'].includes(h.status)).length },
+    { key: 'services' as const, label: t('dashboard.myServices'), count: myServices.length },
+    { key: 'schedule' as const, label: t('dashboard.schedule'), count: 0 },
   ];
 
   return (
@@ -166,12 +167,12 @@ export default function DashboardPage() {
             <Link to="/settings" className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl hover:bg-primary-600 transition-colors">{user?.username.charAt(0).toUpperCase()}</Link>
             <div>
               <h2 className="text-xl font-bold">{user?.username}</h2>
-              <Link to="/settings" className="text-sm text-primary-500 hover:underline">Edit profile →</Link>
+              <Link to="/settings" className="text-sm text-primary-500 hover:underline">{t('dashboard.editProfile')}</Link>
             </div>
           </div>
           <div className="flex gap-6">
-            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">Boomerangs</div></div>
-            <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">Services</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">{t('dashboard.boomerangs')}</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">{t('dashboard.services')}</div></div>
           </div>
         </div>
       </div>
@@ -229,11 +230,11 @@ export default function DashboardPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-            {t.label}
-            {t.count > 0 && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === t.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 text-gray-500'}`}>{t.count}</span>}
+        {tabs.map(tb => (
+          <button key={tb.key} onClick={() => setTab(tb.key)}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === tb.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            {tb.label}
+            {tb.count > 0 && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 text-gray-500'}`}>{tb.count}</span>}
           </button>
         ))}
       </div>
@@ -244,7 +245,7 @@ export default function DashboardPage() {
           {incoming.filter(r => !['completed','cancelled'].includes(r.status)).length === 0 && incoming.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
               <div className="text-4xl mb-3">📬</div>
-              <p className="text-gray-500 text-sm">No incoming requests yet</p>
+              <p className="text-gray-500 text-sm">{t('dashboard.noIncoming')}</p>
             </div>
           )}
           {incoming.filter(r => !['completed','cancelled'].includes(r.status)).map((r: any) => (
@@ -261,18 +262,18 @@ export default function DashboardPage() {
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (
                     <>
-                      <button onClick={() => handleAction(api.acceptRequest, r.id)} className="text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">Accept</button>
-                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Decline</button>
+                      <button onClick={() => handleAction(api.acceptRequest, r.id)} className="text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">{t('dashboard.accept')}</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
-                    <button onClick={() => handleAction(api.deliverRequest, r.id)} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">Mark Delivered ✓</button>
+                    <button onClick={() => handleAction(api.deliverRequest, r.id)} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">{t('dashboard.delivered')}</button>
                   )}
                   {r.status === 'delivered' && (
-                    <span className="text-xs text-purple-500 font-medium">Waiting for confirmation...</span>
+                    <span className="text-xs text-purple-500 font-medium">{t('dashboard.waiting')}</span>
                   )}
                   {r.status === 'disputed' && (
-                    <span className="text-xs text-red-500 font-medium">Disputed — resolve via messages</span>
+                    <span className="text-xs text-red-500 font-medium">{t('dashboard.disputedMsg')}</span>
                   )}
                 </div>
               </div>
@@ -281,7 +282,7 @@ export default function DashboardPage() {
                 <div>
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
                     className="text-xs text-primary-600 mt-3 hover:underline">
-                    {expandedChat === r.id ? 'Hide messages ▲' : 'Messages ▼'}
+                    {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
                   </button>
                   {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
                 </div>
@@ -334,7 +335,7 @@ export default function DashboardPage() {
                 <div>
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
                     className="text-xs text-primary-600 mt-3 hover:underline">
-                    {expandedChat === r.id ? 'Hide messages ▲' : 'Messages ▼'}
+                    {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
                   </button>
                   {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { t } from '../i18n';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -23,8 +24,8 @@ export default function RegisterPage() {
     <div className="max-w-md mx-auto mt-12 animate-fade-in">
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold">Join Boomerang</h2>
-        <p className="text-gray-500 text-sm mt-1">Create your account and start with <span className="font-semibold text-primary-600">50 free boomerangs</span></p>
+        <h2 className="text-2xl font-bold">{t('register.title')}</h2>
+        <p className="text-gray-500 text-sm mt-1">{t('register.subtitle')} <span className="font-semibold text-primary-600">{t('register.freePoints')}</span></p>
       </div>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
@@ -33,29 +34,29 @@ export default function RegisterPage() {
       )}
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.username')}</label>
           <input id="username" type="text" required value={username} onChange={e => setUsername(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="Choose a username" />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.email')}</label>
           <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="you@example.com" />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.password')}</label>
           <input id="password" type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="At least 6 characters" />
         </div>
         <label className="flex items-start gap-2 text-sm cursor-pointer">
           <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="rounded mt-0.5" required />
-          <span className="text-gray-600">I agree to the <Link to="/terms" className="text-primary-600 hover:underline" target="_blank">Terms of Service</Link> and <Link to="/privacy" className="text-primary-600 hover:underline" target="_blank">Privacy Policy</Link></span>
+          <span className="text-gray-600">{t('register.agree')} <Link to="/terms" className="text-primary-600 hover:underline" target="_blank">{t('register.terms')}</Link> and <Link to="/privacy" className="text-primary-600 hover:underline" target="_blank">{t('register.privacy')}</Link></span>
         </label>
         <button type="submit" disabled={loading || !agreed}
           className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md">
-          {loading ? 'Creating account...' : 'Create Account'}
+          {loading ? 'Creating account...' : t('register.btn')}
         </button>
-        <p className="text-center text-sm text-gray-500">Already have an account? <Link to="/login" className="text-primary-600 font-medium hover:underline">Log in</Link></p>
+        <p className="text-center text-sm text-gray-500">{t('register.hasAccount')} <Link to="/login" className="text-primary-600 font-medium hover:underline">{t('login.btn')}</Link></p>
       </form>
       <p className="text-center text-xs text-gray-400 mt-4">By signing up you agree to our <Link to="/terms" className="hover:underline">Terms</Link> and <Link to="/privacy" className="hover:underline">Privacy Policy</Link>.</p>
       <div className="mt-6 text-center text-xs text-gray-400">

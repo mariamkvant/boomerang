@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { t } from '../i18n';
 
 export default function GroupsPage() {
   const { user } = useAuth();
@@ -45,10 +46,10 @@ export default function GroupsPage() {
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Communities</h2>
+        <h2 className="text-2xl font-bold">{t('groups.title')}</h2>
         <div className="flex gap-2">
-          <input value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="Invite code" className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-32" />
-          <button onClick={handleJoinCode} className="bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Join</button>
+          <input value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder={t('groups.inviteCode')} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-32" />
+          <button onClick={handleJoinCode} className="bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">{t('groups.join')}</button>
         </div>
       </div>
 
@@ -56,10 +57,10 @@ export default function GroupsPage() {
       {success && <div className="bg-green-50 text-green-600 p-3 rounded-xl mb-4 text-sm">✓ {success}</div>}
 
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        {(['browse', 'mine', 'create'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
-            {t === 'browse' ? 'Browse' : t === 'mine' ? 'My Groups' : 'Create'}
+        {(['browse', 'mine', 'create'] as const).map(tb => (
+          <button key={tb} onClick={() => setTab(tb)}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            {tb === 'browse' ? t('groups.browse') : tb === 'mine' ? t('groups.myGroups') : t('groups.create')}
           </button>
         ))}
       </div>
@@ -70,7 +71,7 @@ export default function GroupsPage() {
             <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input value={groupSearch} onChange={e => setGroupSearch(e.target.value)} placeholder="Search communities..."
+            <input value={groupSearch} onChange={e => setGroupSearch(e.target.value)} placeholder={t('groups.search')}
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-card" aria-label="Search communities" />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -79,13 +80,13 @@ export default function GroupsPage() {
               <Link to={`/groups/${g.id}`} className="font-semibold text-gray-900 hover:text-primary-600">{g.name}</Link>
               <p className="text-sm text-gray-500 mt-1 line-clamp-2">{g.description}</p>
               <div className="flex items-center justify-between mt-3">
-                <span className="text-xs text-gray-400">{g.member_count} members · by {g.creator_name}</span>
-                {user && !isMember(g.id) && <button onClick={() => handleJoin(g.id)} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">Join</button>}
-                {isMember(g.id) && <span className="text-xs text-primary-500 font-medium">✓ Member</span>}
+                <span className="text-xs text-gray-400">{g.member_count} {t('groups.members')} · by {g.creator_name}</span>
+                {user && !isMember(g.id) && <button onClick={() => handleJoin(g.id)} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">{t('groups.join')}</button>}
+                {isMember(g.id) && <span className="text-xs text-primary-500 font-medium">{t('groups.member')}</span>}
               </div>
             </div>
           ))}
-          {publicGroups.length === 0 && <p className="text-gray-400 text-sm col-span-2 text-center py-8">{groupSearch ? 'No communities found' : 'No public groups yet. Create the first one!'}</p>}
+          {publicGroups.length === 0 && <p className="text-gray-400 text-sm col-span-2 text-center py-8">{groupSearch ? t('groups.noResults') : t('groups.noPublic')}</p>}
           </div>
         </div>
       )}
@@ -97,33 +98,33 @@ export default function GroupsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-sm group-hover:text-primary-600">{g.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{g.member_count} members · {g.role}</p>
+                  <p className="text-xs text-gray-500 mt-1">{g.member_count} {t('groups.members')} · {g.role}</p>
                 </div>
                 <span className="text-gray-300 group-hover:text-primary-400">→</span>
               </div>
             </Link>
           ))}
-          {myGroups.length === 0 && <p className="text-gray-400 text-sm text-center py-8">You haven't joined any groups yet.</p>}
+          {myGroups.length === 0 && <p className="text-gray-400 text-sm text-center py-8">{t('groups.noJoined')}</p>}
         </div>
       )}
 
       {tab === 'create' && user && (
         <form onSubmit={handleCreate} className="bg-white p-8 rounded-2xl shadow-card space-y-5 max-w-lg">
           <div>
-            <label htmlFor="gname" className="block text-sm font-medium text-gray-700 mb-1.5">Group Name</label>
+            <label htmlFor="gname" className="block text-sm font-medium text-gray-700 mb-1.5">{t('groups.groupName')}</label>
             <input id="gname" required value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} placeholder="e.g. Amsterdam Oud-Zuid"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
           <div>
-            <label htmlFor="gdesc" className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+            <label htmlFor="gdesc" className="block text-sm font-medium text-gray-700 mb-1.5">{t('groups.description')}</label>
             <textarea id="gdesc" value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} rows={3} placeholder="What's this group about?"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.is_public} onChange={e => setForm(f => ({...f, is_public: e.target.checked}))} className="rounded" />
-            Public (anyone can find and join)
+            {t('groups.public')}
           </label>
-          <button type="submit" className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600">Create Group</button>
+          <button type="submit" className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600">{t('groups.createBtn')}</button>
         </form>
       )}
     </div>

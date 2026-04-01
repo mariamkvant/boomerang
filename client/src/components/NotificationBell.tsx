@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useSocket } from '../hooks/useSocket';
+import { t } from '../i18n';
 
 export default function NotificationBell() {
   const [count, setCount] = useState(0);

@@ -34,6 +34,7 @@ const TermsPage = lazy(() => import('./pages/TermsPage'));
 const EditServicePage = lazy(() => import('./pages/EditServicePage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const MePage = lazy(() => import('./pages/MePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function Navbar() {
@@ -224,6 +225,7 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/messages" element={user ? <MessagesPage /> : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
+          <Route path="/me" element={user ? <MePage /> : <Navigate to="/login" />} />
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/users/:id" element={<ProfilePage />} />
