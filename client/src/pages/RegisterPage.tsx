@@ -1,22 +1,40 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api';
 import { t } from '../i18n';
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const groupCode = searchParams.get('group');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [groupInfo, setGroupInfo] = useState<any>(null);
+
+  // If there's a group invite code, fetch group info to show context
+  useEffect(() => {
+    if (groupCode) {
+      api.getGroupByInviteCode(groupCode).then(setGroupInfo).catch(() => {});
+    }
+  }, [groupCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setLoading(true);
-    try { await register(username, email, password); navigate('/onboarding'); }
+    try {
+      await register(username, email, password);
+      // Auto-join group if invite code present
+      if (groupCode) {
+        try { await api.joinByCode(groupCode); } catch {}
+      }
+      navigate('/onboarding');
+    }
     catch (err: any) { setError(err.message); setLoading(false); }
   };
 
@@ -30,6 +48,13 @@ export default function RegisterPage() {
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
           <span>⚠️</span> {error}
+        </div>
+      )}
+      {groupInfo && (
+        <div className="bg-primary-50 border border-primary-100 p-4 rounded-xl mb-4">
+          <p className="text-sm font-medium text-primary-700">You've been invited to join "{groupInfo.name}"</p>
+          <p className="text-xs text-primary-600 mt-1">{groupInfo.member_count} members · by {groupInfo.creator_name}</p>
+          {groupInfo.description && <p className="text-xs text-gray-500 mt-1">{groupInfo.description}</p>}
         </div>
       )}
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">

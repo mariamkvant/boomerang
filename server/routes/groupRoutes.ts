@@ -136,6 +136,15 @@ router.put('/:id/requests/:requestId/deny', authMiddleware, async (req: AuthRequ
   res.json({ message: 'Denied' });
 });
 
+// Public: look up group info by invite code (for share links)
+router.get('/invite/:code', async (req: AuthRequest, res: Response) => {
+  const group = await db.get(`SELECT g.id, g.name, g.description, u.username as creator_name,
+    (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) as member_count
+    FROM groups g JOIN users u ON g.created_by = u.id WHERE g.invite_code = ?`, req.params.code);
+  if (!group) return res.status(404).json({ error: 'Invalid invite code' });
+  res.json(group);
+});
+
 // Join by invite code
 router.post('/join/:code', authMiddleware, async (req: AuthRequest, res: Response) => {
   const group = await db.get('SELECT * FROM groups WHERE invite_code = ?', req.params.code);

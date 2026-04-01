@@ -1,7 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+
+function UserSearchInvite({ groupId, onInvited }: { groupId: number; onInvited: () => void }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [msg, setMsg] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try { const people = await api.searchPeople(query.trim()); setResults(people.slice(0, 6)); }
+      catch { setResults([]); }
+      setSearching(false);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query]);
+
+  const invite = async (username: string) => {
+    try {
+      await api.inviteToGroup(groupId, username);
+      setMsg(`${username} invited!`);
+      setQuery(''); setResults([]);
+      onInvited();
+      setTimeout(() => setMsg(''), 3000);
+    } catch (err: any) { setMsg(err.message); setTimeout(() => setMsg(''), 3000); }
+  };
+
+  return (
+    <div className="relative">
+      <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search people to invite..."
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+      {results.length > 0 && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 z-20 max-h-60 overflow-y-auto">
+          {results.map((u: any) => (
+            <button key={u.id} onClick={() => invite(u.username)}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0">
+              <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0">
+                {u.username?.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{u.username}</p>
+                <p className="text-xs text-gray-400 truncate">{u.city || ''}{u.languages_spoken ? ` · ${u.languages_spoken}` : ''}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {searching && <p className="text-xs text-gray-400 mt-1">Searching...</p>}
+      {msg && <p className="text-xs text-primary-600 mt-1">{msg}</p>}
+    </div>
+  );
+}
 
 export default function GroupDetailPage() {
   const { id } = useParams();
@@ -9,13 +64,11 @@ export default function GroupDetailPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<any>(null);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
-  const [inviteUsername, setInviteUsername] = useState('');
-  const [inviteMsg, setInviteMsg] = useState('');
+  const [shareCopied, setShareCopied] = useState(false);
 
   const reload = () => {
     api.getGroup(Number(id)).then(g => {
       setGroup(g);
-      // Load join requests if admin
       if (g.members?.some((m: any) => m.id === user?.id && m.role === 'admin')) {
         api.getJoinRequests(Number(id)).then(setJoinRequests).catch(() => {});
       }
@@ -27,17 +80,26 @@ export default function GroupDetailPage() {
 
   const isMember = group.members?.some((m: any) => m.id === user?.id);
   const isAdmin = group.members?.some((m: any) => m.id === user?.id && m.role === 'admin');
+  const shareUrl = group.invite_code ? `${window.location.origin}/register?group=${group.invite_code}` : '';
 
   const handleJoin = async () => { try { await api.joinGroup(Number(id)); reload(); } catch {} };
   const handleLeave = async () => { try { await api.leaveGroup(Number(id)); reload(); } catch {} };
-  const handleInvite = async () => {
-    if (!inviteUsername.trim()) return;
-    try { await api.inviteToGroup(Number(id), inviteUsername.trim()); setInviteMsg('Invited!'); setInviteUsername(''); reload(); setTimeout(() => setInviteMsg(''), 3000); }
-    catch (err: any) { setInviteMsg(err.message); }
-  };
   const handleRemove = async (userId: number) => {
     if (!confirm('Remove this member?')) return;
     try { await api.removeMember(Number(id), userId); reload(); } catch (err: any) { alert(err.message); }
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
+
+  const nativeShare = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: `Join ${group.name} on Boomerang`, text: `Join our community "${group.name}" on Boomerang — exchange skills, no money needed.`, url: shareUrl }); }
+      catch {}
+    } else { copyShareLink(); }
   };
 
   return (
@@ -54,16 +116,34 @@ export default function GroupDetailPage() {
             {user && isMember && !isAdmin && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
             {isAdmin && (
               <button onClick={async () => { if (confirm('Delete this community? This cannot be undone.')) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { alert(err.message); } } }}
-                className="text-xs text-red-400 hover:text-red-600 px-3 py-2 ml-2">🗑️ Delete</button>
+                className="text-xs text-red-400 hover:text-red-600 px-3 py-2 ml-2">Delete</button>
             )}
           </div>
         </div>
+
+        {/* Share & invite code section */}
         {isMember && group.invite_code && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500 mb-1">Invite code:</p>
-            <div className="flex gap-2">
-              <code className="bg-gray-50 px-3 py-1.5 rounded-lg text-sm font-mono">{group.invite_code}</code>
-              <button onClick={() => navigator.clipboard.writeText(group.invite_code)} className="text-xs text-primary-600 hover:underline">Copy</button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1.5">Invite code</p>
+                <div className="flex gap-2">
+                  <code className="bg-gray-50 px-3 py-1.5 rounded-lg text-sm font-mono flex-1">{group.invite_code}</code>
+                  <button onClick={() => { navigator.clipboard.writeText(group.invite_code); }} className="text-xs text-primary-600 hover:underline shrink-0">Copy</button>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1.5">Share link</p>
+                <div className="flex gap-2">
+                  <button onClick={nativeShare}
+                    className="flex-1 bg-primary-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-600">
+                    {shareCopied ? '✓ Copied!' : 'Share invite link'}
+                  </button>
+                  <a href={`https://wa.me/?text=${encodeURIComponent(`Join "${group.name}" on Boomerang: ${shareUrl}`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-600 shrink-0">WhatsApp</a>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -71,7 +151,6 @@ export default function GroupDetailPage() {
 
       {group.is_private_content ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-card">
-          <div className="text-5xl mb-4">🔒</div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Members Only</h3>
           <p className="text-gray-500 text-sm mb-6">Join this community to see members, services, and discussions.</p>
           {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Request to Join</button>}
@@ -79,12 +158,13 @@ export default function GroupDetailPage() {
         </div>
       ) : (
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Services in this group */}
         <div className="md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold">Services</h3>
-            {isMember && <Link to={`/services/new?group=${id}`} className="text-xs text-primary-600 hover:underline">+ Add service</Link>}
-            {isMember && <Link to={`/help-wanted?group=${id}`} className="text-xs text-primary-600 hover:underline ml-3">+ Ask for help</Link>}
+            <div className="flex gap-3">
+              {isMember && <Link to={`/services/new?group=${id}`} className="text-xs text-primary-600 hover:underline">+ Add service</Link>}
+              {isMember && <Link to={`/help-wanted?group=${id}`} className="text-xs text-primary-600 hover:underline">+ Ask for help</Link>}
+            </div>
           </div>
           {group.services?.length > 0 ? (
             <div className="space-y-3">
@@ -93,7 +173,7 @@ export default function GroupDetailPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} 🪃 · by {s.provider_name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} boomerangs · by {s.provider_name}</p>
                     </div>
                     <span className="text-gray-300 group-hover:text-primary-400">→</span>
                   </div>
@@ -105,21 +185,13 @@ export default function GroupDetailPage() {
           )}
         </div>
 
-        {/* Members */}
         <div>
           <h3 className="font-bold mb-4">Members ({group.members?.length})</h3>
-          {/* Invite form */}
           {isMember && (
             <div className="bg-white p-4 rounded-xl shadow-card mb-3">
-              <div className="flex gap-2">
-                <input value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} placeholder="Username to invite"
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
-                <button onClick={handleInvite} className="bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Invite</button>
-              </div>
-              {inviteMsg && <p className="text-xs text-primary-600 mt-1">{inviteMsg}</p>}
+              <UserSearchInvite groupId={Number(id)} onInvited={reload} />
             </div>
           )}
-          {/* Join requests (admin only) */}
           {isAdmin && joinRequests.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-3">
               <h4 className="text-sm font-semibold text-amber-700 mb-2">Pending Join Requests ({joinRequests.length})</h4>
