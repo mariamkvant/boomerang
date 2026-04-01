@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useSocketConnection } from './hooks/useSocket';
@@ -42,6 +42,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const { dark, toggle: toggleDark } = useDarkMode();
 
   const isActive = (path: string) => location.pathname === path;
@@ -53,6 +54,14 @@ function Navbar() {
     </Link>
   );
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const close = () => setProfileOpen(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [profileOpen]);
+
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-nav border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -63,9 +72,9 @@ function Navbar() {
             </button>
           )}
           <Link to="/" className="flex items-center gap-2.5 group">
-          <img src="/logo.svg" alt="" className="w-8 h-8 group-hover:scale-110 transition-transform" />
-          <span className="text-2xl font-light font-logo bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent tracking-wide">boomerang</span>
-        </Link>
+            <img src="/logo.svg" alt="" className="w-8 h-8 group-hover:scale-110 transition-transform" />
+            <span className="text-2xl font-light font-logo bg-gradient-to-r from-primary-700 to-primary-500 bg-clip-text text-transparent tracking-wide">boomerang</span>
+          </Link>
         </div>
 
         {/* Desktop nav */}
@@ -74,7 +83,7 @@ function Navbar() {
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
-          {navLink('/leaderboard', '🏆')}
+          {navLink('/leaderboard', t('leaderboard.title'))}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 
@@ -89,21 +98,26 @@ function Navbar() {
               <button onClick={toggleDark} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Toggle dark mode">
                 {dark ? '☀️' : '🌙'}
               </button>
-              <div className="relative group">
-                <button className="w-9 h-9 rounded-full bg-primary-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-primary-600">
+              <div className="relative">
+                <button onClick={(e) => { e.stopPropagation(); setProfileOpen(!profileOpen); }}
+                  className="w-9 h-9 rounded-full bg-primary-500 text-white font-semibold text-sm flex items-center justify-center hover:bg-primary-600">
                   {user.username.charAt(0).toUpperCase()}
                 </button>
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <div className="px-4 py-2 border-b border-gray-50">
-                    <p className="text-sm font-medium text-gray-900">{user.username}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in">
+                    <div className="px-4 py-2 border-b border-gray-50">
+                      <p className="text-sm font-medium text-gray-900">{user.username}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+                    <Link to="/messages" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Messages</Link>
+                    <Link to="/settings" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">My Profile</Link>
+                    <Link to="/account" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
+                    <Link to="/people" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Find People</Link>
+                    <Link to="/community" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Community Feed</Link>
+                    {user.is_admin && <Link to="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Admin</Link>}
+                    <button onClick={() => { logout(); navigate('/'); setProfileOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
                   </div>
-                  <Link to="/messages" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">💬 Messages</Link>
-                  <Link to="/settings" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">My Profile</Link>
-                  <Link to="/account" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
-                  {user.is_admin && <Link to="/admin" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">🛡️ Admin</Link>}
-                  <button onClick={() => { logout(); navigate('/'); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
-                </div>
+                )}
               </div>
             </>
           ) : (
@@ -123,14 +137,14 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — only items NOT in bottom nav */}
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
-          {navLink('/browse', t('nav.browse'))}
-          {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
-          {user && navLink('/messages', '💬 Messages')}
+          {navLink('/leaderboard', t('leaderboard.title'))}
+          {navLink('/people', 'Find People')}
+          {navLink('/community', 'Community Feed')}
           {user && navLink('/dashboard', t('nav.dashboard'))}
           {!user && navLink('/login', 'Log in')}
           {!user && navLink('/register', 'Sign up free')}
