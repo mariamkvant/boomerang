@@ -129,28 +129,6 @@ export default function OnboardingPage() {
               </button>
             ))}
           </div>
-          <button onClick={() => setStep(2)} disabled={selectedSkills.length === 0}
-            className="w-full mt-6 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
-            Next →
-          </button>
-          <button onClick={() => { localStorage.setItem('onboarding_done', 'true'); navigate('/dashboard'); }}
-            className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2">Skip for now</button>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-2">What are you good at? 🎯</h2>
-          <p className="text-gray-500 text-sm mb-6">Tap all that apply. We'll create your first service listings.</p>
-          <div className="grid grid-cols-2 gap-3">
-            {SKILL_OPTIONS.map(s => (
-              <button key={s.label} onClick={() => toggleSkill(s.label)}
-                className={`p-4 rounded-xl text-left border-2 transition-all ${selectedSkills.includes(s.label) ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-primary-200'}`}>
-                <span className="text-2xl">{s.icon}</span>
-                <div className="text-sm font-medium mt-1">{s.label}</div>
-              </button>
-            ))}
-          </div>
           <button onClick={() => setStep(3)} disabled={selectedSkills.length === 0}
             className="w-full mt-6 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
             Next →
