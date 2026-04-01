@@ -245,11 +245,43 @@ export default function DashboardPage() {
         <div className="space-y-3">
           {incoming.filter(r => !['completed','cancelled'].includes(r.status)).length === 0 && incoming.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
-              <div className="text-4xl mb-3">📬</div>
               <p className="text-gray-500 text-sm">{t('dashboard.noIncoming')}</p>
             </div>
           )}
-          {incoming.filter(r => !['completed','cancelled'].includes(r.status)).map((r: any) => (
+          {/* Disputed items — shown first with warning styling */}
+          {incoming.filter(r => r.status === 'disputed').length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-2">
+              <h4 className="text-sm font-semibold text-red-700 mb-3">Disputes ({incoming.filter(r => r.status === 'disputed').length})</h4>
+              <div className="space-y-3">
+                {incoming.filter(r => r.status === 'disputed').map((r: any) => (
+                  <div key={r.id} className="bg-white p-4 rounded-xl">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
+                          {badge(r.status)}
+                        </div>
+                        <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
+                        <p className="text-xs text-red-500 mt-1">Resolve this dispute via messages with the requester.</p>
+                      </div>
+                      <Link to={`/messages?to=${r.requester_id}`} className="text-xs bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 font-medium shrink-0">Message</Link>
+                    </div>
+                    {['accepted','delivered','completed','disputed'].includes(r.status) && (
+                      <div>
+                        <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
+                          className="text-xs text-primary-600 mt-3 hover:underline">
+                          {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                        </button>
+                        {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Regular incoming (non-disputed, non-completed, non-cancelled) */}
+          {incoming.filter(r => !['completed','cancelled','disputed'].includes(r.status)).map((r: any) => (
             <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
