@@ -157,4 +157,21 @@ router.delete('/:id/members/:userId', authMiddleware, async (req: AuthRequest, r
   res.json({ message: 'Member removed' });
 });
 
+// Delete a group (group admin or site admin)
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const group = await db.get('SELECT * FROM groups WHERE id = ?', req.params.id);
+  if (!group) return res.status(404).json({ error: 'Group not found' });
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  const siteAdmin = await db.get('SELECT is_admin FROM users WHERE id = ?', req.userId);
+  if ((!member || member.role !== 'admin') && !siteAdmin?.is_admin) {
+    return res.status(403).json({ error: 'Only group admin or site admin can delete groups' });
+  }
+  // Clean up related data
+  await db.run('DELETE FROM group_join_requests WHERE group_id = ?', req.params.id);
+  await db.run('DELETE FROM group_members WHERE group_id = ?', req.params.id);
+  await db.run('UPDATE services SET group_id = NULL WHERE group_id = ?', req.params.id);
+  await db.run('DELETE FROM groups WHERE id = ?', req.params.id);
+  res.json({ message: 'Group deleted' });
+});
+
 export default router;

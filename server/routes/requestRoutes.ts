@@ -122,4 +122,15 @@ router.post('/:id/review', authMiddleware, async (req: AuthRequest, res: Respons
   }
 });
 
+// Hide/unhide a review (provider can hide reviews on their services)
+router.put('/reviews/:reviewId/hide', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const review = await db.get(`SELECT r.*, sr.service_id, s.provider_id FROM reviews r 
+    JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE r.id = ?`, req.params.reviewId);
+  if (!review) return res.status(404).json({ error: 'Review not found' });
+  if (review.provider_id !== req.userId) return res.status(403).json({ error: 'Only the service provider can hide reviews' });
+  const { hidden } = req.body;
+  await db.run('UPDATE reviews SET is_hidden = ? WHERE id = ?', !!hidden, req.params.reviewId);
+  res.json({ message: hidden ? 'Review hidden' : 'Review visible' });
+});
+
 export default router;

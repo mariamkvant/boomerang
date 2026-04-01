@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function GroupDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [group, setGroup] = useState<any>(null);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [inviteUsername, setInviteUsername] = useState('');
@@ -51,6 +52,10 @@ export default function GroupDetailPage() {
           <div>
             {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Request to Join</button>}
             {user && isMember && !isAdmin && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
+            {(isAdmin || user?.is_admin) && (
+              <button onClick={async () => { if (confirm('Delete this community? This cannot be undone.')) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { alert(err.message); } } }}
+                className="text-xs text-red-400 hover:text-red-600 px-3 py-2 ml-2">🗑️ Delete</button>
+            )}
           </div>
         </div>
         {isMember && group.invite_code && (

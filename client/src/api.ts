@@ -146,4 +146,10 @@ export const api = {
   getWeeklyLeaders: () => request('/leaderboard/weekly'),
   getAllTimeLeaders: () => request('/leaderboard/alltime'),
   getTopCommunities: () => request('/leaderboard/communities'),
+
+  // Review management
+  hideReview: (reviewId: number, hidden: boolean) => request(`/requests/reviews/${reviewId}/hide`, { method: 'PUT', body: JSON.stringify({ hidden }) }),
+
+  // Group management
+  deleteGroup: (id: number) => request(`/groups/${id}`, { method: 'DELETE' }),
 };
