@@ -147,18 +147,20 @@ export default function ServiceDetailPage() {
 
         {/* Provider card */}
         <div className="border-t border-gray-100 pt-6">
-          <Link to={`/users/${service.provider_id}`} className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-              {service.provider_name?.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="font-semibold text-gray-900 group-hover:text-primary-600">{service.provider_name}</div>
-              <div className="text-xs text-gray-400">View profile →</div>
-            </div>
-          </Link>
-          {user && !isOwner && (
-            <Link to={`/messages?to=${service.provider_id}`} className="ml-3 bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-medium hover:bg-gray-200">💬 Message</Link>
-          )}
+          <div className="flex items-center justify-between">
+            <Link to={`/users/${service.provider_id}`} className="flex items-center gap-3 group">
+              <div className="w-11 h-11 bg-primary-500 rounded-full flex items-center justify-center text-white font-semibold text-lg shrink-0">
+                {service.provider_name?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900 group-hover:text-primary-600">{service.provider_name}</div>
+                <div className="text-xs text-gray-400">View profile →</div>
+              </div>
+            </Link>
+            {user && !isOwner && (
+              <Link to={`/messages?to=${service.provider_id}`} className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 shrink-0">Message</Link>
+            )}
+          </div>
         </div>
 
         {/* Request form */}
