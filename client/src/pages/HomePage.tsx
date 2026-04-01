@@ -6,7 +6,7 @@ import { t } from '../i18n';
 
 const TESTIMONIALS = [
   { name: 'Sophie', text: 'I taught French and got my bike fixed — 2 exchanges done!', emoji: '🇫🇷🚲' },
-  { name: 'Marco', text: 'Found a guitar teacher in my neighborhood within minutes.', emoji: '🎸' },
+  { name: 'Marco', text: 'Found a guitar teacher in my community within minutes.', emoji: '🎸' },
   { name: 'Léa', text: 'My garden has never looked better. Thank you Boomerang community!', emoji: '🌻' },
   { name: 'David', text: 'Got help setting up my smart home. Saved hundreds of euros.', emoji: '🏠' },
   { name: 'Ana', text: 'I offer yoga classes and get cooking lessons in return. Love it!', emoji: '🧘‍♀️🍳' },
@@ -37,7 +37,7 @@ export default function HomePage() {
             Active in Luxembourg &amp; surrounding areas
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-5 leading-tight text-gray-900">
-            Exchange skills with your neighbors — <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">no money needed</span>
+            Exchange skills with your community — <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">no money needed</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-500 mb-4 max-w-2xl mx-auto leading-relaxed">
             Teach guitar, get help with gardening. Fix a computer, learn to cook. Start with 50 free Boomerangs.
@@ -189,7 +189,7 @@ export default function HomePage() {
         <section className="px-4 py-16">
           <div className="max-w-4xl mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 md:p-16 text-center text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to start exchanging?</h2>
-            <p className="text-primary-100 mb-8 max-w-lg mx-auto">Join your neighbors on Boomerang. It's free, it's local, and it works.</p>
+            <p className="text-primary-100 mb-8 max-w-lg mx-auto">Join your community on Boomerang. It's free, it's local, and it works.</p>
             <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Create Free Account →</Link>
             <p className="text-primary-200 text-xs mt-4">Takes 30 seconds · No credit card needed</p>
           </div>
