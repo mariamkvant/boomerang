@@ -35,8 +35,10 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMsg, setNewMsg] = useState('');
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { api.getConversations().then(setConvos).catch(() => {}); }, []);
 
@@ -56,6 +58,15 @@ export default function MessagesPage() {
       });
     }
     api.getConversations().then(setConvos).catch(() => {});
+  });
+
+  // Typing indicator from other user
+  useSocket('typing', (data) => {
+    if (data.sender_id === activeUser) {
+      setIsTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+    }
   });
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -220,8 +231,31 @@ export default function MessagesPage() {
                     </div>
                   </div>
                 ))}
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 text-gray-500 rounded-2xl rounded-bl-lg px-4 py-2.5 text-sm">
+                      <div className="flex gap-1 items-center">
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={bottomRef} />
               </div>
+
+              {/* Quick replies — shown when conversation is empty or just started */}
+              {messages.length <= 2 && (
+                <div className="px-4 pb-1 flex gap-2 overflow-x-auto shrink-0">
+                  {['Thanks!', 'When works for you?', 'Sounds good', 'I\'m interested'].map(qr => (
+                    <button key={qr} onClick={() => { setNewMsg(qr); inputRef.current?.focus(); }}
+                      className="text-xs px-3 py-1.5 rounded-full border border-gray-200 text-gray-500 hover:border-primary-300 hover:text-primary-600 whitespace-nowrap shrink-0">
+                      {qr}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Input */}
               <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">

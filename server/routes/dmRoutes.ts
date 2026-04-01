@@ -42,6 +42,12 @@ router.get('/:userId', authMiddleware, async (req: AuthRequest, res: Response) =
   res.json(messages);
 });
 
+// Typing indicator
+router.post('/:userId/typing', authMiddleware, async (req: AuthRequest, res: Response) => {
+  sendToUser(Number(req.params.userId), 'typing', { sender_id: req.userId });
+  res.json({ ok: true });
+});
+
 // Send a message
 router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { body } = req.body;

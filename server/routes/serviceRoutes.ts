@@ -85,7 +85,23 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.id = ?`, req.params.id);
   if (!service) return res.status(404).json({ error: 'Service not found' });
   const reviews = await db.all('SELECT r.*, u.username as reviewer_name FROM reviews r JOIN users u ON r.reviewer_id = u.id JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = ? AND (r.is_hidden = false OR r.is_hidden IS NULL) ORDER BY r.created_at DESC', req.params.id);
-  res.json({ ...service, reviews });
+
+  // Provider stats: avg response time + completion rate
+  const providerStats = await db.get(`SELECT
+    COUNT(CASE WHEN sr.status = 'completed' THEN 1 END) as completed,
+    COUNT(sr.id) as total,
+    AVG(EXTRACT(EPOCH FROM (sr.completed_at - sr.created_at)) / 3600) as avg_hours
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id
+    WHERE s.provider_id = ?`, service.provider_id);
+
+  // Similar services (same category, different provider, limit 3)
+  const similar = await db.all(`SELECT s.id, s.title, s.points_cost, s.duration_minutes, c.name as category_name, c.icon as category_icon, u.username as provider_name,
+    (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
+    FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
+    WHERE s.category_id = ? AND s.id != ? AND s.is_active = 1 AND s.group_id IS NULL
+    ORDER BY avg_rating DESC NULLS LAST LIMIT 3`, service.category_id, req.params.id);
+
+  res.json({ ...service, reviews, provider_stats: providerStats || {}, similar });
 });
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {

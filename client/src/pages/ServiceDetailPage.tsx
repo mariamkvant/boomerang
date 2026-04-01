@@ -154,7 +154,15 @@ export default function ServiceDetailPage() {
               </div>
               <div>
                 <div className="font-semibold text-gray-900 group-hover:text-primary-600">{service.provider_name}</div>
-                <div className="text-xs text-gray-400">View profile →</div>
+                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                  <span>View profile →</span>
+                  {service.provider_stats?.completed > 0 && (
+                    <span>{Math.round((service.provider_stats.completed / Math.max(1, service.provider_stats.total)) * 100)}% completion</span>
+                  )}
+                  {service.provider_stats?.avg_hours && Number(service.provider_stats.avg_hours) > 0 && (
+                    <span>~{Number(service.provider_stats.avg_hours) < 24 ? Math.round(Number(service.provider_stats.avg_hours)) + 'h' : Math.round(Number(service.provider_stats.avg_hours) / 24) + 'd'} avg</span>
+                  )}
+                </div>
               </div>
             </Link>
             {user && !isOwner && (
@@ -239,7 +247,7 @@ export default function ServiceDetailPage() {
 
       {/* Reviews */}
       {service.reviews?.length > 0 && (
-        <div className="bg-white p-8 rounded-2xl shadow-card">
+        <div className="bg-white p-8 rounded-2xl shadow-card mb-6">
           <h3 className="font-bold text-lg mb-5">Reviews ({service.reviews.length})</h3>
           <div className="space-y-4">
             {service.reviews.map((r: any) => (
@@ -255,6 +263,25 @@ export default function ServiceDetailPage() {
                 </div>
                 {r.comment && <p className="text-sm text-gray-600 ml-11">{r.comment}</p>}
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Similar Services */}
+      {service.similar?.length > 0 && (
+        <div className="bg-white p-8 rounded-2xl shadow-card">
+          <h3 className="font-bold text-lg mb-5">Similar services</h3>
+          <div className="grid md:grid-cols-3 gap-3">
+            {service.similar.map((s: any) => (
+              <Link key={s.id} to={`/services/${s.id}`} className="p-4 rounded-xl border border-gray-100 hover:border-primary-200 hover:shadow-md group transition-all">
+                <h4 className="font-semibold text-sm group-hover:text-primary-600 mb-1">{s.title}</h4>
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>{s.points_cost} boomerangs · {s.duration_minutes}min</span>
+                  {s.avg_rating && <span>⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">by {s.provider_name}</p>
+              </Link>
             ))}
           </div>
         </div>

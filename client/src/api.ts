@@ -117,6 +117,7 @@ export const api = {
   getConversations: () => request('/dm/conversations'),
   getDMs: (userId: number) => request(`/dm/${userId}`),
   sendDM: (userId: number, body: string) => request(`/dm/${userId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+  sendTyping: (userId: number) => request(`/dm/${userId}/typing`, { method: 'POST' }),
   getUnreadDMCount: () => request('/dm/unread/count'),
 
   // Social
