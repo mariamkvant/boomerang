@@ -156,15 +156,23 @@ export default function DashboardPage() {
   };
 
   const progressSteps = ['pending', 'accepted', 'delivered', 'completed'];
+  const stepLabels: Record<string, string> = { pending: 'Requested', accepted: 'Accepted', delivered: 'Delivered', completed: 'Done' };
   const RequestProgress = ({ status }: { status: string }) => {
     if (status === 'cancelled' || status === 'disputed') return null;
     const currentIdx = progressSteps.indexOf(status);
     return (
-      <div className="flex items-center gap-1 mt-2">
+      <div className="flex items-center gap-0.5 mt-3">
         {progressSteps.map((step, i) => (
           <React.Fragment key={step}>
-            <div className={`w-2 h-2 rounded-full ${i <= currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />
-            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+            <div className="flex flex-col items-center">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold ${
+                i < currentIdx ? 'bg-primary-500 text-white' :
+                i === currentIdx ? 'bg-primary-500 text-white ring-2 ring-primary-200' :
+                'bg-gray-200 text-gray-400'
+              }`}>{i < currentIdx ? '✓' : i + 1}</div>
+              <span className={`text-[9px] mt-0.5 ${i <= currentIdx ? 'text-primary-600 font-medium' : 'text-gray-400'}`}>{stepLabels[step]}</span>
+            </div>
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mt-[-10px] mx-0.5 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
           </React.Fragment>
         ))}
       </div>
@@ -196,6 +204,34 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Monthly stats */}
+      {(incoming.length > 0 || outgoing.length > 0) && (() => {
+        const thisMonth = new Date(); thisMonth.setDate(1); thisMonth.setHours(0,0,0,0);
+        const monthCompleted = outgoing.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth).length
+          + incoming.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth).length;
+        const monthEarned = incoming.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth)
+          .reduce((sum: number, r: any) => sum + (r.points_cost || 0), 0);
+        const monthSpent = outgoing.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth)
+          .reduce((sum: number, r: any) => sum + (r.points_cost || 0), 0);
+        if (monthCompleted === 0 && monthEarned === 0 && monthSpent === 0) return null;
+        return (
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-white p-4 rounded-xl shadow-card text-center">
+              <div className="text-xl font-bold text-gray-900">{monthCompleted}</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Exchanges this month</div>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow-card text-center">
+              <div className="text-xl font-bold text-green-600">+{monthEarned}</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Boomerangs earned</div>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow-card text-center">
+              <div className="text-xl font-bold text-primary-600">-{monthSpent}</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Boomerangs spent</div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Profile completion + 7-day challenge */}
       {user && (() => {
@@ -364,6 +400,7 @@ export default function DashboardPage() {
                     {badge(r.status)}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
+                  <RequestProgress status={r.status} />
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (

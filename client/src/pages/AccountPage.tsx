@@ -5,6 +5,64 @@ import { api } from '../api';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { t } from '../i18n';
 
+const NOTIF_PREFS_KEY = 'notif_prefs';
+const DEFAULT_PREFS: Record<string, boolean> = {
+  new_request: true, request_accepted: true, service_delivered: true, delivery_confirmed: true,
+  new_message: true, group_invite: true, join_request: true, community_activity: true,
+};
+
+function getNotifPrefs(): Record<string, boolean> {
+  try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}') }; }
+  catch { return DEFAULT_PREFS; }
+}
+
+function NotificationPreferences() {
+  const [prefs, setPrefs] = useState(getNotifPrefs);
+  const [saved, setSaved] = useState(false);
+
+  const toggle = (key: string) => {
+    const updated = { ...prefs, [key]: !prefs[key] };
+    setPrefs(updated);
+    localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(updated));
+    setSaved(true); setTimeout(() => setSaved(false), 2000);
+  };
+
+  const categories = [
+    { key: 'new_request', label: 'New service requests', desc: 'When someone requests your service' },
+    { key: 'request_accepted', label: 'Request accepted', desc: 'When a provider accepts your request' },
+    { key: 'service_delivered', label: 'Service delivered', desc: 'When a service is marked as delivered' },
+    { key: 'delivery_confirmed', label: 'Delivery confirmed', desc: 'When points are transferred' },
+    { key: 'new_message', label: 'New messages', desc: 'Direct messages and request messages' },
+    { key: 'group_invite', label: 'Group invites', desc: 'When you\'re added to a community' },
+    { key: 'join_request', label: 'Join requests', desc: 'When someone wants to join your group' },
+    { key: 'community_activity', label: 'Community activity', desc: 'Shoutouts, new services, exchanges' },
+  ];
+
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold">Notification Preferences</h3>
+        {saved && <span className="text-xs text-green-600">✓ Saved</span>}
+      </div>
+      <p className="text-sm text-gray-500 mb-4">Choose which notifications you want to receive.</p>
+      <div className="space-y-3">
+        {categories.map(cat => (
+          <div key={cat.key} className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-gray-700">{cat.label}</p>
+              <p className="text-xs text-gray-400">{cat.desc}</p>
+            </div>
+            <button onClick={() => toggle(cat.key)} aria-label={`Toggle ${cat.label}`}
+              className={`relative w-10 h-6 rounded-full transition-colors ${prefs[cat.key] ? 'bg-primary-500' : 'bg-gray-300'}`}>
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${prefs[cat.key] ? 'left-[18px]' : 'left-0.5'}`} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AccountPage() {
   const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -122,6 +180,9 @@ export default function AccountPage() {
           )}
         </div>
       )}
+
+      {/* Notification Preferences */}
+      <NotificationPreferences />
 
       <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
         <h3 className="font-semibold">Change Password</h3>
