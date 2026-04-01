@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api';
 import { getLang, setLang, LANGUAGES, t } from '../i18n';
 import { useDarkMode } from '../hooks/useDarkMode';
 
@@ -8,6 +9,11 @@ export default function MePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { dark, toggle: toggleDark } = useDarkMode();
+  const [trust, setTrust] = useState<any>(null);
+
+  useEffect(() => {
+    if (user) api.getTrustScore(user.id).then(setTrust).catch(() => {});
+  }, [user]);
 
   if (!user) return null;
 
@@ -35,12 +41,23 @@ export default function MePage() {
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold truncate">{user.username}</h2>
             <p className="text-sm text-gray-500 truncate">{user.email}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="text-sm font-semibold text-primary-600">{user.points}</span>
-              <span className="text-xs text-primary-500">🪃</span>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-sm font-semibold text-primary-600">{user.points} 🪃</span>
+              {trust && trust.avg_rating && <span className="text-sm text-yellow-600">⭐ {Number(trust.avg_rating).toFixed(1)}</span>}
+              {trust && <span className="text-xs text-gray-400">{trust.emoji} {trust.level}</span>}
             </div>
           </div>
         </div>
+        {trust && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <div className="flex gap-4 text-xs text-gray-500">
+              <span>{trust.completed} exchanges</span>
+              <span>{trust.review_count} reviews</span>
+              <span>Trust: {trust.score}/100</span>
+            </div>
+            <Link to={`/users/${user.id}`} className="text-xs text-primary-600 hover:underline">View profile →</Link>
+          </div>
+        )}
       </div>
 
       {/* Menu items */}

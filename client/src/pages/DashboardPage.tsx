@@ -118,6 +118,7 @@ export default function DashboardPage() {
   const [availSlots, setAvailSlots] = useState<any[]>([]);
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
   const [dailyMatch, setDailyMatch] = useState<any>(null);
+  const [trust, setTrust] = useState<any>(null);
   const { toast } = useToast();
 
   const load = async () => {
@@ -128,6 +129,7 @@ export default function DashboardPage() {
       api.getMyHelpWanted().then(setMyHelpWanted).catch(() => {});
       api.getMyHelping().then(setMyHelping).catch(() => {});
       api.getDailyMatch().then(setDailyMatch).catch(() => {});
+      if (user) api.getTrustScore(user.id).then(setTrust).catch(() => {});
     } catch {}
   };
 
@@ -198,11 +200,27 @@ export default function DashboardPage() {
               <Link to="/settings" className="text-sm text-primary-500 hover:underline">{t('dashboard.editProfile')}</Link>
             </div>
           </div>
-          <div className="flex gap-6">
+          <div className="flex gap-4 flex-wrap">
             <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">{t('dashboard.boomerangs')}</div></div>
             <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">{t('dashboard.services')}</div></div>
+            {trust && trust.avg_rating && (
+              <div className="text-center"><div className="text-2xl font-bold text-yellow-600">⭐ {Number(trust.avg_rating).toFixed(1)}</div><div className="text-xs text-gray-500">{trust.review_count} reviews</div></div>
+            )}
+            {trust && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-700">{trust.emoji}</div>
+                <div className="text-xs text-gray-500">{trust.level}</div>
+              </div>
+            )}
           </div>
         </div>
+        {/* View my public profile link */}
+        {user && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <Link to={`/users/${user.id}`} className="text-xs text-primary-600 hover:underline">View my public profile →</Link>
+            {trust && <span className="text-xs text-gray-400">Trust score: {trust.score}/100 · {trust.completed} exchanges completed</span>}
+          </div>
+        )}
       </div>
 
       {/* Monthly stats */}
