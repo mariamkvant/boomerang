@@ -154,4 +154,5 @@ export const api = {
 
   // Group management
   deleteGroup: (id: number) => request(`/groups/${id}`, { method: 'DELETE' }),
+  getGroupActivity: (id: number) => request(`/groups/${id}/activity`),
 };

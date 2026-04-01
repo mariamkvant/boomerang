@@ -203,4 +203,30 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
   res.json({ message: 'Group deleted' });
 });
 
+// Group activity feed
+router.get('/:id/activity', async (req: AuthRequest, res: Response) => {
+  // Recent services added to the group
+  const newServices = await db.all(`SELECT 'new_service' as type, s.id, s.title, s.created_at, u.username, u.id as user_id, c.name as category_name
+    FROM services s JOIN users u ON s.provider_id = u.id JOIN categories c ON s.category_id = c.id
+    WHERE s.group_id = ? AND s.is_active = 1 ORDER BY s.created_at DESC LIMIT 10`, req.params.id);
+
+  // Recent members who joined
+  const newMembers = await db.all(`SELECT 'new_member' as type, gm.joined_at as created_at, u.username, u.id as user_id, u.city
+    FROM group_members gm JOIN users u ON gm.user_id = u.id
+    WHERE gm.group_id = ? ORDER BY gm.joined_at DESC LIMIT 10`, req.params.id);
+
+  // Completed exchanges within the group
+  const exchanges = await db.all(`SELECT 'exchange' as type, sr.completed_at as created_at, s.title,
+    req.username as requester_name, req.id as requester_id, prov.username as provider_name, prov.id as provider_id
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id
+    JOIN users req ON sr.requester_id = req.id JOIN users prov ON s.provider_id = prov.id
+    WHERE s.group_id = ? AND sr.status = 'completed' ORDER BY sr.completed_at DESC LIMIT 10`, req.params.id);
+
+  // Merge and sort by date
+  const activity = [...newServices, ...newMembers, ...exchanges]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 15);
+  res.json(activity);
+});
+
 export default router;

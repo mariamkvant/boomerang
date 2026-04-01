@@ -18,6 +18,16 @@ router.get('/score/:userId', async (req: AuthRequest, res: Response) => {
 
   const rating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.params.userId);
 
+  // Average response time (hours from request to accept)
+  const responseTime = await db.get(`SELECT AVG(EXTRACT(EPOCH FROM (sr.completed_at - sr.created_at)) / 3600) as avg_hours
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id
+    WHERE s.provider_id = ? AND sr.status = 'completed'`, req.params.userId);
+
+  // Completion rate
+  const totalAsProvider = stats?.total_requests || 0;
+  const completedCount = stats?.completed || 0;
+  const completionRate = totalAsProvider > 0 ? Math.round((completedCount / totalAsProvider) * 100) : 0;
+
   // Calculate trust score (0-100)
   let score = 0;
   score += user.email_verified ? 10 : 0;
@@ -31,7 +41,7 @@ router.get('/score/:userId', async (req: AuthRequest, res: Response) => {
   const level = score >= 80 ? 'Platinum' : score >= 60 ? 'Gold' : score >= 35 ? 'Silver' : 'Bronze';
   const emoji = score >= 80 ? '💎' : score >= 60 ? '🥇' : score >= 35 ? '🥈' : '🥉';
 
-  res.json({ score, level, emoji, completed: stats?.completed || 0, avg_rating: rating?.avg_rating, review_count: rating?.review_count || 0 });
+  res.json({ score, level, emoji, completed: stats?.completed || 0, total_requests: totalAsProvider, completion_rate: completionRate, avg_hours: responseTime?.avg_hours || null, avg_rating: rating?.avg_rating, review_count: rating?.review_count || 0 });
 });
 
 // Report a user

@@ -58,6 +58,60 @@ function UserSearchInvite({ groupId, onInvited }: { groupId: number; onInvited: 
   );
 }
 
+function GroupActivityFeed({ groupId }: { groupId: number }) {
+  const [activity, setActivity] = useState<any[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    api.getGroupActivity(groupId).then(a => { setActivity(a); setLoaded(true); }).catch(() => setLoaded(true));
+  }, [groupId]);
+
+  if (!loaded) return null;
+  if (activity.length === 0) return null;
+
+  const timeAgo = (dateStr: string) => {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
+  return (
+    <div className="mt-6">
+      <h3 className="font-bold mb-4">Recent Activity</h3>
+      <div className="bg-white rounded-xl shadow-card divide-y divide-gray-50">
+        {activity.map((item: any, i: number) => (
+          <div key={i} className="px-4 py-3 flex items-start gap-3">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5 ${
+              item.type === 'new_service' ? 'bg-primary-100 text-primary-600' :
+              item.type === 'new_member' ? 'bg-green-100 text-green-600' :
+              'bg-purple-100 text-purple-600'
+            }`}>
+              {item.type === 'new_service' ? '➕' : item.type === 'new_member' ? '👋' : '🤝'}
+            </div>
+            <div className="flex-1 min-w-0">
+              {item.type === 'new_service' && (
+                <p className="text-sm"><Link to={`/users/${item.user_id}`} className="font-medium hover:text-primary-600">{item.username}</Link> added <Link to={`/services/${item.id}`} className="font-medium text-primary-600 hover:underline">{item.title}</Link></p>
+              )}
+              {item.type === 'new_member' && (
+                <p className="text-sm"><Link to={`/users/${item.user_id}`} className="font-medium hover:text-primary-600">{item.username}</Link> joined the community{item.city ? ` from ${item.city}` : ''}</p>
+              )}
+              {item.type === 'exchange' && (
+                <p className="text-sm"><Link to={`/users/${item.provider_id}`} className="font-medium hover:text-primary-600">{item.provider_name}</Link> helped <Link to={`/users/${item.requester_id}`} className="font-medium hover:text-primary-600">{item.requester_name}</Link> with {item.title}</p>
+              )}
+              <p className="text-[10px] text-gray-400 mt-0.5">{timeAgo(item.created_at)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function GroupDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -183,6 +237,9 @@ export default function GroupDetailPage() {
           ) : (
             <p className="text-gray-400 text-sm text-center py-8 bg-white rounded-xl shadow-card">No services in this group yet.</p>
           )}
+
+          {/* Activity Feed */}
+          <GroupActivityFeed groupId={Number(id)} />
         </div>
 
         <div>

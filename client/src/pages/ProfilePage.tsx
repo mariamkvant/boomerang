@@ -73,18 +73,30 @@ export default function ProfilePage() {
         </div>
         {profile.bio && <p className="text-gray-600 text-sm leading-relaxed mb-4">{profile.bio}</p>}
         {trust && (
-          <div className="flex gap-4">
-            <div className="bg-primary-50 px-4 py-3 rounded-xl text-center">
+          <div className="flex flex-wrap gap-3 mt-4">
+            <div className="bg-primary-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
               <div className="text-xl font-bold text-primary-600">{profile.points}</div>
-              <div className="text-xs text-primary-500">Boomerangs</div>
+              <div className="text-[10px] text-primary-500">Boomerangs</div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center">
+            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
               <div className="text-xl font-bold text-gray-700">{trust.completed}</div>
-              <div className="text-xs text-gray-500">Completed</div>
+              <div className="text-[10px] text-gray-500">Completed</div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center">
+            {trust.completion_rate > 0 && (
+              <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
+                <div className="text-xl font-bold text-gray-700">{trust.completion_rate}%</div>
+                <div className="text-[10px] text-gray-500">Completion</div>
+              </div>
+            )}
+            {trust.avg_hours && Number(trust.avg_hours) > 0 && (
+              <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
+                <div className="text-xl font-bold text-gray-700">{Number(trust.avg_hours) < 24 ? `${Math.round(Number(trust.avg_hours))}h` : `${Math.round(Number(trust.avg_hours) / 24)}d`}</div>
+                <div className="text-[10px] text-gray-500">Avg response</div>
+              </div>
+            )}
+            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
               <div className="text-xl font-bold text-gray-700">{trust.score}</div>
-              <div className="text-xs text-gray-500">Trust Score</div>
+              <div className="text-[10px] text-gray-500">Trust Score</div>
             </div>
           </div>
         )}
