@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useToast } from '../components/Toast';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const TIMES = Array.from({ length: 28 }, (_, i) => {
@@ -11,6 +12,7 @@ const TIMES = Array.from({ length: 28 }, (_, i) => {
 interface Slot { day_of_week: number; start_time: string; end_time: string; }
 
 export default function AvailabilityPage() {
+  const { toast } = useToast();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function AvailabilityPage() {
 
   const save = async () => {
     try { await api.setMyAvailability(slots); setSaved(true); setTimeout(() => setSaved(false), 3000); }
-    catch (err: any) { alert(err.message); }
+    catch (err: any) { toast(err.message, 'error'); }
   };
 
   if (loading) return <div className="text-center py-12 text-gray-400">Loading...</div>;

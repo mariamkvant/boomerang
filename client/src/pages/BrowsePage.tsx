@@ -159,8 +159,11 @@ export default function BrowsePage() {
       ) : services.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl shadow-card">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('browse.noResults')}</h3>
-          <p className="text-gray-500 text-sm mb-6">{t('browse.beFirst')}</p>
-          <Link to="/services/new" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('browse.offerService')}</Link>
+          <p className="text-gray-500 text-sm mb-4">{t('browse.beFirst')}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/services/new" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('browse.offerService')}</Link>
+            <Link to="/help-wanted" className="inline-block border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">See Help Wanted requests →</Link>
+          </div>
         </div>
       ) : viewMode === 'map' ? (
         <>

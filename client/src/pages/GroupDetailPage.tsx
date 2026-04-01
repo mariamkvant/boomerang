@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 
 function UserSearchInvite({ groupId, onInvited }: { groupId: number; onInvited: () => void }) {
   const [query, setQuery] = useState('');
@@ -116,6 +117,7 @@ export default function GroupDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [group, setGroup] = useState<any>(null);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [shareCopied, setShareCopied] = useState(false);
@@ -140,7 +142,7 @@ export default function GroupDetailPage() {
   const handleLeave = async () => { try { await api.leaveGroup(Number(id)); reload(); } catch {} };
   const handleRemove = async (userId: number) => {
     if (!confirm('Remove this member?')) return;
-    try { await api.removeMember(Number(id), userId); reload(); } catch (err: any) { alert(err.message); }
+    try { await api.removeMember(Number(id), userId); reload(); } catch (err: any) { toast(err.message, 'error'); }
   };
 
   const copyShareLink = () => {
@@ -169,7 +171,7 @@ export default function GroupDetailPage() {
             {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Request to Join</button>}
             {user && isMember && !isAdmin && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
             {isAdmin && (
-              <button onClick={async () => { if (confirm('Delete this community? This cannot be undone.')) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { alert(err.message); } } }}
+              <button onClick={async () => { if (confirm('Delete this community? This cannot be undone.')) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { toast(err.message, 'error'); } } }}
                 className="text-xs text-red-400 hover:text-red-600 px-3 py-2 ml-2">Delete</button>
             )}
           </div>

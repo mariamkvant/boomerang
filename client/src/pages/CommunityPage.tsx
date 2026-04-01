@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 
 export default function CommunityPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [feed, setFeed] = useState<any>({ shoutouts: [], stats: {} });
   const [matches, setMatches] = useState<any[]>([]);
   const [shoutForm, setShoutForm] = useState({ to_user_id: '', message: '' });
@@ -25,7 +27,7 @@ export default function CommunityPage() {
       setSuccess('Shoutout posted! 🎉'); setShowForm(false);
       setShoutForm({ to_user_id: '', message: '' });
       api.getCommunityFeed().then(setFeed);
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { toast(err.message, 'error'); }
   };
 
   return (

@@ -56,7 +56,12 @@ export default function HelpWantedPage() {
 
       {tab === 'browse' && (
         <div className="space-y-3">
-          {requests.length === 0 && <p className="text-gray-400 text-sm text-center py-12 bg-white rounded-2xl shadow-card">No open requests yet. Be the first to ask for help!</p>}
+          {requests.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-2xl shadow-card">
+              <p className="text-gray-400 text-sm mb-4">No open requests yet. Be the first to ask for help!</p>
+              <Link to="/browse" className="text-sm text-primary-600 hover:underline">Browse available services instead →</Link>
+            </div>
+          )}
           {requests.map((r: any) => (
             <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
               <div className="flex items-start justify-between gap-4">

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
+import { useToast } from '../components/Toast';
 
 export default function CreateServicePage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('group');
   const [categories, setCategories] = useState<any[]>([]);
@@ -17,7 +19,7 @@ export default function CreateServicePage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return alert('Image must be under 2MB');
+    if (file.size > 2 * 1024 * 1024) return toast('Image must be under 2MB', 'error');
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result as string);
     reader.readAsDataURL(file);
