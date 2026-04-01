@@ -198,7 +198,7 @@ export default function App() {
   const { user } = useAuth();
   useSocketConnection();
 
-  // Redirect to onboarding if user hasn't completed it
+  // Redirect to onboarding if user hasn't completed it (needs location at minimum)
   const needsOnboarding = user && !user.city && localStorage.getItem('onboarding_done') !== 'true';
 
   return (
