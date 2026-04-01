@@ -36,6 +36,7 @@ const EditServicePage = lazy(() => import('./pages/EditServicePage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const MePage = lazy(() => import('./pages/MePage'));
+const SupportPage = lazy(() => import('./pages/SupportPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function Navbar() {
@@ -115,6 +116,7 @@ function Navbar() {
                     <Link to="/account" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Account Settings</Link>
                     <Link to="/people" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Find People</Link>
                     <Link to="/community" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Community Feed</Link>
+                    <Link to="/support" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Help & Support</Link>
                     {user.is_admin && <Link to="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Admin</Link>}
                     <button onClick={() => { logout(); navigate('/'); setProfileOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Log out</button>
                   </div>
@@ -189,6 +191,7 @@ function Footer() {
                 <Link to="/login" className="block text-gray-500 hover:text-primary-600">{t('footer.logIn')}</Link>
                 <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">{t('footer.privacy')}</Link>
                 <Link to="/terms" className="block text-gray-500 hover:text-primary-600">{t('footer.terms')}</Link>
+                <Link to="/support" className="block text-gray-500 hover:text-primary-600">Help & Support</Link>
               </div>
             </div>
           </div>
@@ -247,6 +250,7 @@ export default function App() {
           <Route path="/me" element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <MePage />) : <Navigate to="/login" />} />
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/users/:id" element={<ProfilePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

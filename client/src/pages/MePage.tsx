@@ -24,6 +24,7 @@ export default function MePage() {
     { to: '/availability', icon: '📅', label: t('nav.availability') },
     { to: '/messages', icon: '💬', label: t('messages.title') },
     { to: '/leaderboard', icon: '🏆', label: t('leaderboard.title') },
+    { to: '/support', icon: '❓', label: 'Help & Support' },
   ];
 
   return (
