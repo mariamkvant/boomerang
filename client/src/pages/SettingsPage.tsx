@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
-import { getLang, setLang, LANGUAGES } from '../i18n';
+import { getLang, setLang, LANGUAGES, t } from '../i18n';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
@@ -20,10 +20,7 @@ export default function SettingsPage() {
     setAvatarUploading(true);
     const reader = new FileReader();
     reader.onload = async () => {
-      try {
-        await api.updateProfile({ avatar: reader.result as string });
-        await refreshUser();
-      } catch (err: any) { alert(err.message); }
+      try { await api.updateProfile({ avatar: reader.result as string }); await refreshUser(); } catch (err: any) { alert(err.message); }
       setAvatarUploading(false);
     };
     reader.readAsDataURL(file);
@@ -35,7 +32,7 @@ export default function SettingsPage() {
   };
 
   const detectLocation = () => {
-    if (!navigator.geolocation) return alert('Geolocation not supported');
+    if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -45,21 +42,19 @@ export default function SettingsPage() {
           const data = await res.json();
           const detectedCity = data.address?.city || data.address?.town || data.address?.village || '';
           setCity(detectedCity);
-          await api.updateProfile({ city: detectedCity, latitude, longitude });
-          await refreshUser();
+          await api.updateProfile({ city: detectedCity, latitude, longitude }); await refreshUser();
         } catch {}
         setLocating(false);
       },
-      () => { alert('Could not detect location'); setLocating(false); }
+      () => { setLocating(false); }
     );
   };
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
-      <h2 className="text-2xl font-bold mb-6">My Profile</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
 
       <div className="bg-white p-6 rounded-2xl shadow-card space-y-5">
-        {/* Avatar */}
         <div className="flex items-center gap-4">
           <div className="relative">
             {user?.avatar ? (
@@ -76,76 +71,68 @@ export default function SettingsPage() {
           </div>
           <div>
             <p className="font-medium">{user?.username}</p>
-            <p className="text-xs text-gray-400">{avatarUploading ? 'Uploading...' : 'Click camera to change photo'}</p>
+            <p className="text-xs text-gray-400">{avatarUploading ? '...' : t('settings.changePhoto')}</p>
           </div>
         </div>
 
         <div>
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1.5">Bio</label>
-          <textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="Tell people about yourself..."
+          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1.5">{t('settings.bio')}</label>
+          <textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder={t('settings.bioPlaceholder')}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
         </div>
 
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">📍 Location</label>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">📍 {t('settings.location')}</label>
           <div className="flex gap-2">
-            <input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder="Your city or neighborhood"
+            <input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder={t('settings.locationPlaceholder')}
               className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
             <button onClick={detectLocation} disabled={locating} type="button"
               className="bg-gray-100 text-gray-600 px-4 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 disabled:opacity-50 shrink-0">
-              {locating ? '...' : '📍 Detect'}
+              {locating ? '...' : '📍'}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">This helps people find services near them</p>
+          <p className="text-xs text-gray-400 mt-1">{t('settings.locationHelp')}</p>
         </div>
 
         <div>
-          <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1.5">🗣️ Languages I Speak</label>
-          <input id="languages" value={languagesSpoken} onChange={e => setLanguagesSpoken(e.target.value)} placeholder="e.g. English, French, Portuguese, Luxembourgish"
+          <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1.5">🗣️ {t('settings.languages')}</label>
+          <input id="languages" value={languagesSpoken} onChange={e => setLanguagesSpoken(e.target.value)} placeholder={t('settings.languagesPlaceholder')}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
-          <p className="text-xs text-gray-400 mt-1">Comma-separated. Helps others know they can communicate with you.</p>
+          <p className="text-xs text-gray-400 mt-1">{t('settings.languagesHelp')}</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={handleSave} className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600 hover:shadow-md">Save Settings</button>
-          {saved && <span className="text-sm text-green-600">✓ Saved</span>}
+          <button onClick={handleSave} className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600 hover:shadow-md">{t('settings.save')}</button>
+          {saved && <span className="text-sm text-green-600">✓</span>}
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">Account Info</h3>
-        <div className="text-sm text-gray-500 space-y-1">
-          <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
-          <p>Boomerangs: {user?.points}</p>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">🌍 Language</h3>
-        <div className="flex gap-2">
+        <h3 className="font-semibold mb-3">🌍 {t('settings.appLanguage')}</h3>
+        <div className="flex flex-wrap gap-2">
           {LANGUAGES.map(l => (
-            <button key={l.code} onClick={() => setLang(l.code)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
-              {l.flag} {l.name}
+            <button key={l.code} onClick={() => setLang(l.code)} title={l.name}
+              className={`px-3 py-2 rounded-xl text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
+              {l.flag}
             </button>
           ))}
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">📅 My Availability</h3>
-        <p className="text-sm text-gray-500 mb-3">Set when you're available to provide services so people can book your time.</p>
-        <Link to="/availability" className="inline-block bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Manage Schedule →</Link>
+        <h3 className="font-semibold mb-3">📅 {t('settings.availability')}</h3>
+        <p className="text-sm text-gray-500 mb-3">{t('settings.availabilityDesc')}</p>
+        <Link to="/availability" className="inline-block bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('settings.manageSchedule')} →</Link>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">🪃 Invite Friends</h3>
-        <p className="text-sm text-gray-500 mb-3">Share your referral link. You both get 25 bonus boomerangs when they sign up.</p>
+        <h3 className="font-semibold mb-3">🪃 {t('settings.invite')}</h3>
+        <p className="text-sm text-gray-500 mb-3">{t('settings.inviteDesc')}</p>
         <div className="flex gap-2">
           <input readOnly value={`${window.location.origin}/register?ref=${user?.id}`}
             className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600" />
           <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.id}`); }}
-            className="bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 shrink-0">Copy</button>
+            className="bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 shrink-0">{t('settings.copy')}</button>
         </div>
       </div>
     </div>

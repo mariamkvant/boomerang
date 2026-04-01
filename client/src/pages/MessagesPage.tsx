@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
+import { t } from '../i18n';
 
 const EMOJIS = ['😀','😂','❤️','👍','🙏','🎉','🔥','💪','🪃','⭐','👋','🤝','✅','📅','📍'];
 
@@ -94,14 +95,14 @@ export default function MessagesPage() {
 
   return (
     <div className="animate-fade-in">
-      <h2 className="text-2xl font-bold mb-6">Messages</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('messages.title')}</h2>
       <div className="flex gap-4 h-[calc(100vh-220px)] min-h-[400px]">
 
         {/* Conversation list — hidden on mobile when chat is open */}
         <div className={`${showChat ? 'hidden md:block' : 'block'} w-full md:w-72 shrink-0 bg-white rounded-2xl shadow-card overflow-y-auto`}>
           {/* Search people */}
           <div className="p-3 border-b border-gray-50">
-            <input value={searchQuery} onChange={e => searchPeople(e.target.value)} placeholder="Search people..."
+            <input value={searchQuery} onChange={e => searchPeople(e.target.value)} placeholder={t('messages.search')}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
           {/* Search results */}
@@ -189,7 +190,7 @@ export default function MessagesPage() {
                 <div className="flex gap-2">
                   <button onClick={() => setShowEmoji(!showEmoji)} className="text-xl px-2 hover:bg-gray-100 rounded-lg shrink-0" aria-label="Emojis">😊</button>
                   <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
-                    placeholder="Type a message..." className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+                    placeholder={t('messages.typeMsg')} className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
                   <button onClick={send} disabled={sending || !newMsg.trim()}
                     className="bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 shrink-0">Send</button>
                 </div>
