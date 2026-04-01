@@ -32,12 +32,14 @@ export default function HomePage() {
   const [recentServices, setRecentServices] = useState<any[]>([]);
   const [popularServices, setPopularServices] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [matches, setMatches] = useState<any[]>([]);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
     api.getServices('').then((res: any) => setRecentServices(Array.isArray(res) ? res : res.services || [])).catch(() => {});
     api.getPopularServices().then(setPopularServices).catch(() => {});
     api.getStats().then(setStats).catch(() => {});
+    if (user) api.getSmartMatches().then(setMatches).catch(() => {});
   }, []);
 
   return (
@@ -131,6 +133,37 @@ export default function HomePage() {
                   </div>
                   <div className="text-sm font-medium text-gray-700">{c.name}</div>
                 </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Recommended for you — smart matches */}
+      {user && matches.length > 0 && (
+        <section className="px-4 py-12 bg-primary-50/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">People need your help</h2>
+                <p className="text-gray-500 text-sm mt-1">Based on your skills, these people are looking for help</p>
+              </div>
+              <Link to="/help-wanted" className="text-sm font-medium text-primary-500 hover:text-primary-600">See all →</Link>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {matches.slice(0, 3).map((m: any) => (
+                <div key={m.id} className="bg-white p-5 rounded-2xl border border-primary-100 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                    <span>{m.category_name}</span>
+                    <span className="text-primary-600 font-medium">{m.points_budget} boomerangs</span>
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">{m.title}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 mb-3">{m.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400">by {m.requester_name}{m.requester_city ? ` · ${m.requester_city}` : ''}</span>
+                    <Link to="/help-wanted" className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 font-medium">Help →</Link>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

@@ -49,6 +49,13 @@ function disconnect() {
   if (socket) { socket.close(); socket = null; }
 }
 
+/** Send a message through the WebSocket */
+export function sendWsMessage(data: any) {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(data));
+  }
+}
+
 /** Subscribe to a WebSocket message type. Use '*' for all messages. */
 export function useSocket(type: string, handler: MessageHandler) {
   const handlerRef = useRef(handler);

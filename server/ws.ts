@@ -34,6 +34,17 @@ export function initWebSocket(server: HttpServer) {
     if (!clients.has(userId)) clients.set(userId, new Set());
     clients.get(userId)!.add(ws);
 
+    // Handle incoming messages from client
+    ws.on('message', (raw) => {
+      try {
+        const data = JSON.parse(raw.toString());
+        if (data.type === 'typing' && data.to) {
+          // Forward typing indicator to the target user
+          sendToUser(data.to, 'typing', { sender_id: userId });
+        }
+      } catch {}
+    });
+
     ws.on('close', () => {
       const set = clients.get(userId);
       if (set) {

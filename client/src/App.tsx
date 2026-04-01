@@ -6,6 +6,7 @@ import { useDarkMode } from './hooks/useDarkMode';
 import InstallPrompt from './components/InstallPrompt';
 import NotificationBell from './components/NotificationBell';
 import BottomNav from './components/BottomNav';
+import OfflineBanner from './components/OfflineBanner';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 
 // Lazy-loaded pages
@@ -253,6 +254,7 @@ export default function App() {
       </main>
       <Footer />
       <BottomNav />
+      <OfflineBanner />
       <InstallPrompt />
     </div>
   );

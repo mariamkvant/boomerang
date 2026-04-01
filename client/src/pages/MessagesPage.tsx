@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../hooks/useSocket';
+import { useSocket, sendWsMessage } from '../hooks/useSocket';
 import { t } from '../i18n';
 
 function formatDate(dateStr: string) {
@@ -39,6 +39,17 @@ export default function MessagesPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const lastTypingSentRef = useRef(0);
+
+  const emitTyping = () => {
+    if (!activeUser) return;
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > 2000) {
+      sendWsMessage({ type: 'typing', to: activeUser });
+      lastTypingSentRef.current = now;
+    }
+  };
 
   useEffect(() => { api.getConversations().then(setConvos).catch(() => {}); }, []);
 
@@ -260,7 +271,7 @@ export default function MessagesPage() {
               {/* Input */}
               <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">
                 <div className="flex gap-2 items-end">
-                  <input ref={inputRef} value={newMsg} onChange={e => setNewMsg(e.target.value)}
+                  <input ref={inputRef} value={newMsg} onChange={e => { setNewMsg(e.target.value); emitTyping(); }}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                     placeholder="Type a message..."
                     className="flex-1 min-w-0 bg-gray-50 border-0 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
