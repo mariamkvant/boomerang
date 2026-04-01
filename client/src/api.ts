@@ -116,7 +116,7 @@ export const api = {
   // Direct Messages
   getConversations: () => request('/dm/conversations'),
   getDMs: (userId: number) => request(`/dm/${userId}`),
-  sendDM: (userId: number, body: string) => request(`/dm/${userId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+  sendDM: (userId: number, body: string, image?: string) => request(`/dm/${userId}`, { method: 'POST', body: JSON.stringify({ body, image }) }),
   sendTyping: (userId: number) => request(`/dm/${userId}/typing`, { method: 'POST' }),
   getUnreadDMCount: () => request('/dm/unread/count'),
 

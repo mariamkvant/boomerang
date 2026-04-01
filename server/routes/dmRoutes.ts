@@ -4,6 +4,7 @@ import { authMiddleware, AuthRequest } from '../auth';
 import { notify, notificationEmailHtml } from '../notify';
 import { sendToUser } from '../ws';
 import { isContentClean } from '../contentFilter';
+import { uploadImage } from '../cloudinary';
 
 const router = Router();
 
@@ -48,44 +49,48 @@ router.post('/:userId/typing', authMiddleware, async (req: AuthRequest, res: Res
   res.json({ ok: true });
 });
 
-// Send a message
+// Send a message (with optional image attachment)
 router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { body } = req.body;
-  if (!body || !body.trim()) return res.status(400).json({ error: 'Message cannot be empty' });
-  const contentCheck = isContentClean(body);
-  if (!contentCheck.clean) return res.status(400).json({ error: contentCheck.reason });
+  const { body, image } = req.body;
+  if ((!body || !body.trim()) && !image) return res.status(400).json({ error: 'Message cannot be empty' });
+  if (body) {
+    const contentCheck = isContentClean(body);
+    if (!contentCheck.clean) return res.status(400).json({ error: contentCheck.reason });
+  }
   if (Number(req.params.userId) === req.userId) return res.status(400).json({ error: 'Cannot message yourself' });
-  const result = await db.run('INSERT INTO direct_messages (sender_id, receiver_id, body) VALUES (?, ?, ?)', req.userId, req.params.userId, body.trim());
+
+  // Upload image if provided
+  let imageUrl: string | null = null;
+  if (image) {
+    if (image.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
+    imageUrl = await uploadImage(image, 'boomerang/messages');
+  }
+
+  const msgBody = body?.trim() || '';
+  const result = await db.run('INSERT INTO direct_messages (sender_id, receiver_id, body, image) VALUES (?, ?, ?, ?)', req.userId, req.params.userId, msgBody, imageUrl);
   const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
   const receiver = await db.get('SELECT email, username FROM users WHERE id = ?', req.params.userId);
   const senderName = sender?.username || 'Someone';
   const now = new Date().toISOString();
 
-  // Push real-time DM to receiver
-  sendToUser(Number(req.params.userId), 'dm', {
+  const dmPayload = {
     id: result.lastInsertRowid,
     sender_id: req.userId,
     receiver_id: Number(req.params.userId),
     sender_name: senderName,
-    body: body.trim(),
+    body: msgBody,
+    image: imageUrl,
     created_at: now,
-  });
-  // Also echo back to sender (for multi-tab sync)
-  sendToUser(req.userId!, 'dm', {
-    id: result.lastInsertRowid,
-    sender_id: req.userId,
-    receiver_id: Number(req.params.userId),
-    sender_name: senderName,
-    body: body.trim(),
-    created_at: now,
-  });
+  };
+  sendToUser(Number(req.params.userId), 'dm', dmPayload);
+  sendToUser(req.userId!, 'dm', dmPayload);
 
   await notify({
     userId: Number(req.params.userId), type: 'new_dm',
     title: 'New message from ' + senderName,
-    body: body.trim().substring(0, 100),
+    body: imageUrl ? '📷 Photo' : msgBody.substring(0, 100),
     link: '/messages',
-    email: receiver ? { to: receiver.email, subject: senderName + ' sent you a message on Boomerang', html: notificationEmailHtml('New message from ' + senderName, '"' + body.trim().substring(0, 200) + '"', '') } : undefined,
+    email: receiver ? { to: receiver.email, subject: senderName + ' sent you a message on Boomerang', html: notificationEmailHtml('New message from ' + senderName, imageUrl ? '📷 Sent a photo' : '"' + msgBody.substring(0, 200) + '"', '') } : undefined,
   });
   res.status(201).json({ id: result.lastInsertRowid });
 });

@@ -82,16 +82,29 @@ export default function MessagesPage() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => { if (activeUser) inputRef.current?.focus(); }, [activeUser]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = () => setPendingImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const send = async () => {
-    if (!newMsg.trim() || !activeUser) return;
+    if ((!newMsg.trim() && !pendingImage) || !activeUser) return;
     setSending(true);
     const msgText = newMsg.trim();
-    const optimistic = { id: Date.now(), sender_id: user?.id, receiver_id: activeUser, body: msgText, created_at: new Date().toISOString(), _optimistic: true };
+    const imgToSend = pendingImage;
+    const optimistic = { id: Date.now(), sender_id: user?.id, receiver_id: activeUser, body: msgText, image: imgToSend, created_at: new Date().toISOString(), _optimistic: true };
     setMessages((prev) => [...prev, optimistic]);
-    setNewMsg('');
+    setNewMsg(''); setPendingImage(null);
     try {
-      const result = await api.sendDM(activeUser, msgText);
+      const result = await api.sendDM(activeUser, msgText, imgToSend || undefined);
       setMessages((prev) => prev.map((m) => m.id === optimistic.id ? { ...optimistic, id: result.id, _optimistic: false } : m));
       api.getConversations().then(setConvos).catch(() => {});
     } catch (err: any) {
@@ -229,7 +242,10 @@ export default function MessagesPage() {
                                 ? 'bg-primary-500 text-white rounded-2xl rounded-br-lg'
                                 : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg'
                             } ${m._optimistic ? 'opacity-70' : ''}`}>
-                              <div>{m.body}</div>
+                              {m.image && (
+                                <img src={m.image} alt="" className="rounded-lg mb-1.5 max-w-full max-h-48 object-cover cursor-pointer" onClick={() => window.open(m.image, '_blank')} />
+                              )}
+                              {m.body && <div>{m.body}</div>}
                               <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMine ? 'text-primary-200 justify-end' : 'text-gray-400'}`}>
                                 {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 {isMine && m._optimistic && <span>○</span>}
@@ -270,12 +286,24 @@ export default function MessagesPage() {
 
               {/* Input */}
               <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">
+                {pendingImage && (
+                  <div className="mb-2 relative inline-block">
+                    <img src={pendingImage} alt="" className="h-20 rounded-lg object-cover" />
+                    <button onClick={() => setPendingImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                  </div>
+                )}
                 <div className="flex gap-2 items-end">
+                  <input type="file" ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
+                  <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 text-gray-400 hover:text-primary-500 rounded-full flex items-center justify-center hover:bg-gray-50 shrink-0" aria-label="Attach image">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
                   <input ref={inputRef} value={newMsg} onChange={e => { setNewMsg(e.target.value); emitTyping(); }}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                     placeholder="Type a message..."
                     className="flex-1 min-w-0 bg-gray-50 border-0 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
-                  <button onClick={send} disabled={sending || !newMsg.trim()}
+                  <button onClick={send} disabled={sending || (!newMsg.trim() && !pendingImage)}
                     className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 disabled:opacity-40 shrink-0">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

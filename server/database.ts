@@ -179,6 +179,7 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_reviews_request ON reviews(request_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_sender ON direct_messages(sender_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_receiver ON direct_messages(receiver_id)'); } catch(e) {}
+    try { await client.query('ALTER TABLE direct_messages ADD COLUMN IF NOT EXISTS image TEXT'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id)'); } catch(e) {}
