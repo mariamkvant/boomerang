@@ -74,14 +74,6 @@ export default function HomePage() {
                 <button type="submit" className="w-full bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600 transition-all">
                   {t('home.searchBtn')}
                 </button>
-                <div className="flex flex-wrap gap-1.5 mt-4">
-                  {categories.slice(0, 6).map((c: any) => (
-                    <Link key={c.id} to={`/browse?category=${c.id}`}
-                      className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#2a3942] px-2.5 py-1 rounded-full hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
-                      {translateCat(c.name)}
-                    </Link>
-                  ))}
-                </div>
               </form>
             </div>
           </div>
