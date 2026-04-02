@@ -16,6 +16,13 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+function formatTime(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 function groupByDate(messages: any[]) {
   const groups: { date: string; msgs: any[] }[] = [];
   let lastDate = '';
@@ -38,18 +45,10 @@ export default function MessagesPage() {
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
   const lastTypingSentRef = useRef(0);
-
-  const emitTyping = () => {
-    if (!activeUser) return;
-    const now = Date.now();
-    if (now - lastTypingSentRef.current > 2000) {
-      sendWsMessage({ type: 'typing', to: activeUser });
-      lastTypingSentRef.current = now;
-    }
-  };
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
 
   useEffect(() => { api.getConversations().then(setConvos).catch(() => {}); }, []);
 
@@ -63,15 +62,11 @@ export default function MessagesPage() {
 
   useSocket('dm', (data) => {
     if (activeUser && (data.sender_id === activeUser || data.receiver_id === activeUser)) {
-      setMessages((prev) => {
-        if (prev.some((m: any) => m.id === data.id)) return prev;
-        return [...prev, data];
-      });
+      setMessages((prev) => prev.some((m: any) => m.id === data.id) ? prev : [...prev, data]);
     }
     api.getConversations().then(setConvos).catch(() => {});
   });
 
-  // Typing indicator from other user
   useSocket('typing', (data) => {
     if (data.sender_id === activeUser) {
       setIsTyping(true);
@@ -80,10 +75,17 @@ export default function MessagesPage() {
     }
   });
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
   useEffect(() => { if (activeUser) inputRef.current?.focus(); }, [activeUser]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingImage, setPendingImage] = useState<string | null>(null);
+
+  const emitTyping = () => {
+    if (!activeUser) return;
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > 2000) {
+      sendWsMessage({ type: 'typing', to: activeUser });
+      lastTypingSentRef.current = now;
+    }
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -107,9 +109,7 @@ export default function MessagesPage() {
       const result = await api.sendDM(activeUser, msgText, imgToSend || undefined);
       setMessages((prev) => prev.map((m) => m.id === optimistic.id ? { ...optimistic, id: result.id, _optimistic: false } : m));
       api.getConversations().then(setConvos).catch(() => {});
-    } catch (err: any) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-    }
+    } catch { setMessages((prev) => prev.filter((m) => m.id !== optimistic.id)); }
     setSending(false);
     inputRef.current?.focus();
   };
@@ -120,9 +120,8 @@ export default function MessagesPage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
-    if (activeUser && !convos.find(c => c.id === activeUser)) {
-      api.getUser(activeUser).then(setActiveUserInfo).catch(() => {});
-    } else { setActiveUserInfo(null); }
+    if (activeUser && !convos.find(c => c.id === activeUser)) api.getUser(activeUser).then(setActiveUserInfo).catch(() => {});
+    else setActiveUserInfo(null);
   }, [activeUser, convos]);
 
   const activeName = activeConvo?.username || activeUserInfo?.username || 'User';
@@ -139,59 +138,64 @@ export default function MessagesPage() {
   const messageGroups = groupByDate(messages);
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex gap-0 md:gap-4 h-[calc(100vh-180px)] min-h-[400px]">
-        {/* Conversation list */}
-        <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 flex-col bg-white rounded-2xl shadow-card overflow-hidden`}>
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold mb-3">{t('messages.title')}</h2>
+    <div className="animate-fade-in -mx-4 -mt-6">
+      <div className="flex h-[calc(100vh-64px)]">
+        {/* Sidebar */}
+        <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-[340px] shrink-0 flex-col bg-white border-r border-gray-200`}>
+          {/* Sidebar header */}
+          <div className="px-4 pt-4 pb-3">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">{t('messages.title')}</h2>
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input value={searchQuery} onChange={e => searchPeople(e.target.value)} placeholder="Search people..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              <input value={searchQuery} onChange={e => searchPeople(e.target.value)} placeholder="Search or start new chat"
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 border-0 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 focus:bg-white outline-none" />
             </div>
           </div>
+
+          {/* Search results */}
           {searchResults.length > 0 && (
             <div className="border-b border-gray-100">
               {searchResults.slice(0, 5).map((u: any) => (
                 <button key={u.id} onClick={() => { setActiveUser(u.id); setSearchQuery(''); setSearchResults([]); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 text-left">
-                  <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">{u.username?.charAt(0).toUpperCase()}</div>
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0">{u.username?.charAt(0).toUpperCase()}</div>
                   <div>
-                    <p className="text-sm font-medium">{u.username}</p>
-                    {u.city && <p className="text-xs text-gray-400">{u.city}</p>}
+                    <p className="text-[15px] font-medium text-gray-900">{u.username}</p>
+                    {u.city && <p className="text-xs text-gray-500">{u.city}</p>}
                   </div>
                 </button>
               ))}
             </div>
           )}
+
+          {/* Conversation list */}
           <div className="flex-1 overflow-y-auto">
             {convos.length === 0 && !searchQuery && (
-              <div className="text-center py-16 px-6">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-gray-400">No conversations yet</p>
-                <p className="text-xs text-gray-300 mt-1">Search for someone to start chatting</p>
+              <div className="text-center py-20 px-6">
+                <svg className="w-20 h-20 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-gray-400 text-sm">No conversations yet</p>
+                <p className="text-gray-300 text-xs mt-1">Search for someone to start chatting</p>
               </div>
             )}
             {convos.map((c: any) => (
               <button key={c.id} onClick={() => setActiveUser(c.id)}
-                className={`w-full text-left px-4 py-3.5 hover:bg-gray-50 flex items-center gap-3 ${activeUser === c.id ? 'bg-primary-50' : ''}`}>
+                className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 border-b border-gray-50 ${activeUser === c.id ? 'bg-primary-50' : ''}`}>
                 <div className="relative shrink-0">
-                  <div className="w-11 h-11 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">{c.username?.charAt(0).toUpperCase()}</div>
-                  {c.unread > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold">{c.unread}</span>}
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">{c.username?.charAt(0).toUpperCase()}</div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm truncate ${c.unread > 0 ? 'font-semibold' : 'font-medium'}`}>{c.username}</span>
-                    <span className="text-[10px] text-gray-300 shrink-0 ml-2">{formatDate(c.last_message_at || c.created_at)}</span>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className={`text-[15px] truncate ${c.unread > 0 ? 'font-semibold text-gray-900' : 'font-normal text-gray-900'}`}>{c.username}</span>
+                    <span className={`text-[11px] shrink-0 ml-2 ${c.unread > 0 ? 'text-primary-500 font-medium' : 'text-gray-400'}`}>{formatTime(c.last_at) || formatDate(c.last_at)}</span>
                   </div>
-                  <p className={`text-xs truncate mt-0.5 ${c.unread > 0 ? 'text-gray-600 font-medium' : 'text-gray-400'}`}>{c.last_message}</p>
+                  <div className="flex items-center justify-between">
+                    <p className={`text-[13px] truncate ${c.unread > 0 ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>{c.last_message || 'Start chatting'}</p>
+                    {c.unread > 0 && <span className="w-5 h-5 bg-primary-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold shrink-0 ml-2">{c.unread}</span>}
+                  </div>
                 </div>
               </button>
             ))}
@@ -199,58 +203,69 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat area */}
-        <div className={`${!showChat ? 'hidden md:flex' : 'flex'} flex-1 bg-white rounded-2xl shadow-card flex-col overflow-hidden`}>
+        <div className={`${!showChat ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-[#efeae2]`}
+          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d5cec5\' fill-opacity=\'0.15\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
           {!activeUser ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-300 gap-3">
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <p className="text-sm">Select a conversation to start</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4">
+              <div className="w-24 h-24 bg-gray-200/50 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-gray-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-500 text-lg font-light">Boomerang Messages</p>
+                <p className="text-gray-400 text-sm mt-1">Select a conversation or search for someone</p>
+              </div>
             </div>
           ) : (
             <>
-              {/* Header */}
-              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+              {/* Chat header */}
+              <div className="px-4 py-2.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveUser(null)} className="md:hidden p-1 -ml-1 text-gray-400 hover:text-gray-600" aria-label="Back">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  <button onClick={() => setActiveUser(null)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-700" aria-label="Back">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <div className="w-9 h-9 bg-primary-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">{activeName.charAt(0).toUpperCase()}</div>
-                  <Link to={`/users/${activeUser}`} className="text-sm font-semibold hover:text-primary-600">{activeName}</Link>
+                  <Link to={`/users/${activeUser}`} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">{activeName.charAt(0).toUpperCase()}</div>
+                    <div>
+                      <p className="text-[15px] font-medium text-gray-900 leading-tight">{activeName}</p>
+                      {isTyping && <p className="text-xs text-primary-500">typing...</p>}
+                    </div>
+                  </Link>
                 </div>
               </div>
 
-              {/* Messages with date groups */}
-              <div className="flex-1 overflow-y-auto px-5 py-4">
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-4 md:px-12 py-3">
                 {messages.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-sm text-gray-300">Send a message to start the conversation</p>
+                  <div className="text-center py-16">
+                    <div className="inline-block bg-white/80 backdrop-blur rounded-lg px-4 py-2 text-sm text-gray-500 shadow-sm">Messages are end-to-end on Boomerang</div>
                   </div>
                 )}
                 {messageGroups.map((group, gi) => (
                   <div key={gi}>
-                    <div className="flex items-center justify-center my-4">
-                      <span className="text-[10px] text-gray-400 bg-gray-50 px-3 py-1 rounded-full">{group.date}</span>
+                    <div className="flex justify-center my-3">
+                      <span className="text-[11px] text-gray-600 bg-white/80 backdrop-blur px-3 py-1 rounded-md shadow-sm">{group.date}</span>
                     </div>
-                    <div className="space-y-1.5">
-                      {group.msgs.map((m: any) => {
+                    <div className="space-y-0.5">
+                      {group.msgs.map((m: any, mi: number) => {
                         const isMine = m.sender_id === user?.id;
+                        const isLast = mi === group.msgs.length - 1 || group.msgs[mi + 1]?.sender_id !== m.sender_id;
                         return (
                           <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[75%] px-4 py-2.5 text-sm leading-relaxed ${
+                            <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm ${
                               isMine
-                                ? 'bg-primary-500 text-white rounded-2xl rounded-br-lg'
-                                : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-lg'
-                            } ${m._optimistic ? 'opacity-70' : ''}`}>
+                                ? 'bg-[#d9fdd3] text-gray-900 rounded-lg rounded-tr-none'
+                                : 'bg-white text-gray-900 rounded-lg rounded-tl-none'
+                            } ${m._optimistic ? 'opacity-60' : ''} ${isLast ? 'mb-1' : 'mb-px'}`}>
                               {m.image && (
-                                <img src={m.image} alt="" className="rounded-lg mb-1.5 max-w-full max-h-48 object-cover cursor-pointer" onClick={() => window.open(m.image, '_blank')} />
+                                <img src={m.image} alt="" className="rounded-md mb-1 max-w-full max-h-52 object-cover cursor-pointer" onClick={() => window.open(m.image, '_blank')} />
                               )}
-                              {m.body && <div>{m.body}</div>}
-                              <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMine ? 'text-primary-200 justify-end' : 'text-gray-400'}`}>
-                                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                {isMine && m._optimistic && <span>○</span>}
-                                {isMine && !m._optimistic && <span>✓</span>}
-                              </div>
+                              {m.body && <span>{m.body}</span>}
+                              <span className={`text-[10px] float-right mt-1 ml-2 ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {formatTime(m.created_at)}
+                                {isMine && <span className="ml-0.5">{m._optimistic ? '○' : '✓'}</span>}
+                              </span>
                             </div>
                           </div>
                         );
@@ -260,11 +275,11 @@ export default function MessagesPage() {
                 ))}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-100 text-gray-500 rounded-2xl rounded-bl-lg px-4 py-2.5 text-sm">
-                      <div className="flex gap-1 items-center">
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <div className="bg-white text-gray-500 rounded-lg rounded-tl-none px-4 py-2.5 shadow-sm">
+                      <div className="flex gap-1 items-center h-4">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                       </div>
                     </div>
                   </div>
@@ -272,39 +287,37 @@ export default function MessagesPage() {
                 <div ref={bottomRef} />
               </div>
 
-              {/* Quick replies — shown when conversation is empty or just started */}
-              {messages.length <= 2 && (
-                <div className="px-4 pb-1 flex gap-2 overflow-x-auto shrink-0">
-                  {['Thanks!', 'When works for you?', 'Sounds good', 'I\'m interested'].map(qr => (
-                    <button key={qr} onClick={() => { setNewMsg(qr); inputRef.current?.focus(); }}
-                      className="text-xs px-3 py-1.5 rounded-full border border-gray-200 text-gray-500 hover:border-primary-300 hover:text-primary-600 whitespace-nowrap shrink-0">
-                      {qr}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Input */}
-              <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">
+              {/* Input area */}
+              <div className="px-3 py-2 bg-gray-100 shrink-0">
                 {pendingImage && (
-                  <div className="mb-2 relative inline-block">
-                    <img src={pendingImage} alt="" className="h-20 rounded-lg object-cover" />
-                    <button onClick={() => setPendingImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-800 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                  <div className="mb-2 ml-1 relative inline-block">
+                    <img src={pendingImage} alt="" className="h-16 rounded-md object-cover" />
+                    <button onClick={() => setPendingImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-700 text-white rounded-full text-[10px] flex items-center justify-center hover:bg-gray-900">✕</button>
+                  </div>
+                )}
+                {messages.length <= 2 && !pendingImage && (
+                  <div className="flex gap-1.5 mb-2 ml-1 overflow-x-auto">
+                    {['Thanks!', 'When works for you?', 'Sounds good', "I'm interested"].map(qr => (
+                      <button key={qr} onClick={() => { setNewMsg(qr); inputRef.current?.focus(); }}
+                        className="text-xs px-3 py-1.5 rounded-full bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 whitespace-nowrap shrink-0 shadow-sm">
+                        {qr}
+                      </button>
+                    ))}
                   </div>
                 )}
                 <div className="flex gap-2 items-end">
                   <input type="file" ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
-                  <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 text-gray-400 hover:text-primary-500 rounded-full flex items-center justify-center hover:bg-gray-50 shrink-0" aria-label="Attach image">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <button onClick={() => fileInputRef.current?.click()} className="w-10 h-10 text-gray-500 hover:text-gray-700 rounded-full flex items-center justify-center shrink-0" aria-label="Attach photo">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                   </button>
                   <input ref={inputRef} value={newMsg} onChange={e => { setNewMsg(e.target.value); emitTyping(); }}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                    placeholder="Type a message..."
-                    className="flex-1 min-w-0 bg-gray-50 border-0 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
+                    placeholder="Type a message"
+                    className="flex-1 min-w-0 bg-white rounded-3xl px-4 py-2.5 text-[15px] focus:ring-1 focus:ring-primary-500 outline-none shadow-sm" />
                   <button onClick={send} disabled={sending || (!newMsg.trim() && !pendingImage)}
-                    className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 disabled:opacity-40 shrink-0">
+                    className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 disabled:opacity-40 shrink-0 shadow-sm">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
