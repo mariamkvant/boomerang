@@ -66,6 +66,8 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
     if (webhookSecret) {
       const sig = req.headers['stripe-signature'];
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } else if (process.env.NODE_ENV === 'production') {
+      return res.status(400).json({ error: 'Webhook secret not configured' });
     } else {
       event = req.body;
     }

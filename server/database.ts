@@ -188,6 +188,10 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_status ON help_wanted(status)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_created ON services(created_at DESC)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_city ON services(city)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_created ON direct_messages(created_at DESC)'); } catch(e) {}
 
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }

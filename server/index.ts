@@ -21,9 +21,17 @@ import digestRoutes from './routes/digestRoutes';
 import leaderboardRoutes from './routes/leaderboardRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 
+import { rateLimit } from './rateLimit';
+
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// Trust proxy (Railway runs behind a reverse proxy)
+app.set('trust proxy', 1);
+
+// Global rate limit: 200 requests per minute per IP
+app.use(rateLimit(60_000, 200));
 
 // CORS — restrict in production
 const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
@@ -33,7 +41,10 @@ const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) callback(null, true);
-    else callback(null, true); // Allow for now but log
+    else {
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
 }));
@@ -44,6 +55,10 @@ app.use((_req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' data:; frame-ancestors 'none';");
+  }
   next();
 });
 
@@ -107,9 +122,21 @@ initDatabase().then(() => {
   initPush();
   initWebSocket(server);
   server.listen(PORT, () => {
-    console.log(`Boomerang server running on port ${PORT}`);
+    console.log(`Boomerang server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   });
 }).catch(err => {
   console.error('Failed to initialize database:', err);
   process.exit(1);
 });
+
+// Graceful shutdown
+function shutdown() {
+  console.log('Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+  setTimeout(() => { console.error('Forced shutdown'); process.exit(1); }, 10_000);
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
