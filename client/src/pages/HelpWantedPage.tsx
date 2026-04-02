@@ -38,18 +38,18 @@ export default function HelpWantedPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Help Wanted 🆘</h2>
-        <p className="text-gray-500 text-sm mt-1">People looking for help — can you assist?</p>
+        <h2 className="text-2xl font-bold">{t('help.title')}</h2>
+        <p className="text-gray-500 text-sm mt-1">{t('help.subtitle')}</p>
       </div>
 
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
       {success && <div className="bg-green-50 text-green-600 p-3 rounded-xl mb-4 text-sm">✓ {success}</div>}
 
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        {(['browse', 'mine', 'post'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
-            {t === 'browse' ? 'Browse Requests' : t === 'mine' ? 'My Requests' : 'Ask for Help'}
+        {(['browse', 'mine', 'post'] as const).map(tb => (
+          <button key={tb} onClick={() => setTab(tb)}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            {tb === 'browse' ? t('help.browseRequests') : tb === 'mine' ? t('help.myRequests') : t('help.askForHelp')}
           </button>
         ))}
       </div>
@@ -58,8 +58,8 @@ export default function HelpWantedPage() {
         <div className="space-y-3">
           {requests.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
-              <p className="text-gray-400 text-sm mb-4">No open requests yet. Be the first to ask for help!</p>
-              <Link to="/browse" className="text-sm text-primary-600 hover:underline">Browse available services instead →</Link>
+              <p className="text-gray-400 text-sm mb-4">{t('help.noRequests')}</p>
+              <Link to="/browse" className="text-sm text-primary-600 hover:underline">{t('home.browseAll')} →</Link>
             </div>
           )}
           {requests.map((r: any) => (
