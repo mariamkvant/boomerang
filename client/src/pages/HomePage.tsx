@@ -45,22 +45,22 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
           <div className="max-w-2xl">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 mb-6">
-              Help others.<br />
-              <span className="text-primary-500">Get help back.</span>
+              {t('hero.headline')}<br />
+              <span className="text-primary-500">{t('hero.headline2')}</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-4 max-w-lg">
-              Boomerang connects people who exchange skills, services, and help — without money. Fix a bike, walk a dog, teach a language, design a logo. Give what you can, get what you need.
+              {t('hero.subtitle')}
             </p>
-            <p className="text-sm text-gray-400 italic mb-10">"What you give is yours, what you don't is lost" — Shota Rustaveli</p>
+            <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
             {user ? (
               <div className="flex flex-wrap gap-4">
-                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">Browse services</Link>
-                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">Offer a service</Link>
+                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
+                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
               </div>
             ) : (
               <div>
-                <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">Get started free</Link>
-                <p className="text-sm text-gray-400 mt-4">No credit card needed · <Link to="/login" className="text-primary-500 hover:underline">Already have an account?</Link></p>
+                <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.cta')}</Link>
+                <p className="text-sm text-gray-400 mt-4">{t('hero.cta.free')} · <Link to="/login" className="text-primary-500 hover:underline">{t('login')}</Link></p>
               </div>
             )}
           </div>
@@ -68,7 +68,7 @@ export default function HomePage() {
         {stats && (
           <div className="border-t border-gray-100 bg-white/60 backdrop-blur">
             <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-16">
-              {[[stats.total_users, 'People'], [stats.total_services, 'Services'], [stats.total_completed, 'Exchanges']].map(([val, label], i) => (
+              {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}>
                   <div className="text-3xl font-bold text-gray-900">{val}+</div>
                   <div className="text-sm text-gray-500 mt-0.5">{label}</div>
@@ -232,8 +232,8 @@ export default function HomePage() {
         <section>
           <div className="max-w-6xl mx-auto px-6 py-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Available now</h2>
-              <Link to="/browse" className="text-sm text-primary-600 font-medium hover:underline">See all →</Link>
+              <h2 className="text-2xl font-bold text-gray-900">{t('available.title')}</h2>
+              <Link to="/browse" className="text-sm text-primary-600 font-medium hover:underline">{t('available.seeAll')}</Link>
             </div>
             <div className="grid md:grid-cols-3 gap-4">
               {popularServices.slice(0, 6).map((s: any) => (
@@ -283,12 +283,10 @@ export default function HomePage() {
       {!user && (
         <section className="bg-gradient-to-br from-primary-500 to-primary-600">
           <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center">
-            <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">
-              What you give<br />comes back to you
-            </h2>
-            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">Join a community where helping others helps you too. No money, no catch — just people sharing what they can.</p>
-            <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-full text-lg font-bold hover:shadow-xl transition-all">Create free account</Link>
-            <p className="text-primary-200 text-sm mt-4">Free forever. No credit card. Start with 50 boomerangs.</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">{t('cta.title')}</h2>
+            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
+            <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-full text-lg font-bold hover:shadow-xl transition-all">{t('cta.button')}</Link>
+            <p className="text-primary-200 text-sm mt-4">{t('cta.note')}</p>
           </div>
         </section>
       )}
