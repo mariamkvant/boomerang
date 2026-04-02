@@ -100,15 +100,23 @@ router.post('/confirm', authMiddleware, async (req: AuthRequest, res: Response) 
 // Gift boomerangs to another user
 router.post('/gift', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { to_user_id, amount, message } = req.body;
-  if (!to_user_id || !amount || amount < 1) return res.status(400).json({ error: 'Recipient and amount required' });
-  if (to_user_id === req.userId) return res.status(400).json({ error: 'Cannot gift to yourself' });
+  const toId = Number(to_user_id);
+  const giftAmount = Number(amount);
+  if (!toId || !giftAmount || giftAmount < 1) return res.status(400).json({ error: 'Recipient and amount required' });
+  if (toId === req.userId) return res.status(400).json({ error: 'Cannot gift to yourself' });
   const sender = await db.get('SELECT points, username FROM users WHERE id = ?', req.userId);
-  if (!sender || sender.points < amount) return res.status(400).json({ error: 'Not enough boomerangs' });
-  const receiver = await db.get('SELECT id, username FROM users WHERE id = ?', to_user_id);
+  if (!sender || sender.points < giftAmount) return res.status(400).json({ error: 'Not enough boomerangs' });
+  const receiver = await db.get('SELECT id, username FROM users WHERE id = ?', toId);
   if (!receiver) return res.status(404).json({ error: 'User not found' });
-  await db.run('UPDATE users SET points = points - ? WHERE id = ?', amount, req.userId);
-  await db.run('UPDATE users SET points = points + ? WHERE id = ?', amount, to_user_id);
-  res.json({ message: `Sent ${amount} boomerangs to ${receiver.username}!` });
+  try {
+    await db.transaction(async (tx) => {
+      await tx.run('UPDATE users SET points = points - ? WHERE id = ?', giftAmount, req.userId);
+      await tx.run('UPDATE users SET points = points + ? WHERE id = ?', giftAmount, toId);
+    });
+    res.json({ message: `Sent ${giftAmount} boomerangs to ${receiver.username}!` });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Gift failed. Please try again.' });
+  }
 });
 
 // Boost a service (featured listing)

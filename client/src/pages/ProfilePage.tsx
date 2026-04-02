@@ -42,62 +42,57 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
-      <div className="bg-white p-8 rounded-2xl shadow-card mb-6">
+      <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-card mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
               {profile.username?.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{profile.username}</h1>
-                {trust && <span className="text-sm" title={`Trust: ${trust.score}/100`}>{trust.emoji} {trust.level}</span>}
-                {superhelper?.is_superhelper && <span className="bg-gradient-to-r from-primary-500 to-primary-400 text-white text-xs px-2 py-0.5 rounded-full font-medium">⭐ Superhelper</span>}
+                {trust && (
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
+                    trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
+                    trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' :
+                    'bg-orange-50 text-orange-600'
+                  }`}>{trust.level}</span>
+                )}
+                {superhelper?.is_superhelper && <span className="bg-gray-900 text-white text-xs px-2 py-0.5 rounded-full font-medium">Superhelper</span>}
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                {profile.city && <span>📍 {profile.city}</span>}
-                {profile.languages_spoken && <span>🗣️ {profile.languages_spoken}</span>}
-                {trust && <span>⭐ {trust.avg_rating ? Number(trust.avg_rating).toFixed(1) : 'New'} ({trust.review_count} reviews)</span>}
+              <div className="flex items-center gap-3 text-sm text-gray-500 mt-1.5">
+                {profile.city && <span>{profile.city}</span>}
+                {profile.languages_spoken && <span>{profile.languages_spoken}</span>}
+                {trust && trust.avg_rating && <span>{Number(trust.avg_rating).toFixed(1)} rating ({trust.review_count})</span>}
                 <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
           {user && !isMe && (
             <div className="flex gap-2">
-              <Link to={`/messages?to=${id}`} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">💬 Message</Link>
-              <button onClick={() => setShowQR(q => !q)} className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200">QR</button>
-              <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Report</button>
-              <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">{isBlocked ? 'Unblock' : 'Block'}</button>
+              <Link to={`/messages?to=${id}`} className="text-xs bg-gray-900 dark:bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Message</Link>
+              <button onClick={() => setShowQR(q => !q)} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">QR</button>
+              <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">Report</button>
+              <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">{isBlocked ? 'Unblock' : 'Block'}</button>
             </div>
           )}
         </div>
         {profile.bio && <p className="text-gray-600 text-sm leading-relaxed mb-4">{profile.bio}</p>}
         {trust && (
           <div className="flex flex-wrap gap-3 mt-4">
-            <div className="bg-primary-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
-              <div className="text-xl font-bold text-primary-600">{profile.points}</div>
-              <div className="text-[10px] text-primary-500">Boomerangs</div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
-              <div className="text-xl font-bold text-gray-700">{trust.completed}</div>
-              <div className="text-[10px] text-gray-500">Completed</div>
-            </div>
-            {trust.completion_rate > 0 && (
-              <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
-                <div className="text-xl font-bold text-gray-700">{trust.completion_rate}%</div>
-                <div className="text-[10px] text-gray-500">Completion</div>
+            {[
+              { val: profile.points, label: 'Boomerangs' },
+              { val: trust.completed, label: 'Completed' },
+              trust.completion_rate > 0 ? { val: `${trust.completion_rate}%`, label: 'Completion' } : null,
+              trust.avg_hours && Number(trust.avg_hours) > 0 ? { val: Number(trust.avg_hours) < 24 ? `${Math.round(Number(trust.avg_hours))}h` : `${Math.round(Number(trust.avg_hours) / 24)}d`, label: 'Avg response' } : null,
+              { val: trust.score, label: 'Trust' },
+            ].filter(Boolean).map((s: any, i) => (
+              <div key={i} className="bg-gray-50 dark:bg-[#2a3942] px-4 py-3 rounded-xl text-center min-w-[70px]">
+                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{s.val}</div>
+                <div className="text-[10px] text-gray-400">{s.label}</div>
               </div>
-            )}
-            {trust.avg_hours && Number(trust.avg_hours) > 0 && (
-              <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
-                <div className="text-xl font-bold text-gray-700">{Number(trust.avg_hours) < 24 ? `${Math.round(Number(trust.avg_hours))}h` : `${Math.round(Number(trust.avg_hours) / 24)}d`}</div>
-                <div className="text-[10px] text-gray-500">Avg response</div>
-              </div>
-            )}
-            <div className="bg-gray-50 px-4 py-3 rounded-xl text-center min-w-[80px]">
-              <div className="text-xl font-bold text-gray-700">{trust.score}</div>
-              <div className="text-[10px] text-gray-500">Trust Score</div>
-            </div>
+            ))}
           </div>
         )}
       </div>
@@ -153,7 +148,7 @@ export default function ProfilePage() {
             {profile.services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="bg-white p-5 rounded-xl shadow-card hover:shadow-card-hover group">
                 <h4 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · 🪃 {s.points_cost} 🪃</p>
+                <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} boomerangs</p>
               </Link>
             ))}
           </div>
