@@ -154,6 +154,8 @@ export const api = {
   createCheckout: (packageId: string) => request('/payments/checkout', { method: 'POST', body: JSON.stringify({ packageId }) }),
   confirmTopUp: (amount: number) => request('/payments/confirm', { method: 'POST', body: JSON.stringify({ amount }) }),
   getTransactionHistory: () => request('/payments/history'),
+  giftBoomerangs: (toUserId: number, amount: number, message?: string) => request('/payments/gift', { method: 'POST', body: JSON.stringify({ to_user_id: toUserId, amount, message }) }),
+  boostService: (serviceId: number) => request('/payments/boost', { method: 'POST', body: JSON.stringify({ service_id: serviceId }) }),
 
   // Review management
   hideReview: (reviewId: number, hidden: boolean) => request(`/requests/reviews/${reviewId}/hide`, { method: 'PUT', body: JSON.stringify({ hidden }) }),
