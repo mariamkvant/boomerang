@@ -34,6 +34,15 @@ body {
 /* Dark mode chat */
 .dark .bg-\[#efeae2\] { background: #0b141a !important; }
 .dark .bg-\[#d9fdd3\] { background: #005c4b !important; color: #e9edef !important; }
+/* Dark mode hero */
+.dark .hero-gradient { background: #111b21 !important; }
+.dark .hero-gradient h1 { color: #e9edef !important; }
+.dark .hero-gradient h1 span { -webkit-text-fill-color: #f97316 !important; color: #f97316 !important; }
+.dark .hero-gradient p { color: #8696a0 !important; }
+.dark .bg-gradient-to-br.from-primary-500 { background: #f97316 !important; }
+
+/* Hero gradient for light mode */
+.hero-gradient { background: linear-gradient(135deg, #fff7ed 0%, #ffffff 40%, #f0fdf4 100%); }
 
 @layer utilities {
   .line-clamp-2 {

@@ -22,12 +22,12 @@ export default function HomePage() {
     <div className="animate-fade-in -mx-4 -mt-6">
 
       {/* Hero — WhatsApp style: big headline, generous space, single CTA */}
-      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #ffffff 40%, #f0fdf4 100%)' }}>
+      <section className="relative overflow-hidden hero-gradient">
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
           <div className="max-w-2xl">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 mb-6">
               {t('hero.headline')}<br />
-              <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">{t('hero.headline2')}</span>
+              <span className="text-primary-500">{t('hero.headline2')}</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-10 max-w-lg">{t('hero.subtitle')}</p>
             {user ? (
