@@ -175,18 +175,23 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white p-5 rounded-2xl shadow-card hover:shadow-card-hover group">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400">{s.category_name}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
-                  {s.avg_rating && <span className="text-xs text-gray-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                  <span className="text-primary-600 font-semibold text-sm">{s.points_cost} {t('browse.boomerangs')}</span>
-                  <div className="flex items-center gap-2">
-                    {s.distance != null && <span className="text-xs text-gray-400">{Number(s.distance).toFixed(1)} km</span>}
-                    <span className="text-xs text-gray-400">{s.provider_name}</span>
+              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white rounded-2xl shadow-card hover:shadow-card-hover group overflow-hidden">
+                {s.image && (
+                  <img src={s.image} alt="" className="w-full h-36 object-cover" />
+                )}
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400">{s.category_name}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
+                    {s.avg_rating && <span className="text-xs text-gray-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                    <span className="text-primary-600 font-semibold text-sm">{s.points_cost} {t('browse.boomerangs')}</span>
+                    <div className="flex items-center gap-2">
+                      {s.distance != null && <span className="text-xs text-gray-400">{Number(s.distance).toFixed(1)} km</span>}
+                      <span className="text-xs text-gray-400">{s.provider_name}</span>
+                    </div>
                   </div>
                 </div>
               </Link>

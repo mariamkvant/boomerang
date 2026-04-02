@@ -81,8 +81,8 @@ a, button { @apply transition-all duration-200; }
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
 /* Fade in */
-@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-.animate-fade-in { animation: fade-in 0.2s ease-out; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fade-in 0.25s ease-out; }
 
 /* Better focus styles */
 input:focus, textarea:focus, select:focus { @apply ring-2 ring-primary-500/30 border-primary-300; }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmModal';
 import { t } from '../i18n';
 
 function MessageThread({ requestId, userId }: { requestId: number; userId: number }) {
@@ -120,6 +121,7 @@ export default function DashboardPage() {
   const [dailyMatch, setDailyMatch] = useState<any>(null);
   const [trust, setTrust] = useState<any>(null);
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const load = async () => {
     try {
@@ -492,7 +494,7 @@ export default function DashboardPage() {
                     <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
                   )}
                   {['open', 'closed'].includes(h.status) && (
-                    <button onClick={async () => { if (confirm('Delete?')) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+                    <button onClick={async () => { const ok = await confirm({ title: 'Delete request', message: 'Are you sure you want to delete this help request?', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
                   )}
                 </div>
               </div>
@@ -541,7 +543,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">✏️</Link>
                 <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
-                <button onClick={async () => { if (confirm('Delete this service?')) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+                <button onClick={async () => { const ok = await confirm({ title: 'Delete service', message: 'Are you sure you want to delete this service? This cannot be undone.', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
               </div>
             </div>
           ))}

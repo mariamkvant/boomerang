@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmModal';
 
 function UserSearchInvite({ groupId, onInvited }: { groupId: number; onInvited: () => void }) {
   const [query, setQuery] = useState('');
@@ -118,6 +119,7 @@ export default function GroupDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [group, setGroup] = useState<any>(null);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [shareCopied, setShareCopied] = useState(false);
@@ -141,7 +143,8 @@ export default function GroupDetailPage() {
   const handleJoin = async () => { try { await api.joinGroup(Number(id)); reload(); } catch {} };
   const handleLeave = async () => { try { await api.leaveGroup(Number(id)); reload(); } catch {} };
   const handleRemove = async (userId: number) => {
-    if (!confirm('Remove this member?')) return;
+    const ok = await confirm({ title: 'Remove member', message: 'Are you sure you want to remove this member?', confirmText: 'Remove', danger: true });
+    if (!ok) return;
     try { await api.removeMember(Number(id), userId); reload(); } catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -171,7 +174,7 @@ export default function GroupDetailPage() {
             {user && !isMember && <button onClick={handleJoin} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600">Request to Join</button>}
             {user && isMember && !isAdmin && <button onClick={handleLeave} className="text-xs text-gray-400 hover:text-red-500 px-3 py-2">Leave Group</button>}
             {isAdmin && (
-              <button onClick={async () => { if (confirm('Delete this community? This cannot be undone.')) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { toast(err.message, 'error'); } } }}
+              <button onClick={async () => { const ok = await confirm({ title: 'Delete community', message: 'This will permanently delete this community and all its data. This cannot be undone.', confirmText: 'Delete', danger: true }); if (ok) { try { await api.deleteGroup(Number(id)); navigate('/groups'); } catch (err: any) { toast(err.message, 'error'); } } }}
                 className="text-xs text-red-400 hover:text-red-600 px-3 py-2 ml-2">Delete</button>
             )}
           </div>
