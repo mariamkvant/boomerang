@@ -196,31 +196,44 @@ export default function DashboardPage() {
       <div className="bg-white rounded-2xl shadow-card p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link to="/settings" className="w-14 h-14 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold text-xl hover:bg-primary-600 transition-colors">{user?.username.charAt(0).toUpperCase()}</Link>
+            <Link to="/settings" className="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl hover:shadow-lg transition-all">{user?.username.charAt(0).toUpperCase()}</Link>
             <div>
               <h2 className="text-xl font-bold">{user?.username}</h2>
-              <Link to="/settings" className="text-sm text-primary-500 hover:underline">{t('dashboard.editProfile')}</Link>
+              <Link to="/settings" className="text-sm text-gray-400 hover:text-primary-500">{t('dashboard.editProfile')}</Link>
             </div>
           </div>
-          <div className="flex gap-4 flex-wrap">
-            <div className="text-center"><div className="text-2xl font-bold text-primary-600">{user?.points}</div><div className="text-xs text-gray-500">{t('dashboard.boomerangs')}</div></div>
-            <div className="text-center"><div className="text-2xl font-bold text-gray-700">{myServices.length}</div><div className="text-xs text-gray-500">{t('dashboard.services')}</div></div>
+          <div className="flex gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{user?.points}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-wide">{t('dashboard.boomerangs')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{myServices.length}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-wide">{t('dashboard.services')}</div>
+            </div>
             {trust && trust.avg_rating && (
-              <div className="text-center"><div className="text-2xl font-bold text-yellow-600">⭐ {Number(trust.avg_rating).toFixed(1)}</div><div className="text-xs text-gray-500">{trust.review_count} reviews</div></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{Number(trust.avg_rating).toFixed(1)}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-wide">{trust.review_count} reviews</div>
+              </div>
             )}
             {trust && (
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-700">{trust.emoji}</div>
-                <div className="text-xs text-gray-500">{trust.level}</div>
+                <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                  trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
+                  trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
+                  trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' :
+                  'bg-orange-50 text-orange-600'
+                }`}>{trust.level}</div>
+                <div className="text-[11px] text-gray-400 mt-1">{trust.score}/100</div>
               </div>
             )}
           </div>
         </div>
-        {/* View my public profile link */}
         {user && (
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-            <Link to={`/users/${user.id}`} className="text-xs text-primary-600 hover:underline">View my public profile →</Link>
-            {trust && <span className="text-xs text-gray-400">Trust score: {trust.score}/100 · {trust.completed} exchanges completed</span>}
+            <Link to={`/users/${user.id}`} className="text-xs text-gray-400 hover:text-primary-500">View public profile →</Link>
+            {trust && <span className="text-xs text-gray-400">{trust.completed} exchanges completed</span>}
           </div>
         )}
       </div>

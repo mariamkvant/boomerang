@@ -35,17 +35,24 @@ export default function MePage() {
           {user.avatar ? (
             <img src={user.avatar} alt="" className="w-16 h-16 rounded-full object-cover" />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center text-white text-2xl font-semibold">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-2xl font-semibold">
               {user.username?.charAt(0).toUpperCase()}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold truncate">{user.username}</h2>
-            <p className="text-sm text-gray-500 truncate">{user.email}</p>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm font-semibold text-primary-600">{user.points} 🪃</span>
-              {trust && trust.avg_rating && <span className="text-sm text-yellow-600">⭐ {Number(trust.avg_rating).toFixed(1)}</span>}
-              {trust && <span className="text-xs text-gray-400">{trust.emoji} {trust.level}</span>}
+            <p className="text-sm text-gray-400 truncate">{user.email}</p>
+            <div className="flex items-center gap-3 mt-1.5">
+              <span className="text-sm font-semibold text-gray-900">{user.points} boomerangs</span>
+              {trust && trust.avg_rating && <span className="text-sm text-gray-600">{Number(trust.avg_rating).toFixed(1)} rating</span>}
+              {trust && (
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
+                  trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
+                  trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' :
+                  'bg-orange-50 text-orange-600'
+                }`}>{trust.level}</span>
+              )}
             </div>
           </div>
         </div>

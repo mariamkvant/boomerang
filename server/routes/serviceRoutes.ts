@@ -49,7 +49,7 @@ router.get('/calculate-points', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, subcategory, search, provider, page = '1', sort, lat, lng, radius } = req.query;
+  const { category, subcategory, search, provider, page = '1', sort, city, lat, lng, radius } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   const baseFrom = `FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
@@ -60,6 +60,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (category) { where += ' AND s.category_id = ?'; filterParams.push(category); }
   if (subcategory) { where += ' AND s.subcategory_id = ?'; filterParams.push(subcategory); }
   if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
+  if (city) { where += ' AND u.city ILIKE ?'; filterParams.push(`%${city}%`); }
 
   const countRes = await db.get('SELECT COUNT(*) as total ' + baseFrom + where, ...filterParams);
   const total = parseInt(countRes?.total || '0');

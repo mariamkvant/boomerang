@@ -27,6 +27,8 @@ export default function BrowsePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
+  const [cityFilter, setCityFilter] = useState('');
+  const [debouncedCity, setDebouncedCity] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
@@ -40,12 +42,12 @@ export default function BrowsePage() {
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
-  // Debounce search input
+  // Debounce search and city inputs
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
+    debounceRef.current = setTimeout(() => { setDebouncedSearch(search); setDebouncedCity(cityFilter); setPage(1); }, 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [search]);
+  }, [search, cityFilter]);
 
   // Load subcategories when category changes
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function BrowsePage() {
     if (selectedCat) params.set('category', selectedCat);
     if (selectedSub) params.set('subcategory', selectedSub);
     if (debouncedSearch) params.set('search', debouncedSearch);
+    if (debouncedCity) params.set('city', debouncedCity);
     if (page > 1) params.set('page', String(page));
     if (sortBy !== 'newest') params.set('sort', sortBy);
     api.getServices(params.toString()).then((res: any) => {
@@ -81,7 +84,7 @@ export default function BrowsePage() {
       else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, debouncedSearch, nearMe, page, sortBy]);
+  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, page, sortBy]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -97,21 +100,30 @@ export default function BrowsePage() {
       </div>
 
       {/* Search bar */}
-      <div className="flex gap-2 mb-6">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-2 mb-6">
+        <div className="relative flex-1 min-w-[200px]">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input type="text" placeholder={t('browse.search')} value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none shadow-card"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none"
             aria-label="Search services" />
         </div>
+        <div className="relative min-w-[160px]">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <input type="text" placeholder="City or location" value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+            className="w-full pl-9 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+            aria-label="Filter by location" />
+        </div>
         <button onClick={() => setNearMe(!nearMe)}
-          className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${nearMe ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
+          className={`px-4 py-3 rounded-xl text-sm font-medium shrink-0 ${nearMe ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
           {locating ? '...' : t('browse.nearMe')}
         </button>
         <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
-          className={`px-4 py-3.5 rounded-xl text-sm font-medium shrink-0 ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
+          className={`px-4 py-3 rounded-xl text-sm font-medium shrink-0 ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
           {viewMode === 'map' ? t('browse.list') : t('browse.map')}
         </button>
         <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
