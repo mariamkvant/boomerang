@@ -94,3 +94,6 @@ input:focus, textarea:focus, select:focus { @apply ring-2 ring-primary-500/30 bo
 
 /* Card hover lift */
 .shadow-card-hover { box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -5px rgba(0, 0, 0, 0.04); transform: translateY(-1px); }
+
+/* Prevent overscroll on message containers */
+.overscroll-contain { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
