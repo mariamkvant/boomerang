@@ -141,7 +141,7 @@ export default function MessagesPage() {
     <div className="animate-fade-in -mx-4 -mt-6" style={{ height: 'calc(100dvh - 128px)' }}>
       <div className="flex h-full">
         {/* Sidebar */}
-        <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-[340px] shrink-0 flex-col bg-white border-r border-gray-200`}>
+        <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-[340px] shrink-0 flex-col bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-[#2a3942]`}>
           {/* Sidebar header */}
           <div className="px-4 pt-4 pb-3">
             <h2 className="text-xl font-semibold text-gray-900 mb-3">{t('messages.title')}</h2>
@@ -203,7 +203,7 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat area */}
-        <div className={`${!showChat ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-[#efeae2] overflow-hidden`}
+        <div className={`${!showChat ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden`}
           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d5cec5\' fill-opacity=\'0.15\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
           {!activeUser ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
@@ -220,7 +220,7 @@ export default function MessagesPage() {
           ) : (
             <>
               {/* Chat header */}
-              <div className="px-4 py-2.5 bg-gray-100 border-b border-gray-200 flex items-center justify-between shrink-0">
+              <div className="px-4 py-2.5 bg-gray-100 dark:bg-[#202c33] border-b border-gray-200 dark:border-[#2a3942] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setActiveUser(null)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-700" aria-label="Back">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -239,13 +239,13 @@ export default function MessagesPage() {
               <div className="flex-1 overflow-y-auto px-4 md:px-12 py-3 overscroll-contain">
                 {messages.length === 0 && (
                   <div className="text-center py-16">
-                    <div className="inline-block bg-white/80 backdrop-blur rounded-lg px-4 py-2 text-sm text-gray-500 shadow-sm">Messages are end-to-end on Boomerang</div>
+                    <div className="inline-block bg-white/80 dark:bg-[#202c33]/80 backdrop-blur rounded-lg px-4 py-2 text-sm text-gray-500 dark:text-gray-400 shadow-sm">Messages are end-to-end on Boomerang</div>
                   </div>
                 )}
                 {messageGroups.map((group, gi) => (
                   <div key={gi}>
                     <div className="flex justify-center my-3">
-                      <span className="text-[11px] text-gray-600 bg-white/80 backdrop-blur px-3 py-1 rounded-md shadow-sm">{group.date}</span>
+                      <span className="text-[11px] text-gray-600 dark:text-gray-400 bg-white/80 dark:bg-[#202c33]/80 backdrop-blur px-3 py-1 rounded-md shadow-sm">{group.date}</span>
                     </div>
                     <div className="space-y-0.5">
                       {group.msgs.map((m: any, mi: number) => {
@@ -289,7 +289,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Input area */}
-              <div className="px-3 py-2 bg-gray-100 shrink-0">
+              <div className="px-3 py-2 bg-gray-100 dark:bg-[#202c33] shrink-0">
                 {pendingImage && (
                   <div className="mb-2 ml-1 relative inline-block">
                     <img src={pendingImage} alt="" className="h-16 rounded-md object-cover" />
@@ -300,7 +300,7 @@ export default function MessagesPage() {
                   <div className="flex gap-1.5 mb-2 ml-1 overflow-x-auto">
                     {['Thanks!', 'When works for you?', 'Sounds good', "I'm interested"].map(qr => (
                       <button key={qr} onClick={() => { setNewMsg(qr); inputRef.current?.focus(); }}
-                        className="text-xs px-3 py-1.5 rounded-full bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 whitespace-nowrap shrink-0 shadow-sm">
+                        className="text-xs px-3 py-1.5 rounded-full bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 hover:bg-primary-50 hover:text-primary-600 whitespace-nowrap shrink-0 shadow-sm">
                         {qr}
                       </button>
                     ))}
@@ -317,7 +317,7 @@ export default function MessagesPage() {
                   <input ref={inputRef} value={newMsg} onChange={e => { setNewMsg(e.target.value); emitTyping(); }}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                     placeholder="Type a message"
-                    className="flex-1 min-w-0 bg-white rounded-3xl px-4 py-2.5 text-[15px] focus:ring-1 focus:ring-primary-500 outline-none shadow-sm" />
+                    className="flex-1 min-w-0 bg-white dark:bg-[#2a3942] dark:text-gray-100 rounded-3xl px-4 py-2.5 text-[15px] focus:ring-1 focus:ring-primary-500 outline-none shadow-sm" />
                   <button onClick={send} disabled={sending || (!newMsg.trim() && !pendingImage)}
                     className="w-10 h-10 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 disabled:opacity-40 shrink-0 shadow-sm">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
