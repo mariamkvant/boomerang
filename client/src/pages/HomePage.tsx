@@ -30,9 +30,9 @@ export default function HomePage() {
               <span className="text-primary-500">Get help back.</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-4 max-w-lg">
-              Boomerang connects people who want to exchange skills and services — no money involved. Teach what you know, get help with what you need.
+              Boomerang connects people who exchange skills, services, and help — without money. Fix a bike, walk a dog, teach a language, design a logo. Give what you can, get what you need.
             </p>
-            <p className="text-sm text-gray-400 mb-10">Free forever. Start with 50 boomerangs. Active in Luxembourg and growing.</p>
+            <p className="text-sm text-gray-400 italic mb-10">"What you give is yours, what you don't is lost" — Shota Rustaveli</p>
             {user ? (
               <div className="flex flex-wrap gap-4">
                 <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">Browse services</Link>
@@ -68,9 +68,9 @@ export default function HomePage() {
         <p className="text-lg text-gray-500 mb-12 max-w-lg">Whether you're new in town or a long-time local, there's always something you can teach and something you can learn.</p>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: 'New to the area', desc: 'Just moved? Meet neighbors, learn the local language, get help settling in — and offer your own skills in return.', color: 'border-l-primary-500' },
-            { title: 'On a tight budget', desc: 'Need your computer fixed or your garden done? Trade your cooking skills or tutoring instead of paying cash.', color: 'border-l-green-500' },
-            { title: 'Want to give back', desc: 'Retired, freelancing, or just generous? Share your expertise with people who need it and build real connections.', color: 'border-l-blue-500' },
+            { title: 'New to the area', desc: 'Just moved? Get help settling in — furniture assembly, local tips, language practice — and offer your own skills in return.', color: 'border-l-primary-500' },
+            { title: 'On a tight budget', desc: 'Need a plumber, a dog walker, or a ride to the airport? Trade your skills instead of paying cash. Everyone has something to offer.', color: 'border-l-green-500' },
+            { title: 'Want to give back', desc: 'Good at cooking, repairs, tech, or just listening? Share what you know with your community and build real connections.', color: 'border-l-blue-500' },
           ].map((p, i) => (
             <div key={i} className={`bg-white p-6 rounded-2xl border border-gray-100 border-l-4 ${p.color}`}>
               <h3 className="font-semibold text-gray-900 text-lg mb-2">{p.title}</h3>
@@ -92,9 +92,9 @@ export default function HomePage() {
             </div>
             <div className="space-y-6">
               {[
-                { n: '1', title: 'You teach guitar for 1 hour', desc: 'You earn 15 boomerangs from the learner.', color: 'from-orange-400 to-amber-400' },
-                { n: '2', title: 'You need your garden done', desc: 'You spend 12 boomerangs to hire a gardener.', color: 'from-primary-400 to-primary-500' },
-                { n: '3', title: 'The gardener learns French', desc: 'They spend their boomerangs on a language tutor. And so it continues.', color: 'from-green-400 to-emerald-400' },
+                { n: '1', title: 'You fix someone\'s leaky faucet', desc: 'You earn 20 boomerangs for your plumbing skills.', color: 'from-orange-400 to-amber-400' },
+                { n: '2', title: 'You need a ride to the airport', desc: 'You spend 15 boomerangs and a neighbor drives you.', color: 'from-primary-400 to-primary-500' },
+                { n: '3', title: 'That neighbor gets cooking lessons', desc: 'They spend their boomerangs learning to make pasta. The cycle continues.', color: 'from-green-400 to-emerald-400' },
               ].map(s => (
                 <div key={s.n} className="flex gap-4 items-start">
                   <div className={`w-10 h-10 bg-gradient-to-br ${s.color} text-white rounded-xl flex items-center justify-center text-sm font-bold shrink-0`}>{s.n}</div>
@@ -116,7 +116,7 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
               20+ categories.<br />Hundreds of skills.
             </h2>
-            <p className="text-lg text-gray-500 leading-relaxed mb-8">From home repair to language lessons, pet care to tech help. If you can do it, someone needs it.</p>
+            <p className="text-lg text-gray-500 leading-relaxed mb-8">Home repair, pet care, transport, cooking, tech help, gardening, music, wellness, design — if you can do it, someone nearby needs it.</p>
             <Link to="/browse" className="text-primary-600 font-semibold hover:underline text-lg">Browse all services →</Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -167,10 +167,10 @@ export default function HomePage() {
         </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { text: 'I taught French and got my bike fixed. Two exchanges in one week.', name: 'Sophie' },
-            { text: 'Found a guitar teacher in my neighborhood within minutes.', name: 'Marco' },
-            { text: 'My garden has never looked better. And it cost me zero euros.', name: 'Lea' },
-            { text: 'Got help setting up my smart home. Saved hundreds.', name: 'David' },
+            { text: 'Got my bike fixed and helped someone with their CV. Two exchanges, zero euros.', name: 'Sophie' },
+            { text: 'A neighbor walked my dog while I was sick. I helped her move furniture later.', name: 'Marco' },
+            { text: 'Someone assembled my IKEA shelves. I made them a week of home-cooked meals.', name: 'Lea' },
+            { text: 'Got my smart home set up by a tech guy. Saved hundreds. Helped him with his garden.', name: 'David' },
           ].map((t, i) => (
             <div key={i} className="bg-gray-50 p-5 rounded-2xl">
               <p className="text-sm text-gray-600 leading-relaxed mb-3">"{t.text}"</p>
@@ -239,7 +239,7 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
             Your neighborhood.<br />Your community.
           </h2>
-          <p className="text-lg text-gray-500 max-w-lg mx-auto mb-10">Create or join local groups. Exchange skills with neighbors. Build connections that last beyond a single transaction.</p>
+          <p className="text-lg text-gray-500 max-w-lg mx-auto mb-10">Create or join local groups. Share services with neighbors. Build connections that go beyond a single exchange.</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/groups" className="bg-gray-900 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all">Explore communities</Link>
             <Link to="/people" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">Find people</Link>
@@ -254,9 +254,9 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">
               What you give<br />comes back to you
             </h2>
-            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">Join a community where helping others helps you too. No money, no catch — just people sharing what they know.</p>
+            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">Join a community where helping others helps you too. No money, no catch — just people sharing what they can.</p>
             <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-full text-lg font-bold hover:shadow-xl transition-all">Create free account</Link>
-            <p className="text-primary-200 text-sm mt-4">Takes 30 seconds. No credit card.</p>
+            <p className="text-primary-200 text-sm mt-4">Free forever. No credit card. Start with 50 boomerangs.</p>
           </div>
         </section>
       )}
