@@ -5,6 +5,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ConfirmProvider } from './components/ConfirmModal';
+import { InstallProvider } from './components/InstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ToastProvider>
           <ConfirmProvider>
-            <App />
+            <InstallProvider>
+              <App />
+            </InstallProvider>
           </ConfirmProvider>
         </ToastProvider>
       </AuthProvider>

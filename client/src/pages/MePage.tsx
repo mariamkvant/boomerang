@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { useInstall } from '../components/InstallPrompt';
 import { getLang, setLang, LANGUAGES, t } from '../i18n';
 import { useDarkMode } from '../hooks/useDarkMode';
 
@@ -10,6 +11,7 @@ export default function MePage() {
   const navigate = useNavigate();
   const { dark, toggle: toggleDark } = useDarkMode();
   const [trust, setTrust] = useState<any>(null);
+  const { canInstall, install } = useInstall();
 
   useEffect(() => {
     if (user) api.getTrustScore(user.id).then(setTrust).catch(() => {});
@@ -109,6 +111,16 @@ export default function MePage() {
             <span className="text-sm font-medium text-gray-700 flex-1">Admin</span>
             <span className="text-gray-300">›</span>
           </Link>
+        </div>
+      )}
+
+      {/* Install app */}
+      {canInstall && (
+        <div className="bg-white rounded-2xl shadow-card overflow-hidden mb-4">
+          <button onClick={install} className="flex items-center gap-4 px-5 py-4 w-full hover:bg-gray-50">
+            <span className="text-lg">📲</span>
+            <span className="text-sm font-medium text-primary-600 flex-1 text-left">Install Boomerang app</span>
+          </button>
         </div>
       )}
 

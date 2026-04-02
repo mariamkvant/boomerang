@@ -2,7 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+import { useInstall } from '../components/InstallPrompt';
 import { t } from '../i18n';
+
+function InstallButton() {
+  const { canInstall, install } = useInstall();
+  if (!canInstall) {
+    return (
+      <div className="text-center shrink-0">
+        <p className="text-xs text-gray-400 mb-2">On mobile? Open this site in your browser, then:</p>
+        <p className="text-xs text-gray-500">iOS: Tap Share → "Add to Home Screen"</p>
+        <p className="text-xs text-gray-500">Android: Tap Menu → "Install app"</p>
+      </div>
+    );
+  }
+  return (
+    <button onClick={install} className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all shrink-0">
+      Install app
+    </button>
+  );
+}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -243,6 +262,19 @@ export default function HomePage() {
           <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/groups" className="bg-gray-900 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all">Explore communities</Link>
             <Link to="/people" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">Find people</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Get the app */}
+      <section className="bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Get Boomerang on your phone</h3>
+              <p className="text-gray-500 text-sm max-w-md">Install the app on your home screen for instant access. No app store needed — it works like a native app with notifications and offline support.</p>
+            </div>
+            <InstallButton />
           </div>
         </div>
       </section>
