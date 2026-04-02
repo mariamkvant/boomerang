@@ -27,6 +27,7 @@ export default function MePage() {
     { to: '/messages', icon: '💬', label: t('messages.title') },
     { to: '/leaderboard', icon: '🏆', label: t('leaderboard.title') },
     { to: '/support', icon: '❓', label: 'Help & Support' },
+    { to: '/buy', icon: '💰', label: 'Buy Boomerangs' },
   ];
 
   return (

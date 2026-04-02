@@ -205,7 +205,7 @@ export default function DashboardPage() {
           <div className="flex gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900">{user?.points}</div>
-              <div className="text-[11px] text-gray-400 uppercase tracking-wide">{t('dashboard.boomerangs')}</div>
+              <Link to="/buy" className="text-[11px] text-primary-500 hover:underline uppercase tracking-wide">+ {t('dashboard.boomerangs')}</Link>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900">{myServices.length}</div>

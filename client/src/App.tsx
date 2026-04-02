@@ -37,6 +37,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const MePage = lazy(() => import('./pages/MePage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
+const BuyBoomerangsPage = lazy(() => import('./pages/BuyBoomerangsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function Navbar() {
@@ -251,6 +252,7 @@ export default function App() {
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/buy" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
