@@ -4,19 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { t } from '../i18n';
 
-const CAT_COLORS: Record<string, string> = {
-  'Cleaning': 'from-blue-400 to-blue-500', 'Gardening': 'from-green-400 to-green-500',
-  'Pet Care': 'from-amber-400 to-amber-500', 'Transportation': 'from-slate-400 to-slate-500',
-  'Sports & Fitness': 'from-red-400 to-red-500', 'Cooking': 'from-orange-400 to-orange-500',
-  'Tutoring': 'from-indigo-400 to-indigo-500', 'Languages': 'from-purple-400 to-purple-500',
-  'Music': 'from-pink-400 to-pink-500', 'Tech Help': 'from-cyan-400 to-cyan-500',
-  'Home Repair': 'from-yellow-500 to-yellow-600', 'Arts & Crafts': 'from-rose-400 to-rose-500',
-  'Health & Wellness': 'from-teal-400 to-teal-500', 'Business & Career': 'from-gray-500 to-gray-600',
-  'Design & Creative': 'from-violet-400 to-violet-500', 'Childcare & Education': 'from-sky-400 to-sky-500',
-  'Auto & Mechanics': 'from-zinc-500 to-zinc-600', 'Listening & Support': 'from-fuchsia-400 to-fuchsia-500',
-  'Beauty & Skincare': 'from-pink-300 to-pink-400', 'Other': 'from-gray-400 to-gray-500',
-};
-
 export default function HomePage() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
@@ -84,11 +71,11 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-3">
             {categories.slice(0, 8).map((c: any) => (
               <Link key={c.id} to={`/browse?category=${c.id}`}
-                className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg text-center group transition-all">
-                <div className={`w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${CAT_COLORS[c.name] || 'from-gray-400 to-gray-500'} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform shadow-sm`}>
-                  {c.icon}
+                className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg group transition-all">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{c.icon}</span>
+                  <span className="text-sm font-medium text-gray-700 group-hover:text-primary-600">{c.name}</span>
                 </div>
-                <div className="text-sm font-medium text-gray-700">{c.name}</div>
               </Link>
             ))}
           </div>
@@ -136,15 +123,14 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: '⭐', label: 'Ratings & Reviews', desc: 'Rate every exchange' },
-              { icon: '🛡️', label: 'Trust Scores', desc: 'Bronze to Platinum' },
-              { icon: '👥', label: 'Communities', desc: 'Join local groups' },
-              { icon: '🪃', label: 'Fair Exchange', desc: 'Points, not money' },
+              { label: 'Ratings & Reviews', desc: 'Rate every exchange to build trust' },
+              { label: 'Trust Scores', desc: 'Earn Bronze, Silver, Gold, Platinum' },
+              { label: 'Communities', desc: 'Join local groups and connect' },
+              { label: 'Fair Exchange', desc: 'Points-based, no money involved' },
             ].map((f, i) => (
               <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100">
-                <div className="text-3xl mb-3">{f.icon}</div>
-                <h4 className="font-semibold text-gray-900 text-sm mb-1">{f.label}</h4>
-                <p className="text-xs text-gray-500">{f.desc}</p>
+                <h4 className="font-semibold text-gray-900 mb-1">{f.label}</h4>
+                <p className="text-sm text-gray-500">{f.desc}</p>
               </div>
             ))}
           </div>
