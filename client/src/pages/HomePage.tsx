@@ -62,17 +62,19 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Right: browse card */}
-            <div className="w-full md:w-80 lg:w-96 shrink-0">
-              <Link to="/browse"
-                className="block bg-white/80 dark:bg-[#202c33]/90 backdrop-blur-lg rounded-2xl p-8 shadow-lg border border-white/50 dark:border-gray-700/50 hover:shadow-xl hover:scale-[1.02] transition-all text-center group">
-                <svg className="w-10 h-10 mx-auto text-primary-500 mb-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                </svg>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('hero.browseBtn')}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('browse.subtitle')}</p>
-              </Link>
-            </div>
+            {/* Right: browse card — only for non-logged-in users */}
+            {!user && (
+              <div className="w-full md:w-72 lg:w-80 shrink-0">
+                <Link to="/browse"
+                  className="block bg-white/60 dark:bg-[#202c33]/60 backdrop-blur-lg rounded-2xl px-8 py-10 border border-gray-200/50 dark:border-gray-700/30 hover:shadow-lg hover:border-primary-200 transition-all text-center group">
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{t('hero.browseBtn')}</p>
+                  <p className="text-sm text-gray-400 mt-1.5">{t('browse.subtitle')}</p>
+                  <svg className="w-5 h-5 mx-auto mt-4 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
         {stats && (
