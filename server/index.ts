@@ -161,8 +161,8 @@ initDatabase().then(() => {
     if (now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 5) {
       console.log('[DIGEST] Triggering weekly digest...');
       try {
-        const res = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${process.env.DIGEST_SECRET || 'boomerang-digest-secret'}`);
-        const data = await res.json();
+        const res = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${process.env.DIGEST_SECRET || 'boomerang-digest-secret'}`, { method: 'POST' });
+        const data: any = await res.json();
         console.log('[DIGEST]', data.message);
       } catch (err) {
         console.error('[DIGEST] Failed:', err);
