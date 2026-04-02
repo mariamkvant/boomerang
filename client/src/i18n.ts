@@ -1,4 +1,4 @@
-type Translations = Record<string, Record<string, string>>;
+﻿type Translations = Record<string, Record<string, string>>;
 
 // Helper to create language with fallback to English
 function lang(overrides: Record<string, string>): Record<string, string> {
@@ -102,6 +102,11 @@ const en: Record<string, string> = {
   'profile.message': 'Message', 'profile.report': 'Report', 'profile.block': 'Block', 'profile.unblock': 'Unblock',
   'profile.boomerangs': 'Boomerangs', 'profile.completed': 'Completed', 'profile.trustScore': 'Trust Score',
   'profile.achievements': 'Achievements', 'profile.servicesOffered': 'Services offered',
+  'dashboard.disputedMsg': 'Disputed - resolve via messages',
+  'dashboard.showMessages': 'Show messages', 'dashboard.hideMessages': 'Hide messages',
+  'dashboard.noMessages': 'No messages yet', 'dashboard.typeMessage': 'Type a message...',
+  'dashboard.scheduleDesc': 'Set your weekly availability.', 'dashboard.notAvailable': 'Not available',
+  'dashboard.saveSchedule': 'Save Schedule', 'dashboard.saved': 'Saved',
 };
 
 const translations: Translations = {
