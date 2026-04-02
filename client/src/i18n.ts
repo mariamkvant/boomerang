@@ -9,7 +9,7 @@ const en: Record<string, string> = {
   'nav.browse': 'Browse Services', 'nav.offer': 'Offer Service', 'nav.help': 'Help Needed',
   'nav.communities': 'Communities', 'nav.dashboard': 'My Dashboard',
   'hero.headline': 'Help others.', 'hero.headline2': 'Get help back.',
-  'hero.subtitle': 'Boomerang connects people who exchange skills, services, and help \u2014 without money. Fix a bike, walk a dog, design a logo. Give what you can, get what you need.',
+  'hero.subtitle': 'Boomerang connects people who exchange skills, services, and help without money. Fix a bike, walk a dog, design a logo. Give what you can, get what you need.',
   'hero.quote': '"What you give is yours, what you don\'t is lost" — Shota Rustaveli',
   'hero.cta': 'Create Free Account →', 'hero.browse': 'Browse First',
   'hero.cta.free': 'Free forever. No credit card. Start with 50 boomerangs.',
