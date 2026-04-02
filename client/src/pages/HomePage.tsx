@@ -4,15 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { t } from '../i18n';
 
-const TESTIMONIALS = [
-  { name: 'Sophie', text: 'I taught French and got my bike fixed — 2 exchanges done!', emoji: '🇫🇷' },
-  { name: 'Marco', text: 'Found a guitar teacher in my community within minutes.', emoji: '🎸' },
-  { name: 'Léa', text: 'My garden has never looked better. Thank you Boomerang!', emoji: '🌿' },
-  { name: 'David', text: 'Got help setting up my smart home. Saved hundreds of euros.', emoji: '💡' },
-  { name: 'Ana', text: 'I offer yoga classes and get cooking lessons in return.', emoji: '🧘' },
-];
-
-// Refined category icons — SVG-style minimal circles
 const CAT_COLORS: Record<string, string> = {
   'Cleaning': 'from-blue-400 to-blue-500', 'Gardening': 'from-green-400 to-green-500',
   'Pet Care': 'from-amber-400 to-amber-500', 'Transportation': 'from-slate-400 to-slate-500',
@@ -29,14 +20,12 @@ const CAT_COLORS: Record<string, string> = {
 export default function HomePage() {
   const { user } = useAuth();
   const [categories, setCategories] = useState<any[]>([]);
-  const [recentServices, setRecentServices] = useState<any[]>([]);
   const [popularServices, setPopularServices] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
-    api.getServices('').then((res: any) => setRecentServices(Array.isArray(res) ? res : res.services || [])).catch(() => {});
     api.getPopularServices().then(setPopularServices).catch(() => {});
     api.getStats().then(setStats).catch(() => {});
     if (user) api.getSmartMatches().then(setMatches).catch(() => {});
@@ -44,124 +33,141 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
-      {/* Hero */}
-      <section className="hero-section px-4 pt-14 pb-20 md:pt-24 md:pb-28" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fffbeb 100%)' }}>
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur border border-orange-100 rounded-full px-4 py-1.5 mb-8 text-sm text-orange-700 shadow-sm">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            {t('hero.location')}
+
+      {/* Hero — WhatsApp style: big headline, generous space, single CTA */}
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #ffffff 40%, #f0fdf4 100%)' }}>
+        <div className="max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+          <div className="max-w-2xl">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 mb-6">
+              {t('hero.headline')}<br />
+              <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">{t('hero.headline2')}</span>
+            </h1>
+            <p className="text-xl text-gray-500 leading-relaxed mb-10 max-w-lg">{t('hero.subtitle')}</p>
+            {user ? (
+              <div className="flex flex-wrap gap-4">
+                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
+                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
+              </div>
+            ) : (
+              <div>
+                <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.cta')}</Link>
+                <p className="text-sm text-gray-400 mt-4">{t('hero.cta.free')}</p>
+              </div>
+            )}
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.1] text-gray-900">
-            {t('hero.headline')} <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">{t('hero.headline2')}</span>
-          </h1>
-          <p className="text-lg text-gray-500 mb-3 max-w-xl mx-auto leading-relaxed">{t('hero.subtitle')}</p>
-          <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
-
-          {/* Clean CTA — one primary action */}
-          {user ? (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/browse" className="bg-primary-500 text-white px-8 py-3.5 rounded-2xl text-base font-semibold hover:bg-primary-600 hover:shadow-lg hover:-translate-y-0.5 shadow-md transition-all">{t('hero.browseBtn')}</Link>
-              <Link to="/services/new" className="bg-white text-primary-600 border border-primary-200 px-8 py-3.5 rounded-2xl text-base font-semibold hover:bg-primary-50 transition-all">{t('hero.offerBtn')}</Link>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4">
-              <Link to="/register" className="bg-primary-500 text-white px-12 py-4 rounded-2xl text-lg font-bold hover:bg-primary-600 hover:shadow-xl hover:-translate-y-0.5 shadow-lg transition-all">
-                {t('hero.cta')}
-              </Link>
-              <p className="text-sm text-gray-400">
-                {t('hero.cta.free')} · <Link to="/login" className="text-primary-500 font-medium hover:underline">{t('login')}</Link>
-              </p>
-            </div>
-          )}
-
-          {/* Stats */}
-          {stats && (
-            <div className="flex justify-center gap-10 mt-12">
-              {[
-                [stats.total_users, t('hero.members')],
-                [stats.total_services, t('hero.services')],
-                [stats.total_completed, t('hero.exchanges')],
-              ].map(([val, label], i) => (
-                <div key={i} className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900">{val}+</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+        </div>
+        {/* Stats bar */}
+        {stats && (
+          <div className="border-t border-gray-100 bg-white/60 backdrop-blur">
+            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-16">
+              {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
+                <div key={i}>
+                  <div className="text-3xl font-bold text-gray-900">{val}+</div>
+                  <div className="text-sm text-gray-500 mt-0.5">{label}</div>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
+      </section>
+
+      {/* Section 1 — Share your skills (left text, right visual) */}
+      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
+              Share<br />what you know
+            </h2>
+            <p className="text-lg text-gray-500 leading-relaxed mb-8">List your skills — gardening, guitar, cooking, tech help, anything you're good at. Set your own schedule and boomerang price.</p>
+            <Link to={user ? '/services/new' : '/register'} className="text-primary-600 font-semibold hover:underline text-lg">Start offering →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {categories.slice(0, 8).map((c: any) => (
+              <Link key={c.id} to={`/browse?category=${c.id}`}
+                className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg text-center group transition-all">
+                <div className={`w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${CAT_COLORS[c.name] || 'from-gray-400 to-gray-500'} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform shadow-sm`}>
+                  {c.icon}
+                </div>
+                <div className="text-sm font-medium text-gray-700">{c.name}</div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-center text-2xl font-bold mb-2">{t('how.title')}</h2>
-          <p className="text-center text-gray-500 mb-10 text-sm">{t('how.subtitle')}</p>
-          <div className="grid md:grid-cols-3 gap-6">
+      {/* Section 2 — How it works (alternating, right text) */}
+      <section className="bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              {[
+                { n: '1', title: t('step1.title'), desc: t('step1.desc'), color: 'from-orange-400 to-amber-400' },
+                { n: '2', title: t('step2.title'), desc: t('step2.desc'), color: 'from-primary-400 to-primary-500' },
+                { n: '3', title: t('step3.title'), desc: t('step3.desc'), color: 'from-green-400 to-emerald-400' },
+              ].map(s => (
+                <div key={s.n} className="flex gap-4 items-start">
+                  <div className={`w-10 h-10 bg-gradient-to-br ${s.color} text-white rounded-xl flex items-center justify-center text-sm font-bold shrink-0`}>{s.n}</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">{s.title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-right">
+              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
+                {t('how.title').split(' ').slice(0, 2).join(' ')}<br />{t('how.title').split(' ').slice(2).join(' ') || 'works'}
+              </h2>
+              <p className="text-lg text-gray-500 leading-relaxed">{t('how.subtitle')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 3 — Trust & community (left text) */}
+      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
+              Built on<br />trust
+            </h2>
+            <p className="text-lg text-gray-500 leading-relaxed mb-6">Every exchange builds your reputation. Earn trust through reviews, completion rates, and community engagement. Your trust score grows with every interaction.</p>
+            <Link to="/leaderboard" className="text-primary-600 font-semibold hover:underline text-lg">See the leaderboard →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             {[
-              { step: '1', title: t('step1.title'), desc: t('step1.desc'), color: 'from-orange-400 to-amber-400' },
-              { step: '2', title: t('step2.title'), desc: t('step2.desc'), color: 'from-primary-400 to-primary-500' },
-              { step: '3', title: t('step3.title'), desc: t('step3.desc'), color: 'from-green-400 to-emerald-400' },
-            ].map(f => (
-              <div key={f.step} className="relative bg-white p-7 rounded-2xl shadow-card hover:shadow-card-hover transition-all group">
-                <div className={`w-10 h-10 bg-gradient-to-br ${f.color} text-white rounded-xl flex items-center justify-center text-sm font-bold mb-4 group-hover:scale-110 transition-transform`}>{f.step}</div>
-                <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              { icon: '⭐', label: 'Ratings & Reviews', desc: 'Rate every exchange' },
+              { icon: '🛡️', label: 'Trust Scores', desc: 'Bronze to Platinum' },
+              { icon: '👥', label: 'Communities', desc: 'Join local groups' },
+              { icon: '🪃', label: 'Fair Exchange', desc: 'Points, not money' },
+            ].map((f, i) => (
+              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100">
+                <div className="text-3xl mb-3">{f.icon}</div>
+                <h4 className="font-semibold text-gray-900 text-sm mb-1">{f.label}</h4>
+                <p className="text-xs text-gray-500">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Categories — refined cards */}
-      {categories.length > 0 && (
-        <section className="px-4 py-12 bg-gray-50/50">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-bold">{t('categories.title')}</h2>
-                <p className="text-gray-400 text-sm mt-1">{t('categories.subtitle')}</p>
-              </div>
-              <Link to="/browse" className="text-sm font-medium text-primary-500 hover:text-primary-600">{t('categories.viewAll')}</Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {categories.slice(0, 10).map((c: any) => (
-                <Link key={c.id} to={`/browse?category=${c.id}`}
-                  className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-md text-center group transition-all">
-                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${CAT_COLORS[c.name] || 'from-gray-400 to-gray-500'} flex items-center justify-center text-white text-xl group-hover:scale-110 transition-transform shadow-sm`}>
-                    {c.icon}
-                  </div>
-                  <div className="text-sm font-medium text-gray-700">{c.name}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Recommended for you — smart matches */}
+      {/* Section 4 — Recommended for you (logged in only) */}
       {user && matches.length > 0 && (
-        <section className="px-4 py-12 bg-primary-50/30">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">People need your help</h2>
-                <p className="text-gray-500 text-sm mt-1">Based on your skills, these people are looking for help</p>
-              </div>
-              <Link to="/help-wanted" className="text-sm font-medium text-primary-500 hover:text-primary-600">See all →</Link>
+        <section className="bg-primary-50/40">
+          <div className="max-w-6xl mx-auto px-6 py-16">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">People need your help</h2>
+              <Link to="/help-wanted" className="text-sm text-primary-600 font-medium hover:underline">See all →</Link>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               {matches.slice(0, 3).map((m: any) => (
-                <div key={m.id} className="bg-white p-5 rounded-2xl border border-primary-100 hover:shadow-md transition-all">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                    <span>{m.category_name}</span>
-                    <span className="text-primary-600 font-medium">{m.points_budget} boomerangs</span>
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">{m.title}</h3>
+                <div key={m.id} className="bg-white p-5 rounded-2xl border border-primary-100 hover:shadow-lg transition-all">
+                  <span className="text-xs text-gray-400">{m.category_name}</span>
+                  <h3 className="font-semibold text-[15px] mt-1 mb-2">{m.title}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2 mb-3">{m.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">by {m.requester_name}{m.requester_city ? ` · ${m.requester_city}` : ''}</span>
-                    <Link to="/help-wanted" className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 font-medium">Help →</Link>
+                    <span className="text-xs text-gray-400">{m.requester_name}</span>
+                    <span className="text-sm font-semibold text-primary-600">{m.points_budget} 🪃</span>
                   </div>
                 </div>
               ))}
@@ -170,42 +176,23 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Testimonials */}
-      <section className="px-4 py-12">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-center text-2xl font-bold mb-8">{t('testimonials.title')}</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {TESTIMONIALS.slice(0, 3).map((item, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-lg mb-4">{item.emoji}</div>
-                <p className="text-sm text-gray-600 leading-relaxed mb-4">"{item.text}"</p>
-                <p className="text-xs font-semibold text-gray-900">— {item.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Available services */}
-      {(popularServices.length > 0 || recentServices.length > 0) && (
-        <section className="px-4 py-12 bg-white">
-          <div className="max-w-5xl mx-auto">
+      {/* Section 5 — Available services */}
+      {popularServices.length > 0 && (
+        <section className={user && matches.length > 0 ? '' : 'bg-gray-50'}>
+          <div className="max-w-6xl mx-auto px-6 py-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">{t('available.title')}</h2>
-              <Link to="/browse" className="text-sm font-medium text-primary-500 hover:text-primary-600">{t('available.seeAll')}</Link>
+              <h2 className="text-2xl font-bold text-gray-900">{t('available.title')}</h2>
+              <Link to="/browse" className="text-sm text-primary-600 font-medium hover:underline">{t('available.seeAll')}</Link>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...(popularServices.length > 0 ? popularServices : recentServices)].slice(0, 6).map((s: any) => (
+            <div className="grid md:grid-cols-3 gap-4">
+              {popularServices.slice(0, 6).map((s: any) => (
                 <Link key={s.id} to={`/services/${s.id}`}
-                  className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-md group transition-all">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
-                    <span className="bg-gray-50 px-2.5 py-1 rounded-full">{s.category_icon} {s.category_name}</span>
-                    {s.avg_rating && <span className="text-amber-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">{s.title}</h3>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-                    <span className="text-primary-600 font-semibold text-sm">{s.points_cost} 🪃</span>
+                  className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg group transition-all">
+                  <span className="text-xs text-gray-400">{s.category_name}</span>
+                  <h3 className="font-semibold text-[15px] mt-1 mb-2 group-hover:text-primary-600">{s.title}</h3>
+                  <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{s.provider_name}{s.provider_city ? ` · ${s.provider_city}` : ''}</span>
+                    <span className="text-sm font-semibold text-primary-600">{s.points_cost} 🪃</span>
                   </div>
                 </Link>
               ))}
@@ -214,27 +201,42 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* More testimonials */}
-      <section className="px-4 py-12 bg-gray-50/50">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4">
-          {TESTIMONIALS.slice(3).map((item, i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100">
-              <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-lg mb-4">{item.emoji}</div>
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">"{item.text}"</p>
-              <p className="text-xs font-semibold text-gray-900">— {item.name}</p>
+      {/* Section 6 — Keep in touch with your community */}
+      <section className="bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="order-2 md:order-1">
+              <div className="grid grid-cols-2 gap-3">
+                {['Sophie taught French and got her bike fixed', 'Marco found a guitar teacher in minutes', 'Léa got her garden transformed', 'David saved hundreds on smart home setup'].map((text, i) => (
+                  <div key={i} className="bg-gray-50 p-5 rounded-2xl">
+                    <p className="text-sm text-gray-600 leading-relaxed">"{text}"</p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full"></div>
+                      <span className="text-xs text-gray-400">{['Sophie', 'Marco', 'Léa', 'David'][i]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+            <div className="order-1 md:order-2">
+              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">
+                Keep in touch<br />with your<br />community
+              </h2>
+              <p className="text-lg text-gray-500 leading-relaxed mb-8">Join local groups, exchange skills with neighbors, and build real connections. What you give comes back to you.</p>
+              <Link to="/groups" className="text-primary-600 font-semibold hover:underline text-lg">Explore communities →</Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Final CTA */}
       {!user && (
-        <section className="px-4 py-16">
-          <div className="max-w-3xl mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-10 md:p-14 text-center text-white">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('cta.title')}</h2>
-            <p className="text-primary-100 mb-8 max-w-md mx-auto text-sm">{t('cta.subtitle')}</p>
-            <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-3.5 rounded-2xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all">{t('cta.button')}</Link>
-            <p className="text-primary-200 text-xs mt-4">{t('cta.note')}</p>
+        <section className="bg-gradient-to-br from-primary-500 to-primary-600">
+          <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">{t('cta.title')}</h2>
+            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
+            <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-full text-lg font-bold hover:shadow-xl transition-all">{t('cta.button')}</Link>
+            <p className="text-primary-200 text-sm mt-4">{t('cta.note')}</p>
           </div>
         </section>
       )}
