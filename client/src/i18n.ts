@@ -376,6 +376,29 @@ const en: Record<string, string> = {
   "me.language": "Language",
   "me.installApp": "Install App",
   "me.admin": "Admin Panel",
+  "cat.Cleaning": "Cleaning",
+  "cat.Gardening": "Gardening",
+  "cat.Pet Care": "Pet Care",
+  "cat.Transportation": "Transportation",
+  "cat.Sports & Fitness": "Sports & Fitness",
+  "cat.Cooking": "Cooking",
+  "cat.Tutoring": "Tutoring",
+  "cat.Languages": "Languages",
+  "cat.Music": "Music",
+  "cat.Tech Help": "Tech Help",
+  "cat.Home Repair": "Home Repair",
+  "cat.Other": "Other",
+  "cat.Arts & Crafts": "Arts & Crafts",
+  "cat.Health & Wellness": "Health & Wellness",
+  "cat.Business & Career": "Business & Career",
+  "cat.Design & Creative": "Design & Creative",
+  "cat.Childcare & Education": "Childcare & Education",
+  "cat.Auto & Mechanics": "Auto & Mechanics",
+  "cat.Listening & Support": "Listening & Support",
+  "cat.Beauty & Skincare": "Beauty & Skincare",
+  "browse.cityPlaceholder": "City or location",
+  "home.searchPlaceholder": "What do you need help with?",
+  "home.searchBtn": "Search",
 };
 
 const fr: Record<string, string> = {
@@ -754,6 +777,29 @@ const fr: Record<string, string> = {
   "me.language": "Langue",
   "me.installApp": "Installer l’Application",
   "me.admin": "Administration",
+  "cat.Cleaning": "Ménage",
+  "cat.Gardening": "Jardinage",
+  "cat.Pet Care": "Animaux",
+  "cat.Transportation": "Transport",
+  "cat.Sports & Fitness": "Sport & Fitness",
+  "cat.Cooking": "Cuisine",
+  "cat.Tutoring": "Cours particuliers",
+  "cat.Languages": "Langues",
+  "cat.Music": "Musique",
+  "cat.Tech Help": "Aide tech",
+  "cat.Home Repair": "Réparation",
+  "cat.Other": "Autre",
+  "cat.Arts & Crafts": "Arts & Loisirs",
+  "cat.Health & Wellness": "Santé & Bien-être",
+  "cat.Business & Career": "Business & Carrière",
+  "cat.Design & Creative": "Design & Créatif",
+  "cat.Childcare & Education": "Garde d’enfants",
+  "cat.Auto & Mechanics": "Auto & Mécanique",
+  "cat.Listening & Support": "Écoute & Soutien",
+  "cat.Beauty & Skincare": "Beauté & Soins",
+  "browse.cityPlaceholder": "Ville ou lieu",
+  "home.searchPlaceholder": "De quoi avez-vous besoin ?",
+  "home.searchBtn": "Rechercher",
 };
 
 const lb: Record<string, string> = {
@@ -1019,6 +1065,29 @@ const lb: Record<string, string> = {
   "me.language": "Sprooch",
   "me.installApp": "App installéieren",
   "me.admin": "Admin Panel",
+  "cat.Cleaning": "Botzen",
+  "cat.Gardening": "Gaardenaarbecht",
+  "cat.Pet Care": "Déieren",
+  "cat.Transportation": "Transport",
+  "cat.Sports & Fitness": "Sport & Fitness",
+  "cat.Cooking": "Kachen",
+  "cat.Tutoring": "Nohellef",
+  "cat.Languages": "Sproochen",
+  "cat.Music": "Musek",
+  "cat.Tech Help": "Tech Hëllef",
+  "cat.Home Repair": "Reparaturen",
+  "cat.Other": "Anert",
+  "cat.Arts & Crafts": "Konscht & Handwierk",
+  "cat.Health & Wellness": "Gesondheet & Wellness",
+  "cat.Business & Career": "Business & Karriär",
+  "cat.Design & Creative": "Design & Kreativ",
+  "cat.Childcare & Education": "Kannerbetreiung",
+  "cat.Auto & Mechanics": "Auto & Mechanik",
+  "cat.Listening & Support": "Nolauschteren & Ënnerstzétzung",
+  "cat.Beauty & Skincare": "Schéinheet & Fleeges",
+  "browse.cityPlaceholder": "Stad oder Uert",
+  "home.searchPlaceholder": "Wobai braucht dir Hëllef?",
+  "home.searchBtn": "Sichen",
 };
 
 const translations: Translations = { en, fr, lb };
@@ -1037,6 +1106,11 @@ export function setLang(lang: string) {
 
 export function getLang(): string {
   return currentLang;
+}
+
+
+export function translateCat(name: string): string {
+  return t("cat." + name) !== "cat." + name ? t("cat." + name) : name;
 }
 
 export const LANGUAGES = [

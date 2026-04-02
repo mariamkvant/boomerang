@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useInstall } from '../components/InstallPrompt';
-import { t } from '../i18n';
+import { t, translateCat } from '../i18n';
 
 function InstallButton() {
   const { canInstall, install } = useInstall();
@@ -19,10 +19,12 @@ function InstallButton() {
 
 export default function HomePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);
   const [popularServices, setPopularServices] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
+  const [heroSearch, setHeroSearch] = useState('');
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
@@ -40,7 +42,22 @@ export default function HomePage() {
               {t('hero.headline')}<br /><span className="text-primary-500">{t('hero.headline2')}</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed mb-4 max-w-lg">{t('hero.subtitle')}</p>
-            <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
+            <p className="text-sm text-gray-400 italic mb-8">{t('hero.quote')}</p>
+            {/* Hero search bar */}
+            <form onSubmit={e => { e.preventDefault(); if (heroSearch.trim()) navigate(`/browse?search=${encodeURIComponent(heroSearch.trim())}`); else navigate('/browse'); }}
+              className="flex gap-2 mb-8 max-w-lg">
+              <div className="relative flex-1">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <input type="text" value={heroSearch} onChange={e => setHeroSearch(e.target.value)}
+                  placeholder={t('home.searchPlaceholder')}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/90 dark:bg-[#202c33] backdrop-blur border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-sm dark:text-white placeholder:text-gray-400" />
+              </div>
+              <button type="submit" className="bg-primary-500 text-white px-6 py-3.5 rounded-xl text-sm font-semibold hover:bg-primary-600 hover:shadow-md transition-all shrink-0">
+                {t('home.searchBtn')}
+              </button>
+            </form>
             {user ? (
               <div className="flex flex-wrap gap-4">
                 <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
@@ -115,7 +132,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-3">
             {categories.slice(0, 8).map((c: any) => (
               <Link key={c.id} to={`/browse?category=${c.id}`} className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg group transition-all">
-                <div className="flex items-center gap-3"><span className="text-2xl">{c.icon}</span><span className="text-sm font-medium text-gray-700 group-hover:text-primary-600">{c.name}</span></div>
+                <div className="flex items-center gap-3"><span className="text-2xl">{c.icon}</span><span className="text-sm font-medium text-gray-700 group-hover:text-primary-600">{translateCat(c.name)}</span></div>
               </Link>
             ))}
           </div>
@@ -163,7 +180,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-4">
               {matches.slice(0, 3).map((m: any) => (
                 <div key={m.id} className="bg-white p-5 rounded-2xl border border-primary-100 hover:shadow-lg transition-all">
-                  <span className="text-xs text-gray-400">{m.category_name}</span>
+                  <span className="text-xs text-gray-400">{translateCat(m.category_name)}</span>
                   <h3 className="font-semibold text-[15px] mt-1 mb-2">{m.title}</h3>
                   <p className="text-xs text-gray-500 line-clamp-2 mb-3">{m.description}</p>
                   <div className="flex items-center justify-between">
@@ -187,7 +204,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-4">
               {popularServices.slice(0, 6).map((s: any) => (
                 <Link key={s.id} to={`/services/${s.id}`} className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg group transition-all">
-                  <span className="text-xs text-gray-400">{s.category_name}</span>
+                  <span className="text-xs text-gray-400">{translateCat(s.category_name)}</span>
                   <h3 className="font-semibold text-[15px] mt-1 mb-2 group-hover:text-primary-600">{s.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{s.provider_name}</span>

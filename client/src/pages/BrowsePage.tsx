@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import MapView from '../components/MapView';
 import { SkeletonGrid } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
-import { t } from '../i18n';
+import { t, translateCat } from '../i18n';
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -100,51 +100,53 @@ export default function BrowsePage() {
       </div>
 
       {/* Search bar */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
+        <div className="relative flex-1">
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
           <input type="text" placeholder={t('browse.search')} value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
             aria-label="Search services" />
         </div>
-        <div className="relative min-w-[160px]">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        <div className="relative flex-1 sm:max-w-[200px]">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
           </svg>
-          <input type="text" placeholder="City or location" value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-            className="w-full pl-9 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+          <input type="text" placeholder={t('browse.cityPlaceholder')} value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
             aria-label="Filter by location" />
         </div>
-        <button onClick={() => setNearMe(!nearMe)}
-          className={`px-4 py-3 rounded-xl text-sm font-medium shrink-0 ${nearMe ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
-          {locating ? '...' : t('browse.nearMe')}
-        </button>
-        <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
-          className={`px-4 py-3 rounded-xl text-sm font-medium shrink-0 ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300'}`}>
-          {viewMode === 'map' ? t('browse.list') : t('browse.map')}
-        </button>
-        <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-          className="px-3 py-3.5 rounded-xl text-sm font-medium bg-white border border-gray-200 text-gray-600 outline-none focus:ring-2 focus:ring-primary-500">
-          <option value="newest">Newest</option>
-          <option value="price_low">Price: Low → High</option>
-          <option value="price_high">Price: High → Low</option>
-          <option value="rating">Top Rated</option>
-        </select>
+        <div className="flex gap-2">
+          <button onClick={() => setNearMe(!nearMe)}
+            className={`px-3 py-2.5 rounded-xl text-sm font-medium shrink-0 transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+            {locating ? '...' : t('browse.nearMe')}
+          </button>
+          <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
+            className={`px-3 py-2.5 rounded-xl text-sm font-medium shrink-0 transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+            {viewMode === 'map' ? t('browse.list') : t('browse.map')}
+          </button>
+          <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
+            className="px-3 py-2.5 rounded-xl text-sm font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="newest">{t('browse.sort.newest')}</option>
+            <option value="price_low">{t('browse.sort.priceLow')}</option>
+            <option value="price_high">{t('browse.sort.priceHigh')}</option>
+            <option value="rating">{t('browse.sort.rating')}</option>
+          </select>
+        </div>
       </div>
 
       {/* Category pills */}
       <div className="flex flex-wrap gap-2 mb-8">
         <button onClick={() => handleCatClick('')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
           {t('browse.all')}
         </button>
         {categories.map((c: any) => (
           <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary-300'}`}>
-            {c.name}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+            {translateCat(c.name)}
           </button>
         ))}
       </div>
@@ -154,7 +156,7 @@ export default function BrowsePage() {
         <div className="flex flex-wrap gap-2 mb-8">
           <button onClick={() => setSelectedSub('')}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!selectedSub ? 'bg-primary-100 text-primary-700 border border-primary-200' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-200'}`}>
-            All in {categories.find(c => String(c.id) === selectedCat)?.name}
+            All in {translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')}
           </button>
           {subcategories.map((s: any) => (
             <button key={s.id} onClick={() => setSelectedSub(selectedSub === String(s.id) ? '' : String(s.id))}
@@ -193,7 +195,7 @@ export default function BrowsePage() {
                 )}
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-400">{s.category_name}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
+                    <span className="text-xs text-gray-400">{translateCat(s.category_name)}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
                     {s.avg_rating && <span className="text-xs text-gray-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
