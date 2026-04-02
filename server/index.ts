@@ -98,6 +98,39 @@ Disallow: /admin
 Sitemap: https://www.boomerang.fyi/sitemap.xml`);
 });
 
+// Android TWA Digital Asset Links
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  const fingerprint = process.env.ANDROID_SHA256_FINGERPRINT;
+  if (!fingerprint) {
+    return res.json([]);
+  }
+  res.json([{
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: {
+      namespace: 'android_app',
+      package_name: process.env.ANDROID_PACKAGE_NAME || 'fyi.boomerang.app',
+      sha256_cert_fingerprints: [fingerprint],
+    },
+  }]);
+});
+
+// Apple App Site Association
+app.get('/.well-known/apple-app-site-association', (_req, res) => {
+  const appId = process.env.APPLE_APP_ID;
+  if (!appId) {
+    return res.json({ applinks: { apps: [], details: [] } });
+  }
+  res.json({
+    applinks: {
+      apps: [],
+      details: [{ appID: appId, paths: ['*'] }],
+    },
+    webcredentials: {
+      apps: [appId],
+    },
+  });
+});
+
 // sitemap.xml
 app.get('/sitemap.xml', (_req, res) => {
   const pages = ['/', '/browse', '/help-wanted', '/groups', '/leaderboard', '/community', '/people', '/register', '/login', '/privacy', '/terms'];

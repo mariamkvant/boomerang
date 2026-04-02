@@ -1,17 +1,39 @@
 {
-  "name": "Boomerang",
+  "name": "Boomerang — Skill Exchange",
   "short_name": "Boomerang",
-  "description": "Give your skills, earn points, get help back. No money needed.",
+  "description": "Exchange skills and services without money. Help others, earn boomerangs, get help back.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#f9fafb",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#ffffff",
   "theme_color": "#f97316",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     { "src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icons/icon-192.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
+  "screenshots": [
+    { "src": "/screenshots/home.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Home screen" },
+    { "src": "/screenshots/browse.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Browse services" },
+    { "src": "/screenshots/messages.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Messages" }
+  ],
+  "shortcuts": [
+    { "name": "Browse Services", "short_name": "Browse", "url": "/browse", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Offer a Service", "short_name": "Offer", "url": "/services/new", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Messages", "short_name": "Chat", "url": "/messages", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "share_target": {
+    "action": "/browse",
+    "method": "GET",
+    "params": { "text": "search" }
+  },
   "categories": ["lifestyle", "social"],
-  "lang": "en"
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false
 }
