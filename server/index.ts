@@ -154,6 +154,22 @@ app.get('*', (_req, res) => {
 initDatabase().then(() => {
   initPush();
   initWebSocket(server);
+
+  // Weekly digest scheduler — runs every hour, sends on Mondays at 9am
+  setInterval(async () => {
+    const now = new Date();
+    if (now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 5) {
+      console.log('[DIGEST] Triggering weekly digest...');
+      try {
+        const res = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${process.env.DIGEST_SECRET || 'boomerang-digest-secret'}`);
+        const data = await res.json();
+        console.log('[DIGEST]', data.message);
+      } catch (err) {
+        console.error('[DIGEST] Failed:', err);
+      }
+    }
+  }, 5 * 60_000); // Check every 5 minutes
+
   server.listen(PORT, () => {
     console.log(`Boomerang server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   });
