@@ -33,12 +33,15 @@ body {
 .dark table td { color: #d1d7db !important; }
 /* Dark mode chat */
 .dark .bg-\[#efeae2\] { background: #0b141a !important; }
-.dark .bg-\[#d9fdd3\] { background: #005c4b !important; color: #e9edef !important; }
+.dark .bg-\[#d9fdd3\] { background: #005c4b !important; }
+.dark .bg-\[#d9fdd3\] * { color: #e9edef !important; }
 .dark .bg-\[#efeae2\] .bg-white { background: #202c33 !important; }
+.dark .bg-\[#efeae2\] .bg-white * { color: #e9edef; }
 .dark .bg-\[#efeae2\] .bg-gray-100 { background: #202c33 !important; }
 .dark .bg-\[#efeae2\] .bg-gray-50 { background: #111b21 !important; }
 .dark .bg-\[#efeae2\] input { background: #2a3942 !important; color: #e9edef !important; }
 .dark .bg-\[#efeae2\] .text-gray-900 { color: #e9edef !important; }
+.dark .bg-\[#efeae2\] .text-gray-600 { color: #aebac1 !important; }
 .dark .bg-\[#efeae2\] .text-gray-500 { color: #8696a0 !important; }
 .dark .bg-\[#efeae2\] .text-gray-400 { color: #667781 !important; }
 .dark .bg-\[#efeae2\] .shadow-sm { box-shadow: 0 1px 1px rgba(0,0,0,0.2) !important; }
