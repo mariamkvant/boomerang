@@ -3,8 +3,11 @@ import { createServer } from 'http';
 import cors from 'cors';
 import path from 'path';
 import { initDatabase } from './database';
+import db from './database';
 import { initWebSocket } from './ws';
 import { initPush } from './push';
+import { notify } from './notify';
+import { notificationEmailHtml } from './notify';
 import userRoutes from './routes/userRoutes';
 import serviceRoutes from './routes/serviceRoutes';
 import requestRoutes from './routes/requestRoutes';
@@ -155,7 +158,7 @@ initDatabase().then(() => {
   initPush();
   initWebSocket(server);
 
-  // Weekly digest scheduler — runs every hour, sends on Mondays at 9am
+  // Weekly digest scheduler — runs every 5 min, sends on Mondays at 9am
   setInterval(async () => {
     const now = new Date();
     if (now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 5) {
@@ -167,6 +170,70 @@ initDatabase().then(() => {
       } catch (err) {
         console.error('[DIGEST] Failed:', err);
       }
+    }
+
+    // Automatic reminders — check every 5 min for stale requests
+    try {
+      // Remind providers about pending requests (not responded in 24h)
+      const staleRequests = await db.all(
+        `SELECT sr.id, sr.requester_id, s.provider_id, s.title, u.email as provider_email, u.username as provider_name
+         FROM service_requests sr
+         JOIN services s ON sr.service_id = s.id
+         JOIN users u ON s.provider_id = u.id
+         WHERE sr.status = 'pending'
+         AND sr.created_at < NOW() - INTERVAL '24 hours'
+         AND sr.created_at > NOW() - INTERVAL '25 hours'`
+      );
+      for (const r of staleRequests) {
+        await notify({
+          userId: r.provider_id, type: 'reminder',
+          title: 'Pending request waiting',
+          body: `You have a pending request for "${r.title}". Please accept or decline.`,
+          link: '/dashboard',
+          email: { to: r.provider_email, subject: `Reminder: Pending request for ${r.title}`, html: notificationEmailHtml('Pending request', `Someone is waiting for your response on "${r.title}". Please accept or decline the request.`, 'https://www.boomerang.fyi/dashboard') },
+        });
+      }
+
+      // Remind requesters about delivered services (not confirmed in 48h)
+      const staleDeliveries = await db.all(
+        `SELECT sr.id, sr.requester_id, s.title, u.email as requester_email, u.username as requester_name
+         FROM service_requests sr
+         JOIN services s ON sr.service_id = s.id
+         JOIN users u ON sr.requester_id = u.id
+         WHERE sr.status = 'delivered'
+         AND sr.updated_at < NOW() - INTERVAL '48 hours'
+         AND sr.updated_at > NOW() - INTERVAL '49 hours'`
+      );
+      for (const r of staleDeliveries) {
+        await notify({
+          userId: r.requester_id, type: 'reminder',
+          title: 'Please confirm delivery',
+          body: `"${r.title}" was marked as delivered. Please confirm to complete the exchange.`,
+          link: '/dashboard',
+          email: { to: r.requester_email, subject: `Please confirm: ${r.title}`, html: notificationEmailHtml('Confirm delivery', `The service "${r.title}" was marked as delivered. Please confirm to release the boomerangs.`, 'https://www.boomerang.fyi/dashboard') },
+        });
+      }
+
+      // Remind about accepted but not delivered (7 days)
+      const staleAccepted = await db.all(
+        `SELECT sr.id, s.provider_id, s.title, u.email as provider_email
+         FROM service_requests sr
+         JOIN services s ON sr.service_id = s.id
+         JOIN users u ON s.provider_id = u.id
+         WHERE sr.status = 'accepted'
+         AND sr.updated_at < NOW() - INTERVAL '7 days'
+         AND sr.updated_at > NOW() - INTERVAL '7 days 5 minutes'`
+      );
+      for (const r of staleAccepted) {
+        await notify({
+          userId: r.provider_id, type: 'reminder',
+          title: 'Service reminder',
+          body: `You accepted "${r.title}" a week ago. Don't forget to mark it as delivered when done.`,
+          link: '/dashboard',
+        });
+      }
+    } catch (err) {
+      console.error('[REMINDERS] Error:', err);
     }
   }, 5 * 60_000); // Check every 5 minutes
 

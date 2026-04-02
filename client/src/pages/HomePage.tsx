@@ -25,15 +25,28 @@ function InstallButton() {
 
 export default function HomePage() {
   const { user } = useAuth();
+
+  const timeAgo = (dateStr: string) => {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
   const [categories, setCategories] = useState<any[]>([]);
   const [popularServices, setPopularServices] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(() => {});
     api.getPopularServices().then(setPopularServices).catch(() => {});
     api.getStats().then(setStats).catch(() => {});
+    api.getCommunityFeed().then((data: any) => setActivityFeed(data.feed?.slice(0, 5) || [])).catch(() => {});
     if (user) api.getSmartMatches().then(setMatches).catch(() => {});
   }, []);
 
@@ -175,6 +188,40 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Live activity feed */}
+      {activityFeed.length > 0 && (
+        <section className="bg-gray-50 dark:bg-[#0b141a]">
+          <div className="max-w-6xl mx-auto px-6 py-16">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Happening now</h2>
+            <div className="space-y-3">
+              {activityFeed.map((item: any, i: number) => (
+                <div key={i} className="bg-white dark:bg-[#202c33] rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0 ${
+                    item.type === 'exchange' ? 'bg-green-500' :
+                    item.type === 'new_service' ? 'bg-primary-500' :
+                    'bg-purple-500'
+                  }`}>
+                    {item.type === 'exchange' ? '✓' : item.type === 'new_service' ? '+' : '♥'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {item.type === 'exchange' && (
+                      <p className="text-sm dark:text-gray-200"><span className="font-medium">{item.provider_name}</span> helped <span className="font-medium">{item.requester_name}</span> with {item.service_title}</p>
+                    )}
+                    {item.type === 'new_service' && (
+                      <p className="text-sm dark:text-gray-200"><span className="font-medium">{item.provider_name}</span> is now offering <Link to={`/services/${item.id}`} className="font-medium text-primary-600 hover:underline">{item.title}</Link></p>
+                    )}
+                    {item.type === 'shoutout' && (
+                      <p className="text-sm dark:text-gray-200"><span className="font-medium">{item.from_username}</span> thanked <span className="font-medium">{item.to_username}</span>: "{item.message}"</p>
+                    )}
+                    <p className="text-[11px] text-gray-400 mt-1">{timeAgo(item.created_at)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {user && matches.length > 0 && (
         <section className="bg-primary-50/40">

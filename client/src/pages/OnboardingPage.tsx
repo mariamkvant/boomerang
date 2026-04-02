@@ -43,6 +43,7 @@ export default function OnboardingPage() {
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
   const [locating, setLocating] = useState(false);
+  const [nearbyServices, setNearbyServices] = useState<any[]>([]);
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
@@ -108,7 +109,18 @@ export default function OnboardingPage() {
           <div className="text-center text-xs text-gray-400 mb-4">or enter manually</div>
           <input value={city} onChange={e => setCity(e.target.value)} placeholder="Your city or neighborhood"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none mb-6" />
-          <button onClick={async () => { if (city) { await api.updateProfile({ city }); setStep(2); } }}
+          <button onClick={async () => {
+            if (city) {
+              await api.updateProfile({ city });
+              // Fetch nearby services to show instant value
+              try {
+                const res = await api.getServices(`city=${encodeURIComponent(city)}&limit=5`);
+                const svcs = Array.isArray(res) ? res : res.services || [];
+                setNearbyServices(svcs);
+              } catch {}
+              setStep(2);
+            }
+          }}
             disabled={!city.trim()}
             className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
             Next →
@@ -119,6 +131,20 @@ export default function OnboardingPage() {
 
       {step === 2 && (
         <div>
+          {nearbyServices.length > 0 && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
+              <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">Available near {city}:</p>
+              <div className="space-y-2">
+                {nearbyServices.slice(0, 3).map((s: any) => (
+                  <div key={s.id} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700 dark:text-gray-300 truncate">{s.title}</span>
+                    <span className="text-xs text-primary-600 shrink-0 ml-2">{s.points_cost} 🪃</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">+ more services waiting for you</p>
+            </div>
+          )}
           <h2 className="text-2xl font-bold mb-2">What are you good at? 🎯</h2>
           <p className="text-gray-500 text-sm mb-6">Pick at least one skill. We'll create your first service listings.</p>
           <div className="grid grid-cols-2 gap-3">
