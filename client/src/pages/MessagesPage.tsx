@@ -251,18 +251,19 @@ export default function MessagesPage() {
                       {group.msgs.map((m: any, mi: number) => {
                         const isMine = m.sender_id === user?.id;
                         const isLast = mi === group.msgs.length - 1 || group.msgs[mi + 1]?.sender_id !== m.sender_id;
+                        if (!m.body && !m.image) return null;
                         return (
                           <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                             <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm ${
                               isMine
-                                ? 'bg-[#d9fdd3] text-gray-900 rounded-lg rounded-tr-none'
-                                : 'bg-white text-gray-900 rounded-lg rounded-tl-none'
+                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100 rounded-lg rounded-tr-none'
+                                : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-lg rounded-tl-none'
                             } ${m._optimistic ? 'opacity-60' : ''} ${isLast ? 'mb-1' : 'mb-px'}`}>
                               {m.image && (
                                 <img src={m.image} alt="" className="rounded-md mb-1 max-w-full max-h-52 object-cover cursor-pointer" onClick={() => window.open(m.image, '_blank')} />
                               )}
                               {m.body && <span>{m.body}</span>}
-                              <span className={`text-[10px] float-right mt-1 ml-2 ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                              <span className={`text-[10px] float-right mt-1 ml-2 ${isMine ? 'text-gray-500 dark:text-gray-300' : 'text-gray-400 dark:text-gray-400'}`}>
                                 {formatTime(m.created_at)}
                                 {isMine && <span className="ml-0.5">{m._optimistic ? '○' : '✓'}</span>}
                               </span>
