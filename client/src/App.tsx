@@ -217,8 +217,9 @@ export default function App() {
   const { user } = useAuth();
   useSocketConnection();
 
-  // Redirect to onboarding if user hasn't completed it (needs location at minimum)
-  const needsOnboarding = user && !user.city && localStorage.getItem('onboarding_done') !== 'true';
+  // Redirect to verify-email if not verified, then onboarding if no city
+  const needsVerification = user && !user.email_verified;
+  const needsOnboarding = user && user.email_verified && !user.city && localStorage.getItem('onboarding_done') !== 'true';
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -227,15 +228,15 @@ export default function App() {
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={user ? <Navigate to={needsOnboarding ? '/onboarding' : '/dashboard'} /> : <LoginPage />} />
-          <Route path="/register" element={user ? <Navigate to="/onboarding" /> : <RegisterPage />} />
-          <Route path="/verify-email" element={user ? <VerifyEmailPage /> : <Navigate to="/login" />} />
+          <Route path="/login" element={user ? <Navigate to={needsVerification ? '/verify-email' : needsOnboarding ? '/onboarding' : '/dashboard'} /> : <LoginPage />} />
+          <Route path="/register" element={user ? <Navigate to={needsVerification ? '/verify-email' : '/onboarding'} /> : <RegisterPage />} />
+          <Route path="/verify-email" element={user ? (user.email_verified ? <Navigate to={needsOnboarding ? '/onboarding' : '/dashboard'} /> : <VerifyEmailPage />) : <Navigate to="/login" />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/browse" element={<BrowsePage />} />
-          <Route path="/services/new" element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <CreateServicePage />) : <Navigate to="/login" />} />
+          <Route path="/services/new" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <CreateServicePage />) : <Navigate to="/login" />} />
           <Route path="/services/:id/edit" element={user ? <EditServicePage /> : <Navigate to="/login" />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
-          <Route path="/dashboard" element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <DashboardPage />) : <Navigate to="/login" />} />
+          <Route path="/dashboard" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <DashboardPage />) : <Navigate to="/login" />} />
           <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />
           <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/login" />} />
           <Route path="/groups" element={<GroupsPage />} />
@@ -243,12 +244,12 @@ export default function App() {
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/community" element={<CommunityPage />} />
-          <Route path="/onboarding" element={user ? <OnboardingPage /> : <Navigate to="/login" />} />
+          <Route path="/onboarding" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <OnboardingPage />) : <Navigate to="/login" />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
-          <Route path="/messages" element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <MessagesPage />) : <Navigate to="/login" />} />
+          <Route path="/messages" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MessagesPage />) : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
-          <Route path="/me" element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <MePage />) : <Navigate to="/login" />} />
+          <Route path="/me" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MePage />) : <Navigate to="/login" />} />
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/support" element={<SupportPage />} />

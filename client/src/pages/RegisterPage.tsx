@@ -33,7 +33,7 @@ export default function RegisterPage() {
       if (groupCode) {
         try { await api.joinByCode(groupCode); } catch {}
       }
-      navigate('/onboarding');
+      navigate('/verify-email');
     }
     catch (err: any) { setError(err.message); setLoading(false); }
   };
