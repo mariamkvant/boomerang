@@ -97,4 +97,16 @@ router.post('/confirm', authMiddleware, async (req: AuthRequest, res: Response) 
   res.json({ message: `${amount} boomerangs added!` });
 });
 
+// Transaction history
+router.get('/history', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const earned = await db.all(`SELECT sr.completed_at as date, s.points_cost as amount, 'earned' as type, s.title, u.username as other_user
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON sr.requester_id = u.id
+    WHERE s.provider_id = ? AND sr.status = 'completed' ORDER BY sr.completed_at DESC LIMIT 50`, req.userId);
+  const spent = await db.all(`SELECT sr.completed_at as date, s.points_cost as amount, 'spent' as type, s.title, u.username as other_user
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON s.provider_id = u.id
+    WHERE sr.requester_id = ? AND sr.status = 'completed' ORDER BY sr.completed_at DESC LIMIT 50`, req.userId);
+  const history = [...earned, ...spent].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 30);
+  res.json(history);
+});
+
 export default router;

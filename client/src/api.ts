@@ -153,6 +153,7 @@ export const api = {
   getPackages: () => request('/payments/packages'),
   createCheckout: (packageId: string) => request('/payments/checkout', { method: 'POST', body: JSON.stringify({ packageId }) }),
   confirmTopUp: (amount: number) => request('/payments/confirm', { method: 'POST', body: JSON.stringify({ amount }) }),
+  getTransactionHistory: () => request('/payments/history'),
 
   // Review management
   hideReview: (reviewId: number, hidden: boolean) => request(`/requests/reviews/${reviewId}/hide`, { method: 'PUT', body: JSON.stringify({ hidden }) }),
