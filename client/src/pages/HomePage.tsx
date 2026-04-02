@@ -37,38 +37,53 @@ export default function HomePage() {
     <div className="animate-fade-in -mx-4 -mt-6">
       <section className="relative overflow-hidden hero-gradient">
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 mb-6">
-              {t('hero.headline')}<br /><span className="text-primary-500">{t('hero.headline2')}</span>
-            </h1>
-            <p className="text-xl text-gray-500 leading-relaxed mb-4 max-w-lg">{t('hero.subtitle')}</p>
-            <p className="text-sm text-gray-400 italic mb-8">{t('hero.quote')}</p>
-            {/* Hero search bar */}
-            <form onSubmit={e => { e.preventDefault(); if (heroSearch.trim()) navigate(`/browse?search=${encodeURIComponent(heroSearch.trim())}`); else navigate('/browse'); }}
-              className="flex gap-2 mb-8 max-w-lg">
-              <div className="relative flex-1">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                </svg>
-                <input type="text" value={heroSearch} onChange={e => setHeroSearch(e.target.value)}
-                  placeholder={t('home.searchPlaceholder')}
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/90 dark:bg-[#202c33] backdrop-blur border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-sm dark:text-white placeholder:text-gray-400" />
-              </div>
-              <button type="submit" className="bg-primary-500 text-white px-6 py-3.5 rounded-xl text-sm font-semibold hover:bg-primary-600 hover:shadow-md transition-all shrink-0">
-                {t('home.searchBtn')}
-              </button>
-            </form>
-            {user ? (
-              <div className="flex flex-wrap gap-4">
-                <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
-                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
-              </div>
-            ) : (
-              <div>
-                <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.cta')}</Link>
-                <p className="text-sm text-gray-400 mt-4">{t('hero.cta.free')} · <Link to="/login" className="text-primary-500 hover:underline">{t('login')}</Link></p>
-              </div>
-            )}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12">
+            {/* Left: headline + CTA */}
+            <div className="max-w-xl flex-1">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6">
+                {t('hero.headline')}<br /><span className="text-primary-500">{t('hero.headline2')}</span>
+              </h1>
+              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-4 max-w-lg">{t('hero.subtitle')}</p>
+              <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
+              {user ? (
+                <div className="flex flex-wrap gap-4">
+                  <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
+                  <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
+                </div>
+              ) : (
+                <div>
+                  <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.cta')}</Link>
+                  <p className="text-sm text-gray-400 mt-4">{t('hero.cta.free')} · <Link to="/login" className="text-primary-500 hover:underline">{t('login')}</Link></p>
+                </div>
+              )}
+            </div>
+
+            {/* Right: search card */}
+            <div className="w-full md:w-80 lg:w-96 shrink-0">
+              <form onSubmit={e => { e.preventDefault(); if (heroSearch.trim()) navigate(`/browse?search=${encodeURIComponent(heroSearch.trim())}`); else navigate('/browse'); }}
+                className="bg-white/80 dark:bg-[#202c33]/90 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/50 dark:border-gray-700/50">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{t('home.searchPlaceholder')}</p>
+                <div className="relative mb-3">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                  <input type="text" value={heroSearch} onChange={e => setHeroSearch(e.target.value)}
+                    placeholder={t('browse.search')}
+                    className="w-full pl-9 pr-4 py-3 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white placeholder:text-gray-400" />
+                </div>
+                <button type="submit" className="w-full bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600 transition-all">
+                  {t('home.searchBtn')}
+                </button>
+                <div className="flex flex-wrap gap-1.5 mt-4">
+                  {categories.slice(0, 6).map((c: any) => (
+                    <Link key={c.id} to={`/browse?category=${c.id}`}
+                      className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-[#2a3942] px-2.5 py-1 rounded-full hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+                      {translateCat(c.name)}
+                    </Link>
+                  ))}
+                </div>
+              </form>
+            </div>
           </div>
         </div>
         {stats && (
