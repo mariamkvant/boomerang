@@ -112,6 +112,7 @@ router.post('/gift', authMiddleware, async (req: AuthRequest, res: Response) => 
     await db.transaction(async (tx) => {
       await tx.run('UPDATE users SET points = points - ? WHERE id = ?', giftAmount, req.userId);
       await tx.run('UPDATE users SET points = points + ? WHERE id = ?', giftAmount, toId);
+      await tx.run('INSERT INTO gifts (sender_id, receiver_id, amount, message) VALUES (?, ?, ?, ?)', req.userId, toId, giftAmount, message || '');
     });
     res.json({ message: `Sent ${giftAmount} boomerangs to ${receiver.username}!` });
   } catch (err: any) {
@@ -142,7 +143,12 @@ router.get('/history', authMiddleware, async (req: AuthRequest, res: Response) =
   const spent = await db.all(`SELECT sr.completed_at as date, s.points_cost as amount, 'spent' as type, s.title, u.username as other_user
     FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON s.provider_id = u.id
     WHERE sr.requester_id = ? AND sr.status = 'completed' ORDER BY sr.completed_at DESC LIMIT 50`, req.userId);
-  const history = [...earned, ...spent].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 30);
+  const giftsSent = await db.all(`SELECT g.created_at as date, g.amount, 'gift_sent' as type, 'Gift' as title, u.username as other_user
+    FROM gifts g JOIN users u ON g.receiver_id = u.id WHERE g.sender_id = ? ORDER BY g.created_at DESC LIMIT 20`, req.userId);
+  const giftsReceived = await db.all(`SELECT g.created_at as date, g.amount, 'gift_received' as type, 'Gift' as title, u.username as other_user
+    FROM gifts g JOIN users u ON g.sender_id = u.id WHERE g.receiver_id = ? ORDER BY g.created_at DESC LIMIT 20`, req.userId);
+  const history = [...earned, ...spent, ...giftsSent, ...giftsReceived]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 40);
   res.json(history);
 });
 

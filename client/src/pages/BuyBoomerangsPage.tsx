@@ -145,11 +145,15 @@ export default function BuyBoomerangsPage() {
               {history.map((tx: any, i: number) => (
                 <div key={i} className="flex items-center justify-between px-4 py-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{tx.title}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{tx.other_user} · {tx.date ? new Date(tx.date).toLocaleDateString() : ''}</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                      {tx.type === 'gift_sent' ? `Gift to ${tx.other_user}` : tx.type === 'gift_received' ? `Gift from ${tx.other_user}` : tx.title}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {tx.type === 'gift_sent' || tx.type === 'gift_received' ? 'Boomerang gift' : tx.other_user} · {tx.date ? new Date(tx.date).toLocaleDateString() : ''}
+                    </p>
                   </div>
-                  <span className={`text-sm font-semibold shrink-0 ml-3 ${tx.type === 'earned' ? 'text-green-600' : 'text-red-500'}`}>
-                    {tx.type === 'earned' ? '+' : '-'}{tx.amount}
+                  <span className={`text-sm font-semibold shrink-0 ml-3 ${tx.type === 'earned' || tx.type === 'gift_received' ? 'text-green-600' : 'text-red-500'}`}>
+                    {tx.type === 'earned' || tx.type === 'gift_received' ? '+' : '-'}{tx.amount}
                   </span>
                 </div>
               ))}
