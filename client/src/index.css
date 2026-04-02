@@ -34,12 +34,17 @@ body {
 /* Dark mode chat */
 .dark .bg-\[#efeae2\] { background: #0b141a !important; }
 .dark .bg-\[#d9fdd3\] { background: #005c4b !important; color: #e9edef !important; }
+/* Dark mode bottom nav */
+.dark nav.safe-area-bottom { background: #202c33 !important; border-color: #2a3942 !important; }
 /* Dark mode hero */
-.dark .hero-gradient { background: #111b21 !important; }
+.dark .hero-gradient { background: #0b141a !important; }
 .dark .hero-gradient h1 { color: #e9edef !important; }
-.dark .hero-gradient h1 span { -webkit-text-fill-color: #f97316 !important; color: #f97316 !important; }
-.dark .hero-gradient p { color: #8696a0 !important; }
-.dark .bg-gradient-to-br.from-primary-500 { background: #f97316 !important; }
+.dark .hero-gradient .text-primary-500 { color: #f97316 !important; }
+.dark .hero-gradient .text-gray-900 { color: #e9edef !important; }
+.dark .hero-gradient .text-gray-500 { color: #8696a0 !important; }
+.dark .hero-gradient .text-gray-400 { color: #667781 !important; }
+.dark .hero-gradient .bg-white\/60 { background: rgba(32, 44, 51, 0.8) !important; }
+.dark .bg-gradient-to-br.from-primary-500.to-primary-600 { background: linear-gradient(135deg, #ea580c, #f97316) !important; }
 
 /* Hero gradient for light mode */
 .hero-gradient { background: linear-gradient(135deg, #fff7ed 0%, #ffffff 40%, #f0fdf4 100%); }
