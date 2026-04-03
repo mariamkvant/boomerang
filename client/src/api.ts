@@ -148,6 +148,10 @@ export const api = {
   // Admin
   checkAdmin: () => request('/admin/check'),
   getAdminStats: () => request('/admin/stats'),
+  getAdminAnalytics: () => request('/admin/analytics'),
+  trackView: (page: string, entity_id?: number) => {
+    fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id }) }).catch(() => {});
+  },
   getAdminUsers: (params?: string) => request(`/admin/users${params ? `?${params}` : ''}`),
   banUser: (id: number, banned: boolean) => request(`/admin/users/${id}/ban`, { method: 'PUT', body: JSON.stringify({ banned }) }),
   setAdmin: (id: number, is_admin: boolean) => request(`/admin/users/${id}/admin`, { method: 'PUT', body: JSON.stringify({ is_admin }) }),

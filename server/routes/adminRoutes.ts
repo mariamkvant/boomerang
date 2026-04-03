@@ -94,4 +94,54 @@ router.get('/check', authMiddleware, async (req: AuthRequest, res: Response) => 
   res.json({ is_admin: !!user?.is_admin });
 });
 
+// Analytics — page views, profile visits, service views
+router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  // Total page views
+  const totalViews = await db.get('SELECT COUNT(*) as c FROM page_views');
+  const todayViews = await db.get("SELECT COUNT(*) as c FROM page_views WHERE created_at > NOW() - INTERVAL '1 day'");
+  const weekViews = await db.get("SELECT COUNT(*) as c FROM page_views WHERE created_at > NOW() - INTERVAL '7 days'");
+
+  // Views by page (top pages)
+  const topPages = await db.all("SELECT page, COUNT(*) as views FROM page_views WHERE created_at > NOW() - INTERVAL '30 days' GROUP BY page ORDER BY views DESC LIMIT 20");
+
+  // Most viewed profiles
+  const topProfiles = await db.all(`SELECT pv.entity_id, u.username, COUNT(*) as views, COUNT(DISTINCT pv.viewer_id) as unique_viewers
+    FROM page_views pv JOIN users u ON pv.entity_id = u.id
+    WHERE pv.page = 'profile' AND pv.created_at > NOW() - INTERVAL '30 days'
+    GROUP BY pv.entity_id, u.username ORDER BY views DESC LIMIT 15`);
+
+  // Most viewed services
+  const topServices = await db.all(`SELECT pv.entity_id, s.title, u.username as provider, COUNT(*) as views, COUNT(DISTINCT pv.viewer_id) as unique_viewers
+    FROM page_views pv JOIN services s ON pv.entity_id = s.id JOIN users u ON s.provider_id = u.id
+    WHERE pv.page = 'service' AND pv.created_at > NOW() - INTERVAL '30 days'
+    GROUP BY pv.entity_id, s.title, u.username ORDER BY views DESC LIMIT 15`);
+
+  // Daily views for the last 14 days
+  const dailyViews = await db.all(`SELECT DATE(created_at) as day, COUNT(*) as views
+    FROM page_views WHERE created_at > NOW() - INTERVAL '14 days'
+    GROUP BY DATE(created_at) ORDER BY day`);
+
+  // Unique visitors (by IP) per day
+  const dailyVisitors = await db.all(`SELECT DATE(created_at) as day, COUNT(DISTINCT ip) as visitors
+    FROM page_views WHERE created_at > NOW() - INTERVAL '14 days'
+    GROUP BY DATE(created_at) ORDER BY day`);
+
+  // User signups per day
+  const dailySignups = await db.all(`SELECT DATE(created_at) as day, COUNT(*) as signups
+    FROM users WHERE created_at > NOW() - INTERVAL '14 days'
+    GROUP BY DATE(created_at) ORDER BY day`);
+
+  res.json({
+    total_views: parseInt(totalViews?.c || '0'),
+    today_views: parseInt(todayViews?.c || '0'),
+    week_views: parseInt(weekViews?.c || '0'),
+    top_pages: topPages,
+    top_profiles: topProfiles,
+    top_services: topServices,
+    daily_views: dailyViews,
+    daily_visitors: dailyVisitors,
+    daily_signups: dailySignups,
+  });
+});
+
 export default router;

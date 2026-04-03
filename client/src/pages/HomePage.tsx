@@ -48,6 +48,7 @@ export default function HomePage() {
     api.getStats().then(setStats).catch(() => {});
     api.getCommunityFeed().then((data: any) => setActivityFeed(data.feed?.slice(0, 5) || [])).catch(() => {});
     if (user) api.getSmartMatches().then(setMatches).catch(() => {});
+    api.trackView('home');
   }, []);
 
   return (

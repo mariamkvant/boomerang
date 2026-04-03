@@ -17,7 +17,7 @@ export default function ServiceDetailPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [favorited, setFavorited] = useState(false);
 
-  useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); }, [id]);
+  useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); api.trackView('service', Number(id)); }, [id]);
   useEffect(() => { if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {}); }, [id, user]);
 
   const toggleFavorite = async () => {

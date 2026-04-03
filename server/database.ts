@@ -18,6 +18,7 @@ export async function initDatabase() {
       `CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id), sender_id INTEGER NOT NULL REFERENCES users(id), body TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`,
       `CREATE TABLE IF NOT EXISTS availability (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), day_of_week INTEGER NOT NULL CHECK(day_of_week >= 0 AND day_of_week <= 6), start_time TEXT NOT NULL, end_time TEXT NOT NULL, UNIQUE(user_id, day_of_week, start_time))`,
       `CREATE TABLE IF NOT EXISTS bookings (id SERIAL PRIMARY KEY, request_id INTEGER NOT NULL REFERENCES service_requests(id), booked_date DATE NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`,
+      `CREATE TABLE IF NOT EXISTS page_views (id SERIAL PRIMARY KEY, page TEXT NOT NULL, entity_id INTEGER, viewer_id INTEGER, ip TEXT, created_at TIMESTAMPTZ DEFAULT NOW())`,
     ];
     for (const sql of ddl) { await client.query(sql); }
     try { await client.query(`ALTER TABLE service_requests DROP CONSTRAINT IF EXISTS service_requests_status_check`); } catch(e) {}
@@ -201,6 +202,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_created ON services(created_at DESC)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_city ON services(city)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_created ON direct_messages(created_at DESC)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at DESC)'); } catch(e) {}
 
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }

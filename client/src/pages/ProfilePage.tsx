@@ -24,6 +24,7 @@ export default function ProfilePage() {
     api.getUserAchievements(Number(id)).then(setAchievements).catch(() => {});
     api.getSuperhelperStatus(Number(id)).then(setSuperhelper).catch(() => {});
     if (user) api.isBlocked(Number(id)).then(r => setIsBlocked(r.blocked)).catch(() => {});
+    api.trackView('profile', Number(id));
   }, [id, user]);
 
   const handleBlock = async () => {

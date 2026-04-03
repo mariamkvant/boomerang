@@ -67,6 +67,17 @@ app.use((_req, res, next) => {
 
 app.use(express.json({ limit: '5mb' }));
 
+// Page view tracking — lightweight, fire-and-forget
+app.post('/api/track', (req, res) => {
+  const { page, entity_id } = req.body;
+  if (!page) return res.status(400).json({});
+  const token = req.headers.authorization?.split(' ')[1];
+  let viewerId: number | null = null;
+  if (token) { try { const d: any = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'skillswap-dev-secret-change-in-production'); viewerId = d.userId; } catch {} }
+  db.run('INSERT INTO page_views (page, entity_id, viewer_id, ip) VALUES ($1, $2, $3, $4)', page, entity_id || null, viewerId, req.ip).catch(() => {});
+  res.json({ ok: true });
+});
+
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/requests', requestRoutes);

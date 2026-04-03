@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'stats'|'users'|'reports'>('stats');
+  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'reports'>('stats');
   const [stats, setStats] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [reports, setReports] = useState<any[]>([]);
@@ -16,6 +17,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
     if (tab === 'stats') api.getAdminStats().then(setStats).catch(() => {});
+    if (tab === 'analytics') api.getAdminAnalytics().then(setAnalytics).catch(() => {});
     if (tab === 'users') api.getAdminUsers(userSearch ? `search=${encodeURIComponent(userSearch)}` : '').then(r => setUsers(r.users)).catch(() => {});
     if (tab === 'reports') api.getAdminReports().then(setReports).catch(() => {});
   }, [tab, isAdmin]);
@@ -30,11 +32,11 @@ export default function AdminPage() {
   return (
     <div className="animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
-      <div className="flex gap-2 mb-6">
-        {(['stats','users','reports'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === t ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            {t === 'stats' ? '📊 Dashboard' : t === 'users' ? '👥 Users' : '🚩 Reports'}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {(['stats','analytics','users','reports'] as const).map(tb => (
+          <button key={tb} onClick={() => setTab(tb)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === tb ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : 'Reports'}
           </button>
         ))}
       </div>
@@ -57,6 +59,112 @@ export default function AdminPage() {
               <div className="text-xs text-gray-400 mt-1">{label}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === 'analytics' && analytics && (
+        <div className="space-y-6">
+          {/* View counts */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold dark:text-white">{analytics.today_views}</div>
+              <div className="text-xs text-gray-400 mt-1">Views today</div>
+            </div>
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold dark:text-white">{analytics.week_views}</div>
+              <div className="text-xs text-gray-400 mt-1">Views this week</div>
+            </div>
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold dark:text-white">{analytics.total_views}</div>
+              <div className="text-xs text-gray-400 mt-1">Total views</div>
+            </div>
+          </div>
+
+          {/* Daily views chart (simple bar) */}
+          {analytics.daily_views?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Daily Page Views (14 days)</h3>
+              <div className="flex items-end gap-1 h-32">
+                {analytics.daily_views.map((d: any, i: number) => {
+                  const max = Math.max(...analytics.daily_views.map((x: any) => parseInt(x.views)));
+                  const h = max > 0 ? (parseInt(d.views) / max) * 100 : 0;
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-[9px] text-gray-400">{d.views}</span>
+                      <div className="w-full bg-primary-500 rounded-t" style={{ height: `${Math.max(h, 4)}%` }} />
+                      <span className="text-[8px] text-gray-400">{new Date(d.day).toLocaleDateString('en', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Daily signups */}
+          {analytics.daily_signups?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Daily Signups (14 days)</h3>
+              <div className="flex items-end gap-1 h-24">
+                {analytics.daily_signups.map((d: any, i: number) => {
+                  const max = Math.max(...analytics.daily_signups.map((x: any) => parseInt(x.signups)), 1);
+                  const h = (parseInt(d.signups) / max) * 100;
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-[9px] text-gray-400">{d.signups}</span>
+                      <div className="w-full bg-green-500 rounded-t" style={{ height: `${Math.max(h, 4)}%` }} />
+                      <span className="text-[8px] text-gray-400">{new Date(d.day).toLocaleDateString('en', { day: 'numeric' })}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top pages */}
+          <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top Pages (30 days)</h3>
+            <div className="space-y-2">
+              {analytics.top_pages?.map((p: any, i: number) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">{p.page}</span>
+                  <span className="font-medium dark:text-white">{p.views}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Most viewed profiles */}
+          {analytics.top_profiles?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Most Viewed Profiles</h3>
+              <div className="space-y-2">
+                {analytics.top_profiles.map((p: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">{p.username}</span>
+                    <span className="text-gray-400">{p.views} views · {p.unique_viewers} unique</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Most viewed services */}
+          {analytics.top_services?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Most Viewed Services</h3>
+              <div className="space-y-2">
+                {analytics.top_services.map((s: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-gray-600 dark:text-gray-300 truncate block">{s.title}</span>
+                      <span className="text-xs text-gray-400">by {s.provider}</span>
+                    </div>
+                    <span className="text-gray-400 shrink-0 ml-2">{s.views} views · {s.unique_viewers} unique</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
