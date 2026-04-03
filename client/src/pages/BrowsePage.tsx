@@ -189,22 +189,27 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white rounded-2xl shadow-card hover:shadow-card-hover group overflow-hidden">
+              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md group overflow-hidden transition-all">
                 {s.image && (
                   <img src={s.image} alt="" className="w-full h-36 object-cover" />
                 )}
-                <div className="p-5">
+                <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-gray-400">{translateCat(s.category_name)}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
-                    {s.avg_rating && <span className="text-xs text-gray-500">⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                    {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-primary-600">{s.title}</h3>
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">{s.description}</p>
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                    <span className="text-primary-600 font-semibold text-sm">{s.points_cost} {t('browse.boomerangs')}</span>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 group-hover:text-primary-600 transition-colors">{s.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{s.description}</p>
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-700">
+                    <span className="text-primary-600 font-semibold text-sm">{s.points_cost} 🪃</span>
                     <div className="flex items-center gap-2">
-                      {s.distance != null && <span className="text-xs text-gray-400">{Number(s.distance).toFixed(1)} km</span>}
-                      <span className="text-xs text-gray-400">{s.provider_name}</span>
+                      {s.distance != null && <span className="text-[11px] text-gray-400">{Number(s.distance).toFixed(1)} km</span>}
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-[9px] font-medium">
+                          {s.provider_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-[11px] text-gray-500 dark:text-gray-400">{s.provider_name}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

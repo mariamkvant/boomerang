@@ -297,7 +297,10 @@ export default function MessagesPage() {
                 )}
                 {messages.length <= 2 && !pendingImage && (
                   <div className="flex gap-1.5 mb-2 ml-1 overflow-x-auto">
-                    {['Thanks!', 'When works for you?', 'Sounds good', "I'm interested"].map(qr => (
+                    {(messages.length === 0
+                      ? ["Hi, I'm interested in your service", "When are you available?", "Can you tell me more?", "How long does it take?"]
+                      : ['Thanks!', 'When works for you?', 'Sounds good', 'See you then!']
+                    ).map(qr => (
                       <button key={qr} onClick={() => { setNewMsg(qr); inputRef.current?.focus(); }}
                         className="text-xs px-3 py-1.5 rounded-full bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 hover:bg-primary-50 hover:text-primary-600 whitespace-nowrap shrink-0 shadow-sm">
                         {qr}

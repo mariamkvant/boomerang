@@ -120,6 +120,8 @@ export default function DashboardPage() {
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
   const [dailyMatch, setDailyMatch] = useState<any>(null);
   const [trust, setTrust] = useState<any>(null);
+  const [shoutoutPrompt, setShoutoutPrompt] = useState<{ userId: number; name: string } | null>(null);
+  const [shoutoutMsg, setShoutoutMsg] = useState('');
   const { toast } = useToast();
   const { confirm } = useConfirm();
 
@@ -236,6 +238,26 @@ export default function DashboardPage() {
             {trust && <span className="text-xs text-gray-400">{trust.completed} exchanges completed</span>}
           </div>
         )}
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-4 gap-2 mb-6">
+        <Link to="/browse" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
+          <svg className="w-6 h-6 mx-auto text-primary-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+          <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('nav.browse2')}</span>
+        </Link>
+        <Link to="/services/new" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
+          <svg className="w-6 h-6 mx-auto text-green-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('nav.offer2')}</span>
+        </Link>
+        <Link to="/help-wanted" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
+          <svg className="w-6 h-6 mx-auto text-amber-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.657m5.014-2.024a3.004 3.004 0 0 0-.862-4.228 3.005 3.005 0 0 0-4.228.862M11.42 15.17l-1.43-1.43" /></svg>
+          <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('help.askForHelp')}</span>
+        </Link>
+        <Link to="/groups" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
+          <svg className="w-6 h-6 mx-auto text-purple-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+          <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('groups.title')}</span>
+        </Link>
       </div>
 
       {/* Monthly stats */}
@@ -486,7 +508,11 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'delivered' && (
                     <>
-                      <button onClick={() => handleAction(api.confirmRequest, r.id)} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
+                      <button onClick={async () => {
+                        await handleAction(api.confirmRequest, r.id);
+                        setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
+                        setShoutoutMsg('');
+                      }} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
                       <button onClick={() => handleAction(api.disputeRequest, r.id)} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
                     </>
                   )}
@@ -607,6 +633,34 @@ export default function DashboardPage() {
 
       {/* Schedule */}
       {tab === 'schedule' && <ScheduleTab loaded={scheduleLoaded} slots={availSlots} setSlots={setAvailSlots} onLoad={() => setScheduleLoaded(true)} />}
+
+      {/* Thank you / Shoutout prompt */}
+      {shoutoutPrompt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShoutoutPrompt(null)}>
+          <div className="bg-white dark:bg-[#202c33] rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              </div>
+              <h3 className="font-semibold dark:text-white">Exchange completed!</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Say thanks to {shoutoutPrompt.name}?</p>
+            </div>
+            <textarea value={shoutoutMsg} onChange={e => setShoutoutMsg(e.target.value)}
+              placeholder={`Thanks ${shoutoutPrompt.name}! Great job...`}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm resize-none h-20 bg-white dark:bg-[#2a3942] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none mb-3" />
+            <div className="flex gap-2">
+              <button onClick={async () => {
+                if (shoutoutMsg.trim()) {
+                  try { await api.postShoutout({ to_user_id: shoutoutPrompt.userId, message: shoutoutMsg }); toast('Shoutout posted!'); } catch {}
+                }
+                setShoutoutPrompt(null);
+              }} className="flex-1 bg-primary-500 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 transition-colors">
+                {shoutoutMsg.trim() ? 'Send thanks' : 'Skip'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
