@@ -140,8 +140,21 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
 });
 
 router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const result = await db.run('DELETE FROM services WHERE id = ? AND provider_id = ?', req.params.id, req.userId);
-  if (result.changes === 0) return res.status(404).json({ error: 'Service not found or not yours' });
+  const service = await db.get('SELECT * FROM services WHERE id = ? AND provider_id = ?', req.params.id, req.userId);
+  if (!service) return res.status(404).json({ error: 'Service not found or not yours' });
+  // Check for active requests
+  const activeRequests = await db.get("SELECT COUNT(*) as c FROM service_requests WHERE service_id = ? AND status IN ('pending','accepted','delivered','disputed')", req.params.id);
+  if (parseInt(activeRequests?.c || '0') > 0) {
+    // Soft delete — deactivate instead of deleting
+    await db.run('UPDATE services SET is_active = 0 WHERE id = ?', req.params.id);
+    return res.json({ message: 'Service deactivated (has active requests)' });
+  }
+  // Clean delete — remove related data first
+  try { await db.run('DELETE FROM favorites WHERE service_id = ?', req.params.id); } catch {}
+  try { await db.run('DELETE FROM reviews WHERE request_id IN (SELECT id FROM service_requests WHERE service_id = ?)', req.params.id); } catch {}
+  try { await db.run('DELETE FROM request_messages WHERE request_id IN (SELECT id FROM service_requests WHERE service_id = ?)', req.params.id); } catch {}
+  try { await db.run('DELETE FROM service_requests WHERE service_id = ?', req.params.id); } catch {}
+  await db.run('DELETE FROM services WHERE id = ?', req.params.id);
   res.json({ message: 'Service deleted' });
 });
 
