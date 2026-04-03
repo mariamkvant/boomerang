@@ -428,23 +428,38 @@ export default function DashboardPage() {
                         {r.dispute_reason && <p className="text-xs text-red-600 dark:text-red-400 mt-1 italic">"{r.dispute_reason}"</p>}
                       </div>
                     </div>
-                    {/* Resolution actions */}
+                    {/* Resolution actions — different per role */}
                     <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <button onClick={async () => {
-                        const ok = await confirm({ title: 'Complete exchange', message: 'This will transfer the boomerangs to the provider. Both parties agree the service was delivered.', confirmText: 'Complete' });
-                        if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved as completed'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium">
-                        Resolve: Complete exchange
-                      </button>
-                      <button onClick={async () => {
-                        const ok = await confirm({ title: 'Cancel exchange', message: 'This will cancel the exchange. No boomerangs will be transferred.', confirmText: 'Cancel exchange', danger: true });
-                        if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Resolved as cancelled'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
-                        Resolve: Cancel
-                      </button>
+                      {r._role === 'requester' ? (
+                        <>
+                          {/* Requester disputed — they can accept it was done, or cancel */}
+                          <button onClick={async () => {
+                            const ok = await confirm({ title: 'Accept service was completed', message: `This will transfer ${r.points_cost} boomerangs to the provider. Only do this if the issue is resolved.`, confirmText: 'Yes, complete' });
+                            if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved — points transferred'); load(); refreshUser(); } catch (err: any) { toast(err.message, 'error'); } }
+                          }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium">
+                            Accept as completed
+                          </button>
+                          <button onClick={async () => {
+                            const ok = await confirm({ title: 'Cancel exchange', message: 'No boomerangs will be transferred. Both parties walk away.', confirmText: 'Cancel exchange', danger: true });
+                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no points transferred'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                          }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
+                            Cancel exchange
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Provider — can agree to cancel, or message to discuss */}
+                          <button onClick={async () => {
+                            const ok = await confirm({ title: 'Agree to cancel', message: 'No boomerangs will be transferred. The exchange will be cancelled.', confirmText: 'Agree to cancel', danger: true });
+                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no points transferred'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                          }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
+                            Agree to cancel
+                          </button>
+                        </>
+                      )}
                       <Link to={`/messages?to=${r._role === 'provider' ? r.requester_id : r.provider_id}`}
                         className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-3 py-1.5 rounded-lg hover:bg-primary-100 font-medium">
-                        Message
+                        Message to discuss
                       </Link>
                     </div>
                     {/* Chat thread */}

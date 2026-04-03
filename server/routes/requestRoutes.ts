@@ -90,24 +90,31 @@ router.put('/:id/dispute', authMiddleware, async (req: AuthRequest, res: Respons
   res.json({ message: 'Dispute opened' });
 });
 
-// Either party can resolve a dispute by agreeing to complete or cancel
+// Either party can propose resolution, but only requester can confirm completion on disputed
 router.put('/:id/resolve', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { resolution } = req.body; // 'complete' or 'cancel'
-  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost, s.title FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
   if (r.status !== 'disputed') return res.status(400).json({ error: 'Can only resolve disputed requests' });
 
+  const isRequester = r.requester_id === req.userId;
+
   if (resolution === 'complete') {
-    // Transfer points
+    // Only the requester (who disputed) can agree to complete — they're releasing the points
+    if (!isRequester) return res.status(403).json({ error: 'Only the requester can confirm completion on a dispute' });
     await db.transaction(async (client: any) => {
       await client.query('UPDATE users SET points = points - $1 WHERE id = $2', [r.points_cost, r.requester_id]);
       await client.query('UPDATE users SET points = points + $1 WHERE id = $2', [r.points_cost, r.provider_id]);
       await client.query("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = $1", [req.params.id]);
     });
+    await notify({ userId: r.provider_id, type: 'dispute_resolved', title: 'Dispute resolved', body: `"${r.title}" was completed. Points transferred.`, link: '/dashboard' });
     res.json({ message: 'Resolved as completed. Points transferred.' });
   } else if (resolution === 'cancel') {
+    // Either party can agree to cancel — no points move
     await db.run("UPDATE service_requests SET status = 'cancelled' WHERE id = ?", req.params.id);
+    const otherUserId = isRequester ? r.provider_id : r.requester_id;
+    await notify({ userId: otherUserId, type: 'dispute_resolved', title: 'Dispute resolved', body: `"${r.title}" was cancelled. No points transferred.`, link: '/dashboard' });
     res.json({ message: 'Resolved as cancelled. No points transferred.' });
   } else {
     res.status(400).json({ error: 'Resolution must be "complete" or "cancel"' });
