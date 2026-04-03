@@ -19,6 +19,7 @@ const SKILL_OPTIONS = [
   { icon: '🧹', label: 'Cleaning', cat: 'Cleaning' },
   { icon: '🚗', label: 'Transport', cat: 'Transportation' },
   { icon: '💜', label: 'Listening', cat: 'Listening & Support' },
+  { icon: '📷', label: 'Photography', cat: 'Photography & Video' },
   { icon: '✨', label: 'Other', cat: 'Other' },
 ];
 

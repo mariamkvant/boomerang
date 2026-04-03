@@ -33,6 +33,7 @@ export async function initDatabase() {
       ['Childcare & Education', '\uD83D\uDC76', 1.3], ['Auto & Mechanics', '\uD83D\uDE97', 2.0],
       ['Listening & Support', '\uD83D\uDC9C', 1.0],
       ['Beauty & Skincare', '\uD83D\uDC85', 1.3],
+      ['Photography & Video', '\uD83D\uDCF7', 1.5],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
@@ -125,6 +126,13 @@ export async function initDatabase() {
       ['Auto & Mechanics','Other Auto','Other automotive services'],
       ['Listening & Support','Other Support','Other listening and support'],
       ['Beauty & Skincare','Other Beauty','Other beauty and skincare services'],
+      ['Photography & Video','Portrait Photography','Headshots, family portraits, personal branding'],
+      ['Photography & Video','Event Photography','Weddings, parties, corporate events'],
+      ['Photography & Video','Product Photography','Product shots for online shops'],
+      ['Photography & Video','Video Editing','Editing clips, reels, short films'],
+      ['Photography & Video','Drone Photography','Aerial shots and video'],
+      ['Photography & Video','Photo Retouching','Editing, color correction, restoration'],
+      ['Photography & Video','Other Photography','Other photography and video services'],
       ['Cleaning','Other Cleaning','Other cleaning services'],
     ];
     for (const [catName, subName, desc] of subs) {
