@@ -397,8 +397,6 @@ const en: Record<string, string> = {
   "cat.Listening & Support": "Listening & Support",
   "cat.Beauty & Skincare": "Beauty & Skincare",
   "cat.Photography & Video": "Fotografie & Video",
-  "cat.Photography & Video": "Photo & Vidéo",
-  "cat.Photography & Video": "Photography & Video",
   "browse.cityPlaceholder": "City or location",
   "home.searchPlaceholder": "What do you need help with?",
   "home.searchBtn": "Search",
