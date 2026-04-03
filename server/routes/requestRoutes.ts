@@ -78,12 +78,63 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
 
 // Requester disputes delivery
 router.put('/:id/dispute', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  const { reason } = req.body;
+  const r = await db.get('SELECT sr.*, s.provider_id, s.title FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.requester_id !== req.userId) return res.status(403).json({ error: 'Only the requester can dispute' });
   if (r.status !== 'delivered') return res.status(400).json({ error: 'Can only dispute delivered services' });
-  await db.run("UPDATE service_requests SET status = 'disputed' WHERE id = ?", req.params.id);
-  res.json({ message: 'Dispute opened. Please use messages to resolve.' });
+  await db.run("UPDATE service_requests SET status = 'disputed', dispute_reason = ? WHERE id = ?", reason || null, req.params.id);
+  // Notify provider
+  const requester = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
+  await notify({ userId: r.provider_id, type: 'dispute', title: 'Dispute opened', body: `${requester?.username} disputed "${r.title}". Please respond.`, link: '/dashboard' });
+  res.json({ message: 'Dispute opened' });
+});
+
+// Either party can resolve a dispute by agreeing to complete or cancel
+router.put('/:id/resolve', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { resolution } = req.body; // 'complete' or 'cancel'
+  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  if (r.status !== 'disputed') return res.status(400).json({ error: 'Can only resolve disputed requests' });
+
+  if (resolution === 'complete') {
+    // Transfer points
+    await db.transaction(async (client: any) => {
+      await client.query('UPDATE users SET points = points - $1 WHERE id = $2', [r.points_cost, r.requester_id]);
+      await client.query('UPDATE users SET points = points + $1 WHERE id = $2', [r.points_cost, r.provider_id]);
+      await client.query("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = $1", [req.params.id]);
+    });
+    res.json({ message: 'Resolved as completed. Points transferred.' });
+  } else if (resolution === 'cancel') {
+    await db.run("UPDATE service_requests SET status = 'cancelled' WHERE id = ?", req.params.id);
+    res.json({ message: 'Resolved as cancelled. No points transferred.' });
+  } else {
+    res.status(400).json({ error: 'Resolution must be "complete" or "cancel"' });
+  }
+});
+
+// Admin can force-resolve any dispute
+router.put('/:id/admin-resolve', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const admin = await db.get('SELECT is_admin FROM users WHERE id = ?', req.userId);
+  if (!admin?.is_admin) return res.status(403).json({ error: 'Admin only' });
+  const { resolution } = req.body;
+  const r = await db.get('SELECT sr.*, s.provider_id, s.points_cost FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+
+  if (resolution === 'complete') {
+    await db.transaction(async (client: any) => {
+      await client.query('UPDATE users SET points = points - $1 WHERE id = $2', [r.points_cost, r.requester_id]);
+      await client.query('UPDATE users SET points = points + $1 WHERE id = $2', [r.points_cost, r.provider_id]);
+      await client.query("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = $1", [req.params.id]);
+    });
+  } else {
+    await db.run("UPDATE service_requests SET status = 'cancelled' WHERE id = ?", req.params.id);
+  }
+  // Notify both parties
+  await notify({ userId: r.requester_id, type: 'dispute_resolved', title: 'Dispute resolved', body: `An admin resolved the dispute as ${resolution}d.`, link: '/dashboard' });
+  await notify({ userId: r.provider_id, type: 'dispute_resolved', title: 'Dispute resolved', body: `An admin resolved the dispute as ${resolution}d.`, link: '/dashboard' });
+  res.json({ message: `Admin resolved as ${resolution}` });
 });
 
 router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response) => {

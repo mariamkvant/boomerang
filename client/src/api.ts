@@ -61,7 +61,9 @@ export const api = {
   acceptRequest: (id: number) => request(`/requests/${id}/accept`, { method: 'PUT' }),
   deliverRequest: (id: number) => request(`/requests/${id}/deliver`, { method: 'PUT' }),
   confirmRequest: (id: number) => request(`/requests/${id}/confirm`, { method: 'PUT' }),
-  disputeRequest: (id: number) => request(`/requests/${id}/dispute`, { method: 'PUT' }),
+  disputeRequest: (id: number, reason?: string) => request(`/requests/${id}/dispute`, { method: 'PUT', body: JSON.stringify({ reason }) }),
+  resolveDispute: (id: number, resolution: string) => request(`/requests/${id}/resolve`, { method: 'PUT', body: JSON.stringify({ resolution }) }),
+  adminResolveDispute: (id: number, resolution: string) => request(`/requests/${id}/admin-resolve`, { method: 'PUT', body: JSON.stringify({ resolution }) }),
   cancelRequest: (id: number) => request(`/requests/${id}/cancel`, { method: 'PUT' }),
   reviewRequest: (id: number, body: any) => request(`/requests/${id}/review`, { method: 'POST', body: JSON.stringify(body) }),
 

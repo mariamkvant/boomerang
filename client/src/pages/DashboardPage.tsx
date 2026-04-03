@@ -401,32 +401,58 @@ export default function DashboardPage() {
             </div>
           )}
           {/* Disputed items — shown first with warning styling */}
-          {incoming.filter(r => r.status === 'disputed').length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-2">
-              <h4 className="text-sm font-semibold text-red-700 mb-3">Disputes ({incoming.filter(r => r.status === 'disputed').length})</h4>
+          {/* Disputes — with resolution actions */}
+          {[...incoming.filter(r => r.status === 'disputed'), ...outgoing.filter(r => r.status === 'disputed')].length > 0 && (
+            <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-4">
+              <h4 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                Open Disputes ({[...incoming.filter(r => r.status === 'disputed'), ...outgoing.filter(r => r.status === 'disputed')].length})
+              </h4>
               <div className="space-y-3">
-                {incoming.filter(r => r.status === 'disputed').map((r: any) => (
-                  <div key={r.id} className="bg-white p-4 rounded-xl">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
+                {[...incoming.filter(r => r.status === 'disputed').map((r: any) => ({...r, _role: 'provider'})),
+                  ...outgoing.filter(r => r.status === 'disputed').map((r: any) => ({...r, _role: 'requester'}))
+                ].map((r: any) => (
+                  <div key={r.id} className="bg-white dark:bg-[#202c33] p-4 rounded-xl">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
+                          <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white truncate">{r.service_title}</Link>
                           {badge(r.status)}
                         </div>
-                        <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
-                        <p className="text-xs text-red-500 mt-1">Resolve this dispute via messages with the requester.</p>
+                        <p className="text-xs text-gray-500">
+                          {r._role === 'provider' ? 'Disputed by' : 'You disputed'}{' '}
+                          <Link to={`/users/${r._role === 'provider' ? r.requester_id : r.provider_id}`} className="text-primary-600 hover:underline">
+                            {r._role === 'provider' ? r.requester_name : r.provider_name}
+                          </Link> · {r.points_cost} 🪃
+                        </p>
+                        {r.dispute_reason && <p className="text-xs text-red-600 dark:text-red-400 mt-1 italic">"{r.dispute_reason}"</p>}
                       </div>
-                      <Link to={`/messages?to=${r.requester_id}`} className="text-xs bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 font-medium shrink-0">Message</Link>
                     </div>
-                    {['accepted','delivered','completed','disputed'].includes(r.status) && (
-                      <div>
-                        <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
-                          className="text-xs text-primary-600 mt-3 hover:underline">
-                          {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
-                        </button>
-                        {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
-                      </div>
-                    )}
+                    {/* Resolution actions */}
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <button onClick={async () => {
+                        const ok = await confirm({ title: 'Complete exchange', message: 'This will transfer the boomerangs to the provider. Both parties agree the service was delivered.', confirmText: 'Complete' });
+                        if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved as completed'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                      }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium">
+                        Resolve: Complete exchange
+                      </button>
+                      <button onClick={async () => {
+                        const ok = await confirm({ title: 'Cancel exchange', message: 'This will cancel the exchange. No boomerangs will be transferred.', confirmText: 'Cancel exchange', danger: true });
+                        if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Resolved as cancelled'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                      }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
+                        Resolve: Cancel
+                      </button>
+                      <Link to={`/messages?to=${r._role === 'provider' ? r.requester_id : r.provider_id}`}
+                        className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-3 py-1.5 rounded-lg hover:bg-primary-100 font-medium">
+                        Message
+                      </Link>
+                    </div>
+                    {/* Chat thread */}
+                    <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
+                      className="text-xs text-gray-400 mt-2 hover:text-primary-600">
+                      {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                    </button>
+                    {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
                   </div>
                 ))}
               </div>
@@ -513,7 +539,10 @@ export default function DashboardPage() {
                         setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
                         setShoutoutMsg('');
                       }} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
-                      <button onClick={() => handleAction(api.disputeRequest, r.id)} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
+                      <button onClick={async () => {
+                        const reason = prompt('Why are you disputing? (optional)');
+                        try { await api.disputeRequest(r.id, reason || undefined); toast('Dispute opened'); load(); } catch (err: any) { toast(err.message, 'error'); }
+                      }} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
