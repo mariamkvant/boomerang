@@ -203,6 +203,64 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
   res.json({ message: 'Group deleted' });
 });
 
+// Update group cover image (admin only)
+router.put('/:id/cover', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  const { cover_image } = req.body;
+  let imageUrl = cover_image;
+  if (cover_image && cover_image.startsWith('data:')) {
+    try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(cover_image); } catch { imageUrl = cover_image; }
+  }
+  await db.run('UPDATE groups SET cover_image = ? WHERE id = ?', imageUrl, req.params.id);
+  res.json({ message: 'Cover updated' });
+});
+
+// Post announcement (members, admin can pin)
+router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member) return res.status(403).json({ error: 'Members only' });
+  const { content, image, pinned } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
+  let imageUrl = image || null;
+  if (image && image.startsWith('data:')) {
+    try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
+  }
+  const canPin = member.role === 'admin' && pinned;
+  const result = await db.run('INSERT INTO group_announcements (group_id, author_id, content, image, pinned) VALUES ($1, $2, $3, $4, $5)',
+    req.params.id, req.userId, content.trim(), imageUrl, canPin || false);
+  res.status(201).json({ id: result.lastInsertRowid });
+});
+
+// Get announcements
+router.get('/:id/announcements', async (req: AuthRequest, res: Response) => {
+  const announcements = await db.all(
+    `SELECT ga.*, u.username as author_name, u.avatar as author_avatar
+    FROM group_announcements ga JOIN users u ON ga.author_id = u.id
+    WHERE ga.group_id = ? ORDER BY ga.pinned DESC, ga.created_at DESC LIMIT 30`, req.params.id);
+  res.json(announcements);
+});
+
+// Delete announcement (author or admin)
+router.delete('/:id/announcements/:annId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  const ann = await db.get('SELECT * FROM group_announcements WHERE id = ? AND group_id = ?', req.params.annId, req.params.id);
+  if (!ann) return res.status(404).json({ error: 'Not found' });
+  if (ann.author_id !== req.userId && member?.role !== 'admin') return res.status(403).json({ error: 'Not authorized' });
+  await db.run('DELETE FROM group_announcements WHERE id = ?', req.params.annId);
+  res.json({ message: 'Deleted' });
+});
+
+// Toggle pin (admin only)
+router.put('/:id/announcements/:annId/pin', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member || member.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  const ann = await db.get('SELECT pinned FROM group_announcements WHERE id = ?', req.params.annId);
+  if (!ann) return res.status(404).json({ error: 'Not found' });
+  await db.run('UPDATE group_announcements SET pinned = ? WHERE id = ?', !ann.pinned, req.params.annId);
+  res.json({ message: ann.pinned ? 'Unpinned' : 'Pinned' });
+});
+
 // Group activity feed
 router.get('/:id/activity', async (req: AuthRequest, res: Response) => {
   // Recent services added to the group

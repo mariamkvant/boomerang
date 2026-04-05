@@ -193,6 +193,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE direct_messages ADD COLUMN IF NOT EXISTS image TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS dispute_reason TEXT'); } catch(e) {}
     try { await client.query(`CREATE TABLE IF NOT EXISTS support_tickets (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), email TEXT NOT NULL, subject TEXT NOT NULL, message TEXT NOT NULL, status TEXT DEFAULT 'open', admin_reply TEXT, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
+    try { await client.query(`CREATE TABLE IF NOT EXISTS group_announcements (id SERIAL PRIMARY KEY, group_id INTEGER NOT NULL REFERENCES groups(id), author_id INTEGER NOT NULL REFERENCES users(id), content TEXT NOT NULL, image TEXT, pinned BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
+    try { await client.query('ALTER TABLE groups ADD COLUMN IF NOT EXISTS cover_image TEXT'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id)'); } catch(e) {}

@@ -135,6 +135,9 @@ export default function GroupDetailPage() {
   const [group, setGroup] = useState<any>(null);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [shareCopied, setShareCopied] = useState(false);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [newPost, setNewPost] = useState('');
+  const [postImage, setPostImage] = useState<string | null>(null);
 
   const reload = () => {
     api.getGroup(Number(id)).then(g => {
@@ -143,6 +146,7 @@ export default function GroupDetailPage() {
         api.getJoinRequests(Number(id)).then(setJoinRequests).catch(() => {});
       }
     }).catch(() => {});
+    api.getGroupAnnouncements(Number(id)).then(setAnnouncements).catch(() => {});
   };
   useEffect(() => { reload(); }, [id]);
 
@@ -189,8 +193,24 @@ export default function GroupDetailPage() {
     <div className="max-w-4xl mx-auto animate-fade-in px-4 pb-24 md:pb-8">
       {/* Header card */}
       <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm overflow-hidden mb-6">
-        {/* Gradient banner */}
-        <div className="h-24 bg-gradient-to-r from-primary-500 to-orange-400 relative">
+        {/* Cover photo or gradient */}
+        <div className="h-32 sm:h-40 relative overflow-hidden">
+          {group.cover_image ? (
+            <img src={group.cover_image} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-primary-500 to-orange-400" />
+          )}
+          {isAdmin && (
+            <label className="absolute top-2 right-2 bg-black/30 hover:bg-black/50 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer backdrop-blur transition-colors">
+              {group.cover_image ? 'Change cover' : 'Add cover'}
+              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async () => { try { await api.updateGroupCover(Number(id), reader.result as string); reload(); } catch {} };
+                reader.readAsDataURL(file);
+              }} />
+            </label>
+          )}
           <div className="absolute -bottom-8 left-6">
             <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#202c33] shadow-lg flex items-center justify-center text-2xl font-bold text-primary-600">
               {group.name?.charAt(0).toUpperCase()}
@@ -333,6 +353,77 @@ export default function GroupDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Announcements */}
+          {isMember && (
+            <div className="mb-6">
+              {/* Post form */}
+              <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-3">
+                <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
+                  placeholder="Share something with the community..."
+                  className="w-full border-0 bg-transparent text-sm resize-none outline-none dark:text-white placeholder:text-gray-400 min-h-[60px]" />
+                {postImage && (
+                  <div className="relative mt-2">
+                    <img src={postImage} alt="" className="w-full h-32 object-cover rounded-lg" />
+                    <button onClick={() => setPostImage(null)} className="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center">✕</button>
+                  </div>
+                )}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <label className="text-xs text-gray-400 hover:text-primary-500 cursor-pointer flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 0 0 2.25-2.25V5.25a2.25 2.25 0 0 0-2.25-2.25H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" /></svg>
+                    Photo
+                    <input type="file" accept="image/*" className="hidden" onChange={e => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = () => setPostImage(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }} />
+                  </label>
+                  <button onClick={async () => {
+                    if (!newPost.trim()) return;
+                    try { await api.postAnnouncement(Number(id), { content: newPost, image: postImage }); setNewPost(''); setPostImage(null); reload(); toast('Posted!', 'success'); } catch (err: any) { toast(err.message, 'error'); }
+                  }} disabled={!newPost.trim()}
+                    className="bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 disabled:opacity-40 transition-colors">
+                    Post
+                  </button>
+                </div>
+              </div>
+
+              {/* Announcement list */}
+              {announcements.length > 0 && (
+                <div className="space-y-3">
+                  {announcements.map((a: any) => (
+                    <div key={a.id} className={`bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 ${a.pinned ? 'border border-primary-200 dark:border-primary-800' : ''}`}>
+                      {a.pinned && <span className="text-[10px] text-primary-500 font-medium uppercase tracking-wider">Pinned</span>}
+                      <div className="flex items-start gap-3 mt-1">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0" style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
+                          {a.author_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium dark:text-white">{a.author_name}</span>
+                            <span className="text-[10px] text-gray-400">{new Date(a.created_at).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 whitespace-pre-wrap">{a.content}</p>
+                          {a.image && <img src={a.image} alt="" className="mt-2 rounded-lg max-h-64 object-cover" />}
+                          {(a.author_id === user?.id || isAdmin) && (
+                            <div className="flex gap-2 mt-2">
+                              {isAdmin && (
+                                <button onClick={async () => { await api.togglePinAnnouncement(Number(id), a.id); reload(); }}
+                                  className="text-[10px] text-gray-400 hover:text-primary-500">{a.pinned ? 'Unpin' : 'Pin'}</button>
+                              )}
+                              <button onClick={async () => { await api.deleteAnnouncement(Number(id), a.id); reload(); }}
+                                className="text-[10px] text-gray-400 hover:text-red-500">Delete</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Activity Feed */}
           <GroupActivityFeed groupId={Number(id)} />

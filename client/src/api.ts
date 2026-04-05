@@ -184,4 +184,9 @@ export const api = {
   // Group management
   deleteGroup: (id: number) => request(`/groups/${id}`, { method: 'DELETE' }),
   getGroupActivity: (id: number) => request(`/groups/${id}/activity`),
+  getGroupAnnouncements: (id: number) => request(`/groups/${id}/announcements`),
+  postAnnouncement: (id: number, body: any) => request(`/groups/${id}/announcements`, { method: 'POST', body: JSON.stringify(body) }),
+  deleteAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}`, { method: 'DELETE' }),
+  togglePinAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/pin`, { method: 'PUT' }),
+  updateGroupCover: (id: number, cover_image: string) => request(`/groups/${id}/cover`, { method: 'PUT', body: JSON.stringify({ cover_image }) }),
 };

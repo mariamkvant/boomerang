@@ -206,23 +206,23 @@ export default function DashboardPage() {
               <Link to="/settings" className="text-sm text-gray-400 hover:text-primary-500">{t('dashboard.editProfile')}</Link>
             </div>
           </div>
-          <div className="flex gap-6">
-            <div className="text-center">
+          <div className="flex gap-4 overflow-x-auto pb-1 -mx-1 px-1">
+            <div className="text-center shrink-0">
               <div className="text-2xl font-bold text-gray-900">{user?.points}</div>
               <Link to="/buy" className="text-[11px] text-primary-500 hover:underline uppercase tracking-wide">+ {t('dashboard.boomerangs')}</Link>
             </div>
-            <div className="text-center">
+            <div className="text-center shrink-0">
               <div className="text-2xl font-bold text-gray-900">{myServices.length}</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-wide">{t('dashboard.services')}</div>
             </div>
             {trust && trust.avg_rating && (
-              <div className="text-center">
+              <div className="text-center shrink-0">
                 <div className="text-2xl font-bold text-gray-900">{Number(trust.avg_rating).toFixed(1)}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-wide">{trust.review_count} reviews</div>
               </div>
             )}
             {trust && (
-              <div className="text-center">
+              <div className="text-center shrink-0">
                 <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
                   trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
                   trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
@@ -244,13 +244,10 @@ export default function DashboardPage() {
 
       {/* Referral banner — prominent */}
       {user && (
-        <div className="bg-gradient-to-r from-primary-500 to-orange-400 rounded-2xl p-5 mb-6 text-white">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="font-bold text-lg">Invite a friend, get 25 🪃</h3>
-              <p className="text-white/80 text-sm mt-1">They get 25 too. Share your link and grow the community.</p>
-            </div>
-            <div className="flex gap-2 shrink-0">
+        <div className="bg-gradient-to-r from-primary-500 to-orange-400 rounded-2xl p-4 sm:p-5 mb-6 text-white">
+          <h3 className="font-bold text-base sm:text-lg">Invite a friend, get 25 🪃</h3>
+          <p className="text-white/80 text-xs sm:text-sm mt-1">They get 25 too. Share and grow the community.</p>
+          <div className="flex gap-2 mt-3">
               <a href={`https://wa.me/?text=${encodeURIComponent(`Join me on Boomerang — exchange skills without money! ${window.location.origin}/register?ref=${user.id}`)}`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
@@ -262,13 +259,12 @@ export default function DashboardPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>
                 Copy
               </button>
-            </div>
           </div>
         </div>
       )}
 
       {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
         <Link to="/browse" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
           <svg className="w-6 h-6 mx-auto text-primary-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
           <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('nav.browse2')}</span>
@@ -423,10 +419,10 @@ export default function DashboardPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
         {tabs.map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === tb.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`flex-1 min-w-0 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${tab === tb.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             {tb.label}
             {tb.count > 0 && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 text-gray-500'}`}>{tb.count}</span>}
           </button>
