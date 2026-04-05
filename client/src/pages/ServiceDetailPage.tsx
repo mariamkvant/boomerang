@@ -299,8 +299,14 @@ export default function ServiceDetailPage() {
                     </div>
                   </div>
                   {user?.id === r.reviewer_id && (
-                    <button onClick={async () => { if (confirm('Delete your review?')) { try { await api.deleteReview(r.id); window.location.reload(); } catch {} } }}
-                      className="text-[10px] text-gray-400 hover:text-red-500">Delete</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => {
+                        const newComment = prompt('Edit your review:', r.comment || '');
+                        if (newComment !== null) { api.editReview(r.id, { comment: newComment }).then(() => window.location.reload()).catch(() => {}); }
+                      }} className="text-[10px] text-primary-500 hover:text-primary-600">Edit</button>
+                      <button onClick={async () => { if (confirm('Delete your review?')) { try { await api.deleteReview(r.id); window.location.reload(); } catch {} } }}
+                        className="text-[10px] text-gray-400 hover:text-red-500">Delete</button>
+                    </div>
                   )}
                 </div>
                 {r.comment && <p className="text-sm text-gray-600 dark:text-gray-300 ml-11">{r.comment}</p>}

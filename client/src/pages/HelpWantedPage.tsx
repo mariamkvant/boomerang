@@ -77,9 +77,19 @@ export default function HelpWantedPage() {
                     {r.requester_city && ` · ${r.requester_city}`}
                   </p>
                 </div>
-                {user && user.id !== r.requester_id && (
+                {user && user.id !== r.requester_id && r.status === 'open' && (
                   <button onClick={() => handleOffer(r.id)} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 shrink-0">I Can Help</button>
                 )}
+                {r.status === 'completed' && (
+                  <span className="text-xs bg-green-50 text-green-600 border border-green-200 px-2.5 py-1 rounded-full font-medium shrink-0">Completed ✓</span>
+                )}
+                {r.status === 'accepted' && (
+                  <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full font-medium shrink-0">In progress</span>
+                )}
+                {r.status === 'delivered' && (
+                  <span className="text-xs bg-purple-50 text-purple-600 border border-purple-200 px-2.5 py-1 rounded-full font-medium shrink-0">Delivered</span>
+                )}
+                {r.helper_name && <span className="text-[10px] text-gray-400 shrink-0">Helper: {r.helper_name}</span>}
               </div>
             </div>
           ))}
