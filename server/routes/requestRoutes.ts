@@ -30,7 +30,12 @@ router.get('/incoming', authMiddleware, async (req: AuthRequest, res: Response) 
 });
 
 router.get('/outgoing', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const requests = await db.all('SELECT sr.*, s.title as service_title, s.points_cost, u.username as provider_name, s.provider_id, (SELECT COUNT(*) FROM reviews r WHERE r.request_id = sr.id AND r.reviewer_id = ?) as has_reviewed FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON s.provider_id = u.id WHERE sr.requester_id = ? ORDER BY sr.created_at DESC', req.userId, req.userId);
+  const requests = await db.all(`SELECT sr.*, s.title as service_title, s.points_cost, u.username as provider_name, s.provider_id,
+    (SELECT COUNT(*) FROM reviews r WHERE r.request_id = sr.id AND r.reviewer_id = $1) as has_reviewed,
+    (SELECT r.id FROM reviews r WHERE r.request_id = sr.id AND r.reviewer_id = $1 LIMIT 1) as review_id,
+    (SELECT r.rating FROM reviews r WHERE r.request_id = sr.id AND r.reviewer_id = $1 LIMIT 1) as review_rating,
+    (SELECT r.comment FROM reviews r WHERE r.request_id = sr.id AND r.reviewer_id = $1 LIMIT 1) as review_comment
+    FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON s.provider_id = u.id WHERE sr.requester_id = $2 ORDER BY sr.created_at DESC`, req.userId, req.userId);
   res.json(requests);
 });
 

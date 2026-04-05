@@ -114,7 +114,7 @@ export default function DashboardPage() {
   const [myServices, setMyServices] = useState<any[]>([]);
   const [myHelpWanted, setMyHelpWanted] = useState<any[]>([]);
   const [myHelping, setMyHelping] = useState<any[]>([]);
-  const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string; image: string | null } | null>(null);
+  const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string; image: string | null; reviewId?: number; isEdit?: boolean } | null>(null);
   const [expandedChat, setExpandedChat] = useState<number | null>(null);
   const [availSlots, setAvailSlots] = useState<any[]>([]);
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
@@ -147,7 +147,16 @@ export default function DashboardPage() {
 
   const submitReview = async () => {
     if (!reviewForm) return;
-    try { await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment, image: reviewForm.image }); setReviewForm(null); toast('Review submitted!'); await load(); }
+    try {
+      if (reviewForm.isEdit && reviewForm.reviewId) {
+        await api.editReview(reviewForm.reviewId, { rating: reviewForm.rating, comment: reviewForm.comment });
+        toast('Review updated!');
+      } else {
+        await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment, image: reviewForm.image });
+        toast('Review submitted!');
+      }
+      setReviewForm(null); await load();
+    }
     catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -661,6 +670,10 @@ export default function DashboardPage() {
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
                   )}
+                  {r.status === 'completed' && Number(r.has_reviewed) > 0 && r.review_id && (
+                    <button onClick={() => setReviewForm({ id: r.id, rating: r.review_rating || 5, comment: r.review_comment || '', image: null, reviewId: r.review_id, isEdit: true })}
+                      className="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Edit Review ✏️</button>
+                  )}
                 </div>
               </div>
               {/* Chat toggle */}
@@ -703,7 +716,7 @@ export default function DashboardPage() {
                     </label>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={submitReview} className="text-sm bg-primary-500 text-white px-5 py-2 rounded-lg hover:bg-primary-600 font-medium">Submit Review</button>
+                    <button onClick={submitReview} className="text-sm bg-primary-500 text-white px-5 py-2 rounded-lg hover:bg-primary-600 font-medium">{reviewForm?.isEdit ? 'Update Review' : 'Submit Review'}</button>
                     <button onClick={() => setReviewForm(null)} className="text-sm text-gray-500 px-3 py-2 hover:text-gray-700">Cancel</button>
                   </div>
                 </div>
