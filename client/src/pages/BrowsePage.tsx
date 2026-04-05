@@ -93,10 +93,10 @@ export default function BrowsePage() {
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">{t('browse.title')}</h2>
-        <p className="text-gray-500">{t('browse.subtitle')}</p>
+    <div className="animate-fade-in pb-24 md:pb-8">
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
       </div>
 
       {/* Search bar */}

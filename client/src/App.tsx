@@ -66,7 +66,7 @@ function Navbar() {
   }, [profileOpen]);
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md shadow-nav border-b border-gray-100 sticky top-0 z-50">
+    <nav className="bg-white/80 dark:bg-[#202c33]/90 backdrop-blur-md shadow-nav border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {!isHome && (
@@ -107,9 +107,9 @@ function Navbar() {
                   {user.username.charAt(0).toUpperCase()}
                 </button>
                 {profileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-fade-in">
-                    <div className="px-4 py-2 border-b border-gray-50">
-                      <p className="text-sm font-medium text-gray-900">{user.username}</p>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#202c33] rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-2 animate-fade-in">
+                    <div className="px-4 py-2 border-b border-gray-50 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</p>
                       <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
                     <Link to="/messages" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Messages</Link>
@@ -143,7 +143,7 @@ function Navbar() {
 
       {/* Mobile menu — only items NOT in bottom nav */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
+        <div className="md:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-3 space-y-1 animate-fade-in">
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
           {navLink('/leaderboard', t('leaderboard.title'))}
@@ -164,46 +164,37 @@ function Navbar() {
 
 function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-100 mt-16">
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+    <footer className="bg-white dark:bg-[#111b21] border-t border-gray-100 dark:border-gray-800 mt-16">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <img src="/logo.svg" alt="" className="w-7 h-7" />
-              <span className="text-lg font-light font-logo text-gray-900 tracking-wide">boomerang</span>
+            <div className="flex items-center gap-2 mb-2">
+              <img src="/logo.svg" alt="" className="w-6 h-6" />
+              <span className="text-base font-light font-logo text-gray-900 dark:text-white tracking-wide">boomerang</span>
             </div>
-            <p className="text-sm text-gray-500 max-w-xs">{t('footer.tagline')}</p>
+            <p className="text-xs text-gray-400 max-w-xs">{t('footer.tagline')}</p>
           </div>
-          <div className="flex gap-12 text-sm">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">{t('footer.platform')}</h4>
-              <div className="space-y-2">
-                <Link to="/browse" className="block text-gray-500 hover:text-primary-600">{t('footer.browseServices')}</Link>
-                <Link to="/help-wanted" className="block text-gray-500 hover:text-primary-600">{t('footer.helpNeeded')}</Link>
-                <Link to="/people" className="block text-gray-500 hover:text-primary-600">{t('footer.findPeople')}</Link>
-                <Link to="/community" className="block text-gray-500 hover:text-primary-600">{t('footer.communityFeed')}</Link>
-                <Link to="/services/new" className="block text-gray-500 hover:text-primary-600">{t('footer.offerService')}</Link>
-              </div>
+          <div className="flex gap-8 sm:gap-12 text-xs">
+            <div className="space-y-1.5">
+              <Link to="/browse" className="block text-gray-400 hover:text-primary-500">{t('footer.browseServices')}</Link>
+              <Link to="/help-wanted" className="block text-gray-400 hover:text-primary-500">{t('footer.helpNeeded')}</Link>
+              <Link to="/groups" className="block text-gray-400 hover:text-primary-500">{t('nav.communities')}</Link>
+              <Link to="/services/new" className="block text-gray-400 hover:text-primary-500">{t('footer.offerService')}</Link>
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">{t('footer.account')}</h4>
-              <div className="space-y-2">
-                <Link to="/register" className="block text-gray-500 hover:text-primary-600">{t('footer.signUp')}</Link>
-                <Link to="/login" className="block text-gray-500 hover:text-primary-600">{t('footer.logIn')}</Link>
-                <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">{t('footer.privacy')}</Link>
-                <Link to="/terms" className="block text-gray-500 hover:text-primary-600">{t('footer.terms')}</Link>
-                <Link to="/support" className="block text-gray-500 hover:text-primary-600">Help & Support</Link>
-                <Link to="/support" className="block text-gray-500 hover:text-primary-600">Support Boomerang ♥</Link>
-              </div>
+            <div className="space-y-1.5">
+              <Link to="/privacy" className="block text-gray-400 hover:text-primary-500">{t('footer.privacy')}</Link>
+              <Link to="/terms" className="block text-gray-400 hover:text-primary-500">{t('footer.terms')}</Link>
+              <Link to="/support" className="block text-gray-400 hover:text-primary-500">Help & Support</Link>
+              <Link to="/support" className="block text-gray-400 hover:text-primary-500">Support Boomerang ♥</Link>
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-100 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <span>© 2026 Boomerang. Built with community in mind.</span>
+        <div className="border-t border-gray-100 dark:border-gray-800 mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
+          <span>© 2026 Boomerang</span>
           <div className="flex items-center gap-1">
             {LANGUAGES.map(l => (
               <button key={l.code} onClick={() => setLang(l.code)}
-                className={`px-2 py-1 rounded text-xs ${getLang() === l.code ? 'bg-primary-100 text-primary-700 font-medium' : 'hover:text-gray-600'}`}>
+                className={`px-2 py-1 rounded text-[11px] ${getLang() === l.code ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium' : 'hover:text-gray-600 dark:hover:text-gray-300'}`}>
                 {l.flag}
               </button>
             ))}

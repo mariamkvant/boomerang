@@ -195,9 +195,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-24 md:pb-8">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-card p-6 mb-6">
+      <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 sm:p-6 mb-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link to="/settings" className="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl hover:shadow-lg transition-all">{user?.username.charAt(0).toUpperCase()}</Link>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
 
       {/* Referral banner — prominent */}
       {user && (
-        <div className="bg-gradient-to-r from-primary-500 to-orange-400 rounded-2xl p-4 sm:p-5 mb-6 text-white">
+        <div className="bg-gradient-to-r from-primary-500 to-orange-400 rounded-2xl p-4 sm:p-5 mb-4 text-white">
           <h3 className="font-bold text-base sm:text-lg">Invite a friend, get 25 🪃</h3>
           <p className="text-white/80 text-xs sm:text-sm mt-1">They get 25 too. Share and grow the community.</p>
           <div className="flex gap-2 mt-3">
@@ -264,7 +264,7 @@ export default function DashboardPage() {
       )}
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <Link to="/browse" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center shadow-sm hover:shadow-md transition-all group">
           <svg className="w-6 h-6 mx-auto text-primary-500 mb-1.5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
           <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('nav.browse2')}</span>
