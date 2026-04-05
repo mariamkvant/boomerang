@@ -163,6 +163,10 @@ function Navbar() {
 }
 
 function Footer() {
+  // Hide footer on mobile in standalone mode (iOS app)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+  if (isStandalone && window.innerWidth < 768) return null;
+
   return (
     <footer className="bg-white dark:bg-[#111b21] border-t border-gray-100 dark:border-gray-800 mt-16">
       <div className="max-w-6xl mx-auto px-4 py-8">

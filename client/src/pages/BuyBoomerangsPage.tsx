@@ -12,7 +12,9 @@ export default function BuyBoomerangsPage() {
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
-  const [tab, setTab] = useState<'topup' | 'gift' | 'history'>('topup');
+  // Detect iOS native app (Capacitor) — hide Stripe to comply with Apple guidelines
+  const isIOSApp = /iPhone|iPad/.test(navigator.userAgent) && (window as any).Capacitor !== undefined;
+  const [tab, setTab] = useState<'topup' | 'gift' | 'history'>(isIOSApp ? 'gift' : 'topup');
   const [giftTo, setGiftTo] = useState('');
   const [giftAmount, setGiftAmount] = useState('10');
   const [giftSearch, setGiftSearch] = useState<any[]>([]);
@@ -69,7 +71,7 @@ export default function BuyBoomerangsPage() {
       </div>
 
       <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl">
-        {(['topup', 'gift', 'history'] as const).map(tb => (
+        {(['topup', 'gift', 'history'] as const).filter(tb => !(tb === 'topup' && isIOSApp)).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
             className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white dark:bg-[#2a3942] text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500'}`}>
             {tb === 'topup' ? 'Top Up' : tb === 'gift' ? 'Gift' : 'History'}
