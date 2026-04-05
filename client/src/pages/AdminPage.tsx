@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'reports'>('stats');
+  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'reports'|'support'>('stats');
   const [stats, setStats] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [reports, setReports] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function AdminPage() {
     if (tab === 'analytics') api.getAdminAnalytics().then(setAnalytics).catch(() => {});
     if (tab === 'users') api.getAdminUsers(userSearch ? `search=${encodeURIComponent(userSearch)}` : '').then(r => setUsers(r.users)).catch(() => {});
     if (tab === 'reports') api.getAdminReports().then(setReports).catch(() => {});
+    if (tab === 'support') api.getSupportTickets().then(setTickets).catch(() => {});
   }, [tab, isAdmin]);
 
   const searchUsers = () => {
@@ -33,10 +35,10 @@ export default function AdminPage() {
     <div className="animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
       <div className="flex gap-2 mb-6 flex-wrap">
-        {(['stats','analytics','users','reports'] as const).map(tb => (
+        {(['stats','analytics','users','reports','support'] as const).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
             className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === tb ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : 'Reports'}
+            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : tb === 'reports' ? 'Reports' : 'Support'}
           </button>
         ))}
       </div>
@@ -237,6 +239,43 @@ export default function AdminPage() {
                     <span className={`text-xs px-2 py-1 rounded ${r.status === 'resolved' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>{r.status}</span>
                   )}
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Support tickets */}
+      {tab === 'support' && (
+        <div className="space-y-3">
+          {tickets.length === 0 && <p className="text-center text-gray-400 py-8">No support tickets</p>}
+          {tickets.map((tk: any) => (
+            <div key={tk.id} className={`bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm ${tk.status === 'open' ? 'border-l-4 border-amber-400' : ''}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm dark:text-white">{tk.subject}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${tk.status === 'open' ? 'bg-amber-100 text-amber-700' : tk.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{tk.status}</span>
+                  </div>
+                  <p className="text-xs text-gray-500">{tk.username || tk.email} · {new Date(tk.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{tk.message}</p>
+                  {tk.admin_reply && (
+                    <div className="mt-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg p-3">
+                      <p className="text-xs text-primary-600 font-medium mb-1">Admin reply:</p>
+                      <p className="text-sm text-primary-700 dark:text-primary-300">{tk.admin_reply}</p>
+                    </div>
+                  )}
+                </div>
+                {tk.status === 'open' && (
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button onClick={async () => {
+                      const reply = prompt('Reply to this ticket:');
+                      if (reply) { await api.replySupportTicket(tk.id, { admin_reply: reply, status: 'resolved' }); api.getSupportTickets().then(setTickets); }
+                    }} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600">Reply</button>
+                    <button onClick={async () => { await api.replySupportTicket(tk.id, { status: 'closed' }); api.getSupportTickets().then(setTickets); }}
+                      className="text-xs bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-200">Close</button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

@@ -72,13 +72,15 @@ export default function SupportPage() {
   const [form, setForm] = useState({ subject: '', message: '', email: user?.email || '' });
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.subject || !form.message) return;
-    // In production this would send to a support email/ticket system
-    toast('Message sent! We\'ll get back to you within 24 hours.');
-    setSent(true);
-    setForm({ subject: '', message: '', email: user?.email || '' });
+    try {
+      await api.submitSupportTicket({ email: form.email || user?.email, subject: form.subject, message: form.message, user_id: user?.id });
+      toast('Message sent! We\'ll get back to you within 24 hours.');
+      setSent(true);
+      setForm({ subject: '', message: '', email: user?.email || '' });
+    } catch (err: any) { toast(err.message, 'error'); }
   };
 
   return (

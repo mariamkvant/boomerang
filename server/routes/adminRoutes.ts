@@ -94,6 +94,43 @@ router.get('/check', authMiddleware, async (req: AuthRequest, res: Response) => 
   res.json({ is_admin: !!user?.is_admin });
 });
 
+// Support tickets — create (public, no auth required)
+router.post('/support', async (req: AuthRequest, res: Response) => {
+  const { email, subject, message, user_id } = req.body;
+  if (!email || !subject || !message) return res.status(400).json({ error: 'All fields required' });
+  await db.run('INSERT INTO support_tickets (user_id, email, subject, message) VALUES ($1, $2, $3, $4)',
+    user_id || null, email, subject, message);
+  // Email admin
+  const { sendEmail } = require('../email');
+  await sendEmail(process.env.ADMIN_EMAIL || process.env.FROM_EMAIL || 'admin@boomerang.fyi',
+    `[Support] ${subject}`,
+    `<div style="font-family:sans-serif"><h3>New support ticket</h3><p><b>From:</b> ${email}</p><p><b>Subject:</b> ${subject}</p><p>${message}</p></div>`
+  );
+  res.status(201).json({ message: 'Ticket created' });
+});
+
+// Support tickets — list (admin only)
+router.get('/support', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  const tickets = await db.all(`SELECT st.*, u.username FROM support_tickets st LEFT JOIN users u ON st.user_id = u.id ORDER BY CASE WHEN st.status = 'open' THEN 0 ELSE 1 END, st.created_at DESC LIMIT 100`);
+  res.json(tickets);
+});
+
+// Support tickets — reply (admin only)
+router.put('/support/:id', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const { status, admin_reply } = req.body;
+  const ticket = await db.get('SELECT * FROM support_tickets WHERE id = ?', req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  await db.run('UPDATE support_tickets SET status = $1, admin_reply = $2, updated_at = NOW() WHERE id = $3',
+    status || ticket.status, admin_reply || ticket.admin_reply, req.params.id);
+  // Email the user with the reply
+  if (admin_reply) {
+    const { sendEmail } = require('../email');
+    const { notificationEmailHtml } = require('../notify');
+    await sendEmail(ticket.email, `Re: ${ticket.subject}`, notificationEmailHtml('Reply to your support request', admin_reply, 'https://www.boomerang.fyi/support'));
+  }
+  res.json({ message: 'Ticket updated' });
+});
+
 // Analytics — page views, profile visits, service views
 router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
   // Total page views

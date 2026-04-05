@@ -152,6 +152,9 @@ export const api = {
   checkAdmin: () => request('/admin/check'),
   getAdminStats: () => request('/admin/stats'),
   getAdminAnalytics: () => request('/admin/analytics'),
+  submitSupportTicket: (body: any) => request('/admin/support', { method: 'POST', body: JSON.stringify(body) }),
+  getSupportTickets: () => request('/admin/support'),
+  replySupportTicket: (id: number, body: any) => request(`/admin/support/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   trackView: (page: string, entity_id?: number) => {
     fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id }) }).catch(() => {});
   },
