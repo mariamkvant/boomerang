@@ -16,9 +16,18 @@ export default function ServiceDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [hasServices, setHasServices] = useState(true);
 
   useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); api.trackView('service', Number(id)); }, [id]);
   useEffect(() => { if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {}); }, [id, user]);
+  useEffect(() => {
+    if (user) {
+      api.getServices(`provider=${user.id}`).then((res: any) => {
+        const svcs = Array.isArray(res) ? res : res.services || [];
+        setHasServices(svcs.filter((s: any) => s.is_active !== 0).length > 0);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   const toggleFavorite = async () => {
     if (favorited) { await api.unfavoriteService(Number(id)); setFavorited(false); }
@@ -172,7 +181,17 @@ export default function ServiceDetailPage() {
         </div>
 
         {/* Request form */}
-        {user && !isOwner && status !== 'success' && (
+        {user && !isOwner && status !== 'success' && !hasServices && (
+          <div className="border-t border-gray-100 pt-6 mt-6">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 text-center">
+              <svg className="w-8 h-8 mx-auto text-amber-500 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+              <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">Offer a service first</h3>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">To request services, you need to offer at least one service. Give first, then get help back!</p>
+              <Link to="/services/new" className="inline-block bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Offer a Service</Link>
+            </div>
+          </div>
+        )}
+        {user && !isOwner && status !== 'success' && hasServices && (
           <div className="border-t border-gray-100 pt-6 mt-6">
             <h3 className="font-semibold mb-3">Request this service</h3>
 

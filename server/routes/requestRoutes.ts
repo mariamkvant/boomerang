@@ -8,6 +8,11 @@ const router = Router();
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { service_id, message } = req.body;
   if (!service_id) return res.status(400).json({ error: 'service_id is required' });
+  // Gate: must offer at least 1 service before requesting
+  const myServices = await db.get('SELECT COUNT(*) as c FROM services WHERE provider_id = ? AND is_active = 1', req.userId);
+  if (parseInt(myServices?.c || '0') === 0) {
+    return res.status(403).json({ error: 'You need to offer at least one service before requesting. Give first, then get help back!' });
+  }
   const service = await db.get('SELECT * FROM services WHERE id = ? AND is_active = 1', service_id);
   if (!service) return res.status(404).json({ error: 'Service not found' });
   if (service.provider_id === req.userId) return res.status(400).json({ error: 'Cannot request your own service' });
