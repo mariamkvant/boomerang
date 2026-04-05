@@ -115,9 +115,9 @@ export default function CreateServicePage() {
         {subcategories.length > 0 && (
           <div>
             <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 mb-1.5">Subcategory</label>
-            <select id="subcategory" value={form.subcategory_id} onChange={set('subcategory_id')}
+            <select id="subcategory" required value={form.subcategory_id} onChange={set('subcategory_id')}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white">
-              <option value="">Select a subcategory (optional)</option>
+              <option value="">Select a subcategory</option>
               {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>

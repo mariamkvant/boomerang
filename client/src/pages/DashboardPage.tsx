@@ -538,7 +538,11 @@ export default function DashboardPage() {
                     <button onClick={() => handleAction(api.deliverRequest, r.id)} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">{t('dashboard.delivered')}</button>
                   )}
                   {r.status === 'delivered' && (
-                    <span className="text-xs text-purple-500 font-medium">{t('dashboard.waiting')}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-purple-500 font-medium">{t('dashboard.waiting')}</span>
+                      <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
+                        className="text-xs bg-primary-50 text-primary-600 px-2.5 py-1 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                    </div>
                   )}
                   {r.status === 'disputed' && (
                     <span className="text-xs text-red-500 font-medium">{t('dashboard.disputedMsg')}</span>
