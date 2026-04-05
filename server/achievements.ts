@@ -25,6 +25,10 @@ const BADGES = [
     const r = await db.get('SELECT COUNT(*) as c FROM users WHERE referred_by = ?', userId);
     return parseInt(r?.c || '0') >= 3;
   }},
+  { id: 'early_adopter', name: 'Early Adopter', emoji: '🚀', desc: 'One of the first 100 members', check: async (userId: number) => {
+    const r = await db.get('SELECT id FROM users WHERE id = ? AND id <= (SELECT id FROM users ORDER BY created_at LIMIT 1 OFFSET 99)', userId);
+    return !!r;
+  }},
 ];
 
 export async function checkAchievements(userId: number): Promise<string[]> {
