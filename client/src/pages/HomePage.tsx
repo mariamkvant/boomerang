@@ -151,8 +151,9 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             {categories.slice(0, 8).map((c: any) => (
-              <Link key={c.id} to={`/browse?category=${c.id}`} className="bg-white p-5 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg group transition-all">
-                <div className="flex items-center gap-3"><span className="text-2xl">{c.icon}</span><span className="text-sm font-medium text-gray-700 group-hover:text-primary-600">{tc(c.name)}</span></div>
+              <Link key={c.id} to={`/browse?category=${c.id}`}
+                className="bg-white dark:bg-[#202c33] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-300 hover:shadow-md group transition-all">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-primary-600">{tc(c.name)}</span>
               </Link>
             ))}
           </div>
