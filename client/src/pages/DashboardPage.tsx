@@ -149,7 +149,7 @@ export default function DashboardPage() {
     if (!reviewForm) return;
     try {
       if (reviewForm.isEdit && reviewForm.reviewId) {
-        await api.editReview(reviewForm.reviewId, { rating: reviewForm.rating, comment: reviewForm.comment });
+        await api.editReview(reviewForm.reviewId, { rating: reviewForm.rating, comment: reviewForm.comment, image: reviewForm.image });
         toast('Review updated!');
       } else {
         await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment, image: reviewForm.image });

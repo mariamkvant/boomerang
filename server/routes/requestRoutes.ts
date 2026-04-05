@@ -234,10 +234,14 @@ router.put('/reviews/:reviewId/hide', authMiddleware, async (req: AuthRequest, r
 router.put('/reviews/:reviewId', authMiddleware, async (req: AuthRequest, res: Response) => {
   const review = await db.get('SELECT * FROM reviews WHERE id = ? AND reviewer_id = ?', req.params.reviewId, req.userId);
   if (!review) return res.status(404).json({ error: 'Review not found or not yours' });
-  const { rating, comment } = req.body;
+  const { rating, comment, image } = req.body;
   if (rating && (rating < 1 || rating > 5)) return res.status(400).json({ error: 'Rating must be 1-5' });
-  await db.run('UPDATE reviews SET rating = COALESCE($1, rating), comment = COALESCE($2, comment) WHERE id = $3',
-    rating || null, comment !== undefined ? comment : null, req.params.reviewId);
+  let imageUrl = review.image; // keep existing
+  if (image && image.startsWith('data:')) {
+    try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { /* keep existing */ }
+  }
+  await db.run('UPDATE reviews SET rating = COALESCE($1, rating), comment = COALESCE($2, comment), image = $3 WHERE id = $4',
+    rating || null, comment !== undefined ? comment : null, imageUrl, req.params.reviewId);
   res.json({ message: 'Review updated' });
 });
 
