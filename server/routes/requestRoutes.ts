@@ -196,13 +196,17 @@ router.post('/:id/messages', authMiddleware, async (req: AuthRequest, res: Respo
 });
 
 router.post('/:id/review', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { rating, comment } = req.body;
+  const { rating, comment, image } = req.body;
   if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: 'Rating must be 1-5' });
   const r = await db.get('SELECT * FROM service_requests WHERE id = ? AND requester_id = ?', req.params.id, req.userId);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.status !== 'completed') return res.status(400).json({ error: 'Can only review completed services' });
+  let imageUrl = null;
+  if (image && image.startsWith('data:')) {
+    try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
+  }
   try {
-    await db.run('INSERT INTO reviews (request_id, reviewer_id, rating, comment) VALUES (?, ?, ?, ?)', req.params.id, req.userId, rating, comment || '');
+    await db.run('INSERT INTO reviews (request_id, reviewer_id, rating, comment, image) VALUES ($1, $2, $3, $4, $5)', req.params.id, req.userId, rating, comment || '', imageUrl);
     res.status(201).json({ message: 'Review submitted' });
   } catch (err: any) {
     if (err.message?.includes('unique') || err.message?.includes('duplicate')) return res.status(409).json({ error: 'Already reviewed' });

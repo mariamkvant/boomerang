@@ -114,7 +114,7 @@ export default function DashboardPage() {
   const [myServices, setMyServices] = useState<any[]>([]);
   const [myHelpWanted, setMyHelpWanted] = useState<any[]>([]);
   const [myHelping, setMyHelping] = useState<any[]>([]);
-  const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string } | null>(null);
+  const [reviewForm, setReviewForm] = useState<{ id: number; rating: number; comment: string; image: string | null } | null>(null);
   const [expandedChat, setExpandedChat] = useState<number | null>(null);
   const [availSlots, setAvailSlots] = useState<any[]>([]);
   const [scheduleLoaded, setScheduleLoaded] = useState(false);
@@ -147,7 +147,7 @@ export default function DashboardPage() {
 
   const submitReview = async () => {
     if (!reviewForm) return;
-    try { await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment }); setReviewForm(null); toast('Review submitted!'); await load(); }
+    try { await api.reviewRequest(reviewForm.id, { rating: reviewForm.rating, comment: reviewForm.comment, image: reviewForm.image }); setReviewForm(null); toast('Review submitted!'); await load(); }
     catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -397,6 +397,36 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Recent activity feed */}
+      {(() => {
+        const recentItems: { text: string; time: string; type: string }[] = [];
+        incoming.slice(0, 3).forEach((r: any) => {
+          if (r.status === 'pending') recentItems.push({ text: `${r.requester_name} requested "${r.service_title}"`, time: r.created_at, type: 'incoming' });
+          if (r.status === 'completed') recentItems.push({ text: `Completed "${r.service_title}" for ${r.requester_name}`, time: r.completed_at || r.created_at, type: 'completed' });
+        });
+        outgoing.slice(0, 3).forEach((r: any) => {
+          if (r.status === 'accepted') recentItems.push({ text: `${r.provider_name} accepted your request for "${r.service_title}"`, time: r.created_at, type: 'accepted' });
+          if (r.status === 'completed') recentItems.push({ text: `"${r.service_title}" completed with ${r.provider_name}`, time: r.completed_at || r.created_at, type: 'completed' });
+        });
+        recentItems.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+        if (recentItems.length === 0) return null;
+        const timeAgo = (d: string) => { const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; return `${Math.floor(h / 24)}d`; };
+        return (
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Recent</h3>
+            <div className="space-y-1.5">
+              {recentItems.slice(0, 4).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'completed' ? 'bg-green-500' : item.type === 'incoming' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                  <span className="text-gray-600 dark:text-gray-300 truncate flex-1">{item.text}</span>
+                  <span className="text-gray-400 shrink-0">{timeAgo(item.time)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
         {tabs.map(tb => (
@@ -629,7 +659,7 @@ export default function DashboardPage() {
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
-                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '' })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
+                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
                   )}
                 </div>
               </div>
@@ -653,7 +683,25 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   <textarea value={reviewForm?.comment ?? ''} onChange={e => setReviewForm(f => f ? {...f, comment: e.target.value} : f)}
-                    placeholder="Share your experience..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm h-20 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none mb-3" aria-label="Review comment" />
+                    placeholder="Share your experience..." className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm h-20 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none mb-2" aria-label="Review comment" />
+                  {reviewForm?.image && (
+                    <div className="relative mb-2">
+                      <img src={reviewForm.image} alt="" className="w-full h-32 object-cover rounded-lg" />
+                      <button onClick={() => setReviewForm(f => f ? {...f, image: null} : f)} className="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center">✕</button>
+                    </div>
+                  )}
+                  <div className="flex gap-2 items-center mb-3">
+                    <label className="text-xs text-gray-400 hover:text-primary-500 cursor-pointer flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 0 0 2.25-2.25V5.25a2.25 2.25 0 0 0-2.25-2.25H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" /></svg>
+                      Add photo
+                      <input type="file" accept="image/*" className="hidden" onChange={e => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => setReviewForm(f => f ? {...f, image: reader.result as string} : f);
+                        reader.readAsDataURL(file);
+                      }} />
+                    </label>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={submitReview} className="text-sm bg-primary-500 text-white px-5 py-2 rounded-lg hover:bg-primary-600 font-medium">Submit Review</button>
                     <button onClick={() => setReviewForm(null)} className="text-sm text-gray-500 px-3 py-2 hover:text-gray-700">Cancel</button>

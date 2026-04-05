@@ -71,19 +71,12 @@ export default function OnboardingPage() {
   const toggleNeed = (s: string) => setSelectedNeeds(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   const handleFinish = async () => {
-    // Save bio
+    // Save bio and selected skills as interests (not auto-creating services)
     if (bio) await api.updateProfile({ bio });
-    // Auto-create services for selected skills
-    for (const skillLabel of selectedSkills) {
-      const skill = SKILL_OPTIONS.find(s => s.label === skillLabel);
-      if (skill) {
-        const cat = categories.find((c: any) => c.name === skill.cat);
-        if (cat) {
-          try {
-            await api.createService({ title: `I can help with ${skill.label}`, description: `I'm offering my ${skill.label.toLowerCase()} skills to the community.`, category_id: cat.id, points_cost: 10, duration_minutes: 60 });
-          } catch {}
-        }
-      }
+    // Save skills as user interests for matching, but don't auto-create generic services
+    const skillNames = selectedSkills.join(', ');
+    if (skillNames && !bio) {
+      await api.updateProfile({ bio: `Skills: ${skillNames}` });
     }
     localStorage.setItem('onboarding_done', 'true');
     await refreshUser();

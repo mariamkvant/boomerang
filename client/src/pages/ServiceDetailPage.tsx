@@ -252,7 +252,10 @@ export default function ServiceDetailPage() {
               <div className="text-2xl mb-2">🪃</div>
               <p className="font-semibold text-primary-700">Request sent</p>
               <p className="text-sm text-primary-600 mt-1">The provider will review your request. Check your dashboard for updates.</p>
-              <Link to="/dashboard" className="inline-block mt-3 text-sm font-medium text-primary-600 hover:underline">Go to Dashboard →</Link>
+              <div className="flex gap-3 justify-center mt-3">
+                <Link to={`/messages?to=${service.provider_id}`} className="text-sm font-medium bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600">Message {service.provider_name}</Link>
+                <Link to="/dashboard" className="text-sm font-medium text-primary-600 hover:underline py-2">Dashboard →</Link>
+              </div>
             </div>
           </div>
         )}
