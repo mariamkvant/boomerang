@@ -166,6 +166,7 @@ export const api = {
   },
   getAdminUsers: (params?: string) => request(`/admin/users${params ? `?${params}` : ''}`),
   banUser: (id: number, banned: boolean) => request(`/admin/users/${id}/ban`, { method: 'PUT', body: JSON.stringify({ banned }) }),
+  verifyUser: (id: number) => request(`/admin/users/${id}/verify`, { method: 'PUT' }),
   setAdmin: (id: number, is_admin: boolean) => request(`/admin/users/${id}/admin`, { method: 'PUT', body: JSON.stringify({ is_admin }) }),
   getAdminReports: () => request('/admin/reports'),
   resolveReport: (id: number, status: string) => request(`/admin/reports/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),

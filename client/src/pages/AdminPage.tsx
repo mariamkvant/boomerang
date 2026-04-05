@@ -206,6 +206,10 @@ export default function AdminPage() {
                         className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
                         {u.is_admin ? 'Remove Admin' : 'Make Admin'}
                       </button>
+                      {!u.email_verified && (
+                        <button onClick={async () => { await api.verifyUser(u.id); searchUsers(); }}
+                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-600">Verify</button>
+                      )}
                     </td>
                   </tr>
                 ))}

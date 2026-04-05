@@ -51,6 +51,12 @@ router.get('/users', authMiddleware, adminMiddleware, async (req: AuthRequest, r
   res.json({ users, total: parseInt(total?.count || '0'), page: parseInt(page as string), pages: Math.ceil(parseInt(total?.count || '0') / limit) });
 });
 
+// Manually verify a user's email (admin only)
+router.put('/users/:id/verify', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
+  await db.run('UPDATE users SET email_verified = true, verify_code = NULL, verify_expires = NULL WHERE id = ?', req.params.id);
+  res.json({ message: 'Email verified' });
+});
+
 // Ban/unban user (set points to -1 / restore)
 router.put('/users/:id/ban', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
   const { banned } = req.body;
