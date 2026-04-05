@@ -17,7 +17,7 @@ export default function HelpWantedPage() {
   const [success, setSuccess] = useState('');
 
   const load = () => {
-    api.getHelpWanted().then(setRequests).catch(() => {});
+    api.getHelpWanted('include_completed=true').then(setRequests).catch(() => {});
     if (user) api.getMyHelpWanted().then(setMyRequests).catch(() => {});
   };
   useEffect(() => { load(); api.getCategories().then(setCategories).catch(() => {}); }, [user]);

@@ -65,7 +65,7 @@ app.use((_req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // Page view tracking — lightweight, fire-and-forget
 app.post('/api/track', (req, res) => {

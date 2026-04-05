@@ -90,10 +90,23 @@ export default function MessagesPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return;
-    const reader = new FileReader();
-    reader.onload = () => setPendingImage(reader.result as string);
-    reader.readAsDataURL(file);
+    if (file.size > 10 * 1024 * 1024) return; // 10MB raw limit
+    // Compress image using canvas
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxSize = 1200;
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d')?.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      setPendingImage(compressed);
+    };
+    img.src = URL.createObjectURL(file);
     e.target.value = '';
   };
 
