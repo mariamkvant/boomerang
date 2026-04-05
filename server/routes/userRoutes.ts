@@ -153,6 +153,27 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });
 });
 
+// Change password (requires current password)
+router.post('/change-password', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  const user = await db.get('SELECT * FROM users WHERE id = ?', req.userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (!bcrypt.compareSync(currentPassword, user.password)) {
+    return res.status(400).json({ error: 'Current password is incorrect' });
+  }
+  const hash = bcrypt.hashSync(newPassword, 10);
+  await db.run('UPDATE users SET password = ? WHERE id = ?', hash, req.userId);
+  // Send confirmation email
+  await sendEmail(user.email, 'Password changed on Boomerang',
+    `<div style="font-family:sans-serif;max-width:400px;margin:0 auto;padding:20px">
+      <h2 style="color:#f97316">Password Changed</h2>
+      <p>Your Boomerang password was just changed. If this wasn't you, please reset your password immediately.</p>
+    </div>`);
+  res.json({ message: 'Password changed successfully' });
+});
+
 // Update profile
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { bio, username, city, latitude, longitude, languages_spoken, avatar } = req.body;

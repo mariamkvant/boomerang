@@ -28,6 +28,7 @@ export const api = {
   resendVerify: () => request('/users/resend-verify', { method: 'POST' }),
   forgotPassword: (email: string) => request('/users/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (body: any) => request('/users/reset-password', { method: 'POST', body: JSON.stringify(body) }),
+  changePassword: (body: any) => request('/users/change-password', { method: 'POST', body: JSON.stringify(body) }),
   getMe: () => request('/users/me'),
   updateProfile: (body: any) => request('/users/me', { method: 'PUT', body: JSON.stringify(body) }),
   deleteAccount: () => request('/users/me', { method: 'DELETE' }),

@@ -111,8 +111,9 @@ export default function AccountPage() {
   const [showDeactivate, setShowDeactivate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [confirmText, setConfirmText] = useState('');
-  const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [pwSaved, setPwSaved] = useState(false);
   const [error, setError] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
@@ -134,10 +135,12 @@ export default function AccountPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault(); setError('');
-    if (newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!currentPassword) { setError('Please enter your current password'); return; }
+    if (newPassword.length < 6) { setError('New password must be at least 6 characters'); return; }
+    if (newPassword !== confirmPassword) { setError('New passwords do not match'); return; }
     try {
-      await api.updateProfile({ password: newPassword });
-      setPwSaved(true); setPassword(''); setNewPassword('');
+      await api.changePassword({ currentPassword, newPassword });
+      setPwSaved(true); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
       setTimeout(() => setPwSaved(false), 3000);
     } catch (err: any) { setError(err.message); }
   };
@@ -228,10 +231,18 @@ export default function AccountPage() {
 
       <form onSubmit={handleChangePassword} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
         <h3 className="font-semibold">Change Password</h3>
+        <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Current password"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
         <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="New password (min 6 characters)"
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm new password"
+          className={`w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none ${confirmPassword && confirmPassword !== newPassword ? 'border-red-300' : 'border-gray-200'}`} />
+        {confirmPassword && confirmPassword !== newPassword && (
+          <p className="text-xs text-red-500">Passwords do not match</p>
+        )}
         <div className="flex items-center gap-3">
-          <button type="submit" className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Update Password</button>
+          <button type="submit" disabled={!currentPassword || newPassword.length < 6 || newPassword !== confirmPassword}
+            className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50">Update Password</button>
           {pwSaved && <span className="text-sm text-green-600">✓ Updated</span>}
         </div>
       </form>
