@@ -9,7 +9,7 @@ import { rateLimit } from '../rateLimit';
 
 const router = Router();
 
-const authLimiter = rateLimit(15 * 60 * 1000, 10); // 10 attempts per 15 min
+const authLimiter = rateLimit(15 * 60 * 1000, 20); // 20 attempts per 15 min
 
 // Register
 router.post('/register', authLimiter, async (req: AuthRequest, res: Response) => {
@@ -54,7 +54,14 @@ router.post('/verify-email', authMiddleware, async (req: AuthRequest, res: Respo
   if (!user) return res.status(404).json({ error: 'User not found' });
   if (user.email_verified) return res.json({ message: 'Already verified' });
   if (user.verify_code !== code) return res.status(400).json({ error: 'Invalid code' });
-  if (new Date(user.verify_expires) < new Date()) return res.status(400).json({ error: 'Code expired. Request a new one.' });
+  try {
+    const expiresDate = new Date(user.verify_expires);
+    if (isNaN(expiresDate.getTime()) || expiresDate < new Date()) {
+      return res.status(400).json({ error: 'Code expired. Request a new one.' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'Code expired. Request a new one.' });
+  }
   await db.run('UPDATE users SET email_verified = true, verify_code = NULL, verify_expires = NULL WHERE id = ?', req.userId);
   res.json({ message: 'Email verified' });
 });
@@ -76,12 +83,12 @@ router.post('/forgot-password', authLimiter, async (req: AuthRequest, res: Respo
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
-  // Always return success to prevent email enumeration
   if (!user) return res.json({ message: 'If that email exists, a reset code has been sent' });
   const code = generateCode();
   const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
   await db.run('UPDATE users SET reset_code = ?, reset_expires = ? WHERE id = ?', code, expires, user.id);
-  await sendEmail(email, 'Reset your Boomerang password', resetPasswordHtml(code));
+  const sent = await sendEmail(email, 'Reset your Boomerang password', resetPasswordHtml(code));
+  if (!sent) console.error(`[RESET] Failed to send email to ${email}`);
   res.json({ message: 'If that email exists, a reset code has been sent' });
 });
 
@@ -92,7 +99,15 @@ router.post('/reset-password', async (req: AuthRequest, res: Response) => {
   if (newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
   if (!user || user.reset_code !== code) return res.status(400).json({ error: 'Invalid code' });
-  if (new Date(user.reset_expires) < new Date()) return res.status(400).json({ error: 'Code expired' });
+  // Compare dates safely
+  try {
+    const expiresDate = new Date(user.reset_expires);
+    if (isNaN(expiresDate.getTime()) || expiresDate < new Date()) {
+      return res.status(400).json({ error: 'Code expired. Please request a new one.' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'Code expired. Please request a new one.' });
+  }
   const hash = bcrypt.hashSync(newPassword, 10);
   await db.run('UPDATE users SET password = ?, reset_code = NULL, reset_expires = NULL WHERE id = ?', hash, user.id);
   res.json({ message: 'Password reset successful' });
