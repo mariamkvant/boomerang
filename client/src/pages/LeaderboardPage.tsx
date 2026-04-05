@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 
 export default function LeaderboardPage() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<'weekly' | 'alltime' | 'communities'>('weekly');
   const [weekly, setWeekly] = useState<any[]>([]);
   const [alltime, setAlltime] = useState<any[]>([]);
@@ -40,6 +42,20 @@ export default function LeaderboardPage() {
     <div className="animate-fade-in max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-2">Leaderboard</h2>
       <p className="text-gray-500 text-sm mb-6">Top helpers in the community</p>
+
+      {/* Your rank */}
+      {user && (() => {
+        const list = tab === 'weekly' ? weekly : tab === 'alltime' ? alltime : [];
+        const idx = list.findIndex((u: any) => u.id === user.id);
+        if (idx === -1) return null;
+        return (
+          <div className="bg-primary-50 border border-primary-100 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+            <span className="text-lg">{medals[idx] || '🏅'}</span>
+            <span className="text-sm font-semibold text-primary-700">You're #{idx + 1}</span>
+            <span className="text-xs text-primary-500">— {list[idx].completed_count} exchanges completed</span>
+          </div>
+        );
+      })()}
 
       <div className="flex gap-2 mb-6">
         {([['weekly', '🔥 This Week'], ['alltime', '🏆 All Time'], ['communities', '👥 Communities']] as const).map(([key, label]) => (

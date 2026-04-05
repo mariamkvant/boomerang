@@ -383,43 +383,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Profile completion + 7-day challenge */}
-      {user && (() => {
-        const steps = [
-          { done: !!user.bio, label: 'Add bio' },
-          { done: !!user.city, label: 'Set location' },
-          { done: user.email_verified, label: 'Verify email' },
-          { done: myServices.length > 0, label: 'Create a service' },
-          { done: outgoing.some(r => r.status === 'completed'), label: 'Complete first exchange' },
-        ];
-        const done = steps.filter(s => s.done).length;
-        const total = steps.length;
-        if (done >= total) return null;
-        return (
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-5 mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-primary-700">🚀 Get Started Challenge</h3>
-              <span className="text-sm font-bold text-primary-600">{done}/{total}</span>
-            </div>
-            <div className="w-full bg-primary-200 rounded-full h-2 mb-3">
-              <div className="bg-primary-500 h-2 rounded-full transition-all" style={{ width: `${(done/total)*100}%` }} />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {steps.map((s, i) => {
-                const links: Record<string, string> = { 'Add bio': '/settings', 'Set location': '/settings', 'Verify email': '/account', 'Create a service': '/services/new', 'Complete first exchange': '/browse' };
-                const el = (
-                  <span key={i} className={`text-xs px-2.5 py-1 rounded-full ${s.done ? 'bg-primary-500 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-300 cursor-pointer'}`}>
-                    {s.done ? '✓' : '○'} {s.label}
-                  </span>
-                );
-                return s.done ? el : <Link key={i} to={links[s.label] || '/settings'}>{el}</Link>;
-              })}
-            </div>
-            <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to earn 25 bonus boomerangs! 🪃</p>
-          </div>
-        );
-      })()}
-
       {/* Daily Match */}
       {dailyMatch && (
         <div className="bg-white border border-primary-100 rounded-2xl p-5 mb-6">
@@ -449,9 +412,47 @@ export default function DashboardPage() {
       {tab === 'incoming' && (
         <div className="space-y-3">
           {incoming.filter(r => !['completed','cancelled'].includes(r.status)).length === 0 && incoming.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-card">
-              <p className="text-gray-500 text-sm">{t('dashboard.noIncoming')}</p>
-            </div>
+            <>
+              {/* Profile completion challenge — shown when no incoming requests */}
+              {user && (() => {
+                const steps = [
+                  { done: !!user.bio, label: 'Add bio' },
+                  { done: !!user.city, label: 'Set location' },
+                  { done: user.email_verified, label: 'Verify email' },
+                  { done: myServices.length > 0, label: 'Create a service' },
+                  { done: outgoing.some(r => r.status === 'completed'), label: 'Complete first exchange' },
+                ];
+                const done = steps.filter(s => s.done).length;
+                const total = steps.length;
+                if (done >= total) return null;
+                return (
+                  <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-5 mb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-primary-700">🚀 Get Started Challenge</h3>
+                      <span className="text-sm font-bold text-primary-600">{done}/{total}</span>
+                    </div>
+                    <div className="w-full bg-primary-200 rounded-full h-2 mb-3">
+                      <div className="bg-primary-500 h-2 rounded-full transition-all" style={{ width: `${(done/total)*100}%` }} />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {steps.map((s, i) => {
+                        const links: Record<string, string> = { 'Add bio': '/settings', 'Set location': '/settings', 'Verify email': '/account', 'Create a service': '/services/new', 'Complete first exchange': '/browse' };
+                        const el = (
+                          <span key={i} className={`text-xs px-2.5 py-1 rounded-full ${s.done ? 'bg-primary-500 text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-300 cursor-pointer'}`}>
+                            {s.done ? '✓' : '○'} {s.label}
+                          </span>
+                        );
+                        return s.done ? el : <Link key={i} to={links[s.label] || '/settings'}>{el}</Link>;
+                      })}
+                    </div>
+                    <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to earn 25 bonus boomerangs! 🪃</p>
+                  </div>
+                );
+              })()}
+              <div className="text-center py-12 bg-white rounded-2xl shadow-card">
+                <p className="text-gray-500 text-sm">{t('dashboard.noIncoming')}</p>
+              </div>
+            </>
           )}
           {/* Disputed items — shown first with warning styling */}
           {/* Disputes — with resolution actions */}
@@ -536,6 +537,7 @@ export default function DashboardPage() {
                     {badge(r.status)}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
+                  {r.created_at && <p className="text-[11px] text-gray-400 mt-0.5">📅 {new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
                   <RequestProgress status={r.status} />
                 </div>
@@ -595,6 +597,7 @@ export default function DashboardPage() {
                     {badge(r.status)}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
+                  {r.created_at && <p className="text-[11px] text-gray-400 mt-0.5">📅 {new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   <RequestProgress status={r.status} />
                 </div>
                 <div className="flex gap-2 shrink-0">

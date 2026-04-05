@@ -87,7 +87,7 @@ export default function ProfilePage() {
               { val: trust.completed, label: 'Completed' },
               trust.completion_rate > 0 ? { val: `${trust.completion_rate}%`, label: 'Completion' } : null,
               trust.avg_hours && Number(trust.avg_hours) > 0 ? { val: Number(trust.avg_hours) < 24 ? `${Math.round(Number(trust.avg_hours))}h` : `${Math.round(Number(trust.avg_hours) / 24)}d`, label: 'Avg response' } : null,
-              { val: trust.score, label: 'Trust' },
+              { val: `${trust.review_count || 0}`, label: 'Trusted by' },
             ].filter(Boolean).map((s: any, i) => (
               <div key={i} className="bg-gray-50 dark:bg-[#2a3942] px-4 py-3 rounded-xl text-center min-w-[70px]">
                 <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{s.val}</div>

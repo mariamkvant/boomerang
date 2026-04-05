@@ -264,6 +264,20 @@ export default function ServiceDetailPage() {
         )}
       </div>
 
+      {/* Sticky mobile request bar */}
+      {user && !isOwner && status !== 'success' && hasServices && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex items-center justify-between z-40 md:hidden safe-area-bottom shadow-lg">
+          <div>
+            <span className="text-lg font-bold text-primary-700">{service.points_cost}</span>
+            <span className="text-xs text-primary-500 ml-1">🪃</span>
+          </div>
+          <a href="#request-form" onClick={(e) => { e.preventDefault(); document.querySelector('.border-t.border-gray-100.pt-6.mt-6 h3')?.scrollIntoView({ behavior: 'smooth' }); }}
+            className="bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-600">
+            Request
+          </a>
+        </div>
+      )}
+
       {/* Reviews */}
       {service.reviews?.length > 0 && (
         <div className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm mb-6">

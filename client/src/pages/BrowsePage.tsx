@@ -138,17 +138,20 @@ export default function BrowsePage() {
       </div>
 
       {/* Category pills */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <button onClick={() => handleCatClick('')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-          {t('browse.all')}
-        </button>
-        {categories.map((c: any) => (
-          <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-            {translateCat(c.name)}
+      <div className="relative mb-8">
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => handleCatClick('')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+            {t('browse.all')}
           </button>
-        ))}
+          {categories.map((c: any) => (
+            <button key={c.id} onClick={() => handleCatClick(String(c.id))}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+              {translateCat(c.name)}
+            </button>
+          ))}
+        </div>
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 pointer-events-none" />
       </div>
 
       {/* Subcategory pills */}
