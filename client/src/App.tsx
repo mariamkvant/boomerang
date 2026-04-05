@@ -193,6 +193,7 @@ function Footer() {
                 <Link to="/privacy" className="block text-gray-500 hover:text-primary-600">{t('footer.privacy')}</Link>
                 <Link to="/terms" className="block text-gray-500 hover:text-primary-600">{t('footer.terms')}</Link>
                 <Link to="/support" className="block text-gray-500 hover:text-primary-600">Help & Support</Link>
+                <Link to="/support" className="block text-gray-500 hover:text-primary-600">Support Boomerang ♥</Link>
               </div>
             </div>
           </div>
