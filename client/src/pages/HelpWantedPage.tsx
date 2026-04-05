@@ -63,35 +63,34 @@ export default function HelpWantedPage() {
             </div>
           )}
           {requests.map((r: any) => (
-            <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
+            <Link key={r.id} to={`/help-wanted/${r.id}`} className="block bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md transition-all">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-gray-50 text-xs px-2 py-1 rounded-full">{r.category_icon} {r.category_name}</span>
-                    <span className="bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded-full font-medium">🪃 {r.points_budget} 🪃</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-xs text-gray-400">{r.category_name}</span>
+                    <span className="text-xs text-primary-600 font-medium">{r.points_budget} 🪃</span>
+                    {r.status !== 'open' && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                        r.status === 'completed' ? 'bg-green-50 text-green-600' :
+                        r.status === 'accepted' ? 'bg-blue-50 text-blue-600' :
+                        r.status === 'delivered' ? 'bg-purple-50 text-purple-600' :
+                        'bg-gray-50 text-gray-500'
+                      }`}>{r.status === 'completed' ? 'Completed ✓' : r.status === 'accepted' ? 'In progress' : r.status === 'delivered' ? 'Delivered' : r.status}</span>
+                    )}
                   </div>
-                  <h3 className="font-semibold text-sm mt-2">{r.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{r.description}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Posted by <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link>
-                    {r.requester_city && ` · ${r.requester_city}`}
+                  <h3 className="font-semibold text-sm dark:text-white">{r.title}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{r.description}</p>
+                  <p className="text-[11px] text-gray-400 mt-2">
+                    {r.requester_name}{r.requester_city ? ` · ${r.requester_city}` : ''}
+                    {r.helper_name ? ` · Helper: ${r.helper_name}` : ''}
                   </p>
                 </div>
                 {user && user.id !== r.requester_id && r.status === 'open' && (
-                  <button onClick={() => handleOffer(r.id)} className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 shrink-0">I Can Help</button>
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
+                    className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 shrink-0">I Can Help</button>
                 )}
-                {r.status === 'completed' && (
-                  <span className="text-xs bg-green-50 text-green-600 border border-green-200 px-2.5 py-1 rounded-full font-medium shrink-0">Completed ✓</span>
-                )}
-                {r.status === 'accepted' && (
-                  <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-1 rounded-full font-medium shrink-0">In progress</span>
-                )}
-                {r.status === 'delivered' && (
-                  <span className="text-xs bg-purple-50 text-purple-600 border border-purple-200 px-2.5 py-1 rounded-full font-medium shrink-0">Delivered</span>
-                )}
-                {r.helper_name && <span className="text-[10px] text-gray-400 shrink-0">Helper: {r.helper_name}</span>}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
