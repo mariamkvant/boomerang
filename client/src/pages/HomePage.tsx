@@ -107,11 +107,11 @@ export default function HomePage() {
         <p className="text-lg text-gray-500 mb-12 max-w-lg">{t('home.forYouDesc')}</p>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: t('home.persona1'), desc: t('home.persona1Desc'), color: 'border-l-primary-500' },
-            { title: t('home.persona2'), desc: t('home.persona2Desc'), color: 'border-l-green-500' },
-            { title: t('home.persona3'), desc: t('home.persona3Desc'), color: 'border-l-blue-500' },
+            { title: t('home.persona1'), desc: t('home.persona1Desc') },
+            { title: t('home.persona2'), desc: t('home.persona2Desc') },
+            { title: t('home.persona3'), desc: t('home.persona3Desc') },
           ].map((p, i) => (
-            <div key={i} className={`bg-white p-6 rounded-2xl border border-gray-100 border-l-4 ${p.color}`}>
+            <div key={i} className="bg-white dark:bg-[#202c33] p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
               <h3 className="font-semibold text-gray-900 text-lg mb-2">{p.title}</h3>
               <p className="text-sm text-gray-500 leading-relaxed">{p.desc}</p>
             </div>
@@ -182,9 +182,9 @@ export default function HomePage() {
         <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-12 text-center">{t('home.proofTitle')}</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[t('home.quote1'), t('home.quote2'), t('home.quote3'), t('home.quote4')].map((text, i) => (
-            <div key={i} className="bg-gray-50 p-5 rounded-2xl">
-              <p className="text-sm text-gray-600 leading-relaxed mb-3">"{text}"</p>
-              <div className="flex items-center gap-2"><div className="w-6 h-6 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full" /><span className="text-xs font-medium text-gray-500">{['Sophie','Marco','Lea','David'][i]}</span></div>
+            <div key={i} className="bg-white dark:bg-[#202c33] p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">"{text}"</p>
+              <span className="text-xs text-gray-400">{['Sophie','Marco','Lea','David'][i]}</span>
             </div>
           ))}
         </div>
