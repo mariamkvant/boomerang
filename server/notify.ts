@@ -13,7 +13,12 @@ interface NotifyOptions {
 }
 
 export async function notify(opts: NotifyOptions) {
-  // Save in-app notification
+  // Check user notification preferences
+  const prefs = await db.get('SELECT notify_email, notify_push, notify_reminders FROM users WHERE id = ?', opts.userId);
+  const isReminder = opts.type === 'reminder' || opts.type === 'nudge' || opts.type === 'booking_reminder';
+  if (isReminder && prefs?.notify_reminders === false) return;
+
+  // Save in-app notification (always)
   const result = await db.run(
     'INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
     opts.userId, opts.type, opts.title, opts.body, opts.link || null
@@ -27,12 +32,14 @@ export async function notify(opts: NotifyOptions) {
     link: opts.link || null,
     created_at: new Date().toISOString(),
   });
-  // Send email if provided
-  if (opts.email) {
+  // Send email if provided and user wants emails
+  if (opts.email && prefs?.notify_email !== false) {
     await sendEmail(opts.email.to, opts.email.subject, opts.email.html);
   }
-  // Send push notification
-  await sendPushToUser(opts.userId, opts.title, opts.body, opts.link);
+  // Send push notification if user wants push
+  if (prefs?.notify_push !== false) {
+    await sendPushToUser(opts.userId, opts.title, opts.body, opts.link);
+  }
 }
 
 export function notificationEmailHtml(title: string, body: string, link?: string): string {

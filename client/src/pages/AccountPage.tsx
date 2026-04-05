@@ -17,14 +17,33 @@ function getNotifPrefs(): Record<string, boolean> {
 }
 
 function NotificationPreferences() {
+  const { user, refreshUser } = useAuth();
   const [prefs, setPrefs] = useState(getNotifPrefs);
   const [saved, setSaved] = useState(false);
+  const [emailOn, setEmailOn] = useState(true);
+  const [remindersOn, setRemindersOn] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      setEmailOn((user as any).notify_email !== false);
+      setRemindersOn((user as any).notify_reminders !== false);
+    }
+  }, [user]);
 
   const toggle = (key: string) => {
     const updated = { ...prefs, [key]: !prefs[key] };
     setPrefs(updated);
     localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(updated));
     setSaved(true); setTimeout(() => setSaved(false), 2000);
+  };
+
+  const toggleServer = async (field: string, value: boolean) => {
+    try {
+      await api.updateProfile({ [field]: value });
+      if (field === 'notify_email') setEmailOn(value);
+      if (field === 'notify_reminders') setRemindersOn(value);
+      setSaved(true); setTimeout(() => setSaved(false), 2000);
+    } catch {}
   };
 
   const categories = [
@@ -58,6 +77,29 @@ function NotificationPreferences() {
             </button>
           </div>
         ))}
+      </div>
+      {/* Server-side toggles */}
+      <div className="border-t border-gray-100 mt-4 pt-4 space-y-3">
+        <div className="flex items-center justify-between py-1">
+          <div>
+            <p className="text-sm font-medium text-gray-700">Email notifications</p>
+            <p className="text-xs text-gray-400">Receive emails for requests, confirmations, and digests</p>
+          </div>
+          <button onClick={() => toggleServer('notify_email', !emailOn)}
+            className={`relative w-10 h-6 rounded-full transition-colors ${emailOn ? 'bg-primary-500' : 'bg-gray-300'}`}>
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailOn ? 'left-[18px]' : 'left-0.5'}`} />
+          </button>
+        </div>
+        <div className="flex items-center justify-between py-1">
+          <div>
+            <p className="text-sm font-medium text-gray-700">Reminders & nudges</p>
+            <p className="text-xs text-gray-400">Automatic reminders for pending actions</p>
+          </div>
+          <button onClick={() => toggleServer('notify_reminders', !remindersOn)}
+            className={`relative w-10 h-6 rounded-full transition-colors ${remindersOn ? 'bg-primary-500' : 'bg-gray-300'}`}>
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${remindersOn ? 'left-[18px]' : 'left-0.5'}`} />
+          </button>
+        </div>
       </div>
     </div>
   );

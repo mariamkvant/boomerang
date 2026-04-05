@@ -15,6 +15,7 @@ export default function CreateServicePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [quickMode, setQuickMode] = useState(true);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,7 +94,15 @@ export default function CreateServicePage() {
           <span>⚠️</span> {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+        {/* Quick/Advanced toggle */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500 dark:text-gray-400">{quickMode ? 'Quick mode' : 'Advanced mode'}</span>
+          <button type="button" onClick={() => setQuickMode(!quickMode)}
+            className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+            {quickMode ? 'Show more options' : 'Simplify'}
+          </button>
+        </div>
         {/* Category */}
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
@@ -142,6 +151,7 @@ export default function CreateServicePage() {
         </div>
 
         {/* Image */}
+        {!quickMode && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Image (optional)</label>
           {image ? (
@@ -156,8 +166,10 @@ export default function CreateServicePage() {
             </label>
           )}
         </div>
+        )}
 
         {/* Duration */}
+        {!quickMode && (
         <div>
           <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1.5">Duration (minutes)</label>
           <div className="flex gap-2">
@@ -174,6 +186,7 @@ export default function CreateServicePage() {
               placeholder="Or enter custom duration" />
           </div>
         </div>
+        )}
 
         {/* Boomerangs — auto-calculated */}
         <div>
@@ -197,6 +210,7 @@ export default function CreateServicePage() {
         </div>
 
         {/* Bundle option */}
+        {!quickMode && (
         <div className="border-t border-gray-100 pt-5">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={form.is_bundle} onChange={e => setForm(f => ({...f, is_bundle: e.target.checked}))} className="rounded" />
@@ -217,6 +231,7 @@ export default function CreateServicePage() {
             </div>
           )}
         </div>
+        )}
 
         <button type="submit" disabled={loading}
           className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 hover:shadow-md">

@@ -132,7 +132,7 @@ router.get('/:id/achievements', async (req: AuthRequest, res: Response) => {
 
 // Get current user profile
 router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, created_at FROM users WHERE id = ?', req.userId);
+  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, notify_email, notify_push, notify_reminders, created_at FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.userId);
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });
@@ -147,6 +147,12 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatarUrl, req.userId);
   }
   await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, req.userId);
+  // Update notification preferences if provided
+  const { notify_email, notify_push, notify_reminders } = req.body;
+  if (notify_email !== undefined || notify_push !== undefined || notify_reminders !== undefined) {
+    await db.run('UPDATE users SET notify_email = COALESCE(?, notify_email), notify_push = COALESCE(?, notify_push), notify_reminders = COALESCE(?, notify_reminders) WHERE id = ?',
+      notify_email, notify_push, notify_reminders, req.userId);
+  }
   res.json({ message: 'Profile updated' });
 });
 
