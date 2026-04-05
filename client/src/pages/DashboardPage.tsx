@@ -789,9 +789,9 @@ export default function DashboardPage() {
             <span className="text-lg">+</span> Offer a new service
           </Link>
           {myServices.map((s: any) => (
-            <div key={s.id} className="bg-white p-5 rounded-xl shadow-card flex items-center justify-between">
+            <div key={s.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm flex items-center justify-between">
               <Link to={`/services/${s.id}`} className="flex-1 group">
-                <h3 className="font-semibold text-sm group-hover:text-primary-600 cursor-pointer">{s.title}</h3>
+                <h3 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white cursor-pointer">{s.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
               </Link>
               <div className="flex items-center gap-2 ml-3 shrink-0">
@@ -801,6 +801,30 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
+
+          {/* Service history — all requests for my services */}
+          {incoming.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Service History</h4>
+              <div className="space-y-2">
+                {incoming.map((r: any) => (
+                  <div key={r.id} className="bg-white dark:bg-[#202c33] px-4 py-3 rounded-xl shadow-sm flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium dark:text-white truncate">{r.service_title}</span>
+                        {badge(r.status)}
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        {r.requester_name} · {r.points_cost} 🪃
+                        {r.created_at && ` · ${new Date(r.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`}
+                      </p>
+                    </div>
+                    <Link to={`/messages?to=${r.requester_id}`} className="text-[10px] text-primary-500 hover:text-primary-600 shrink-0 ml-2">Message</Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
