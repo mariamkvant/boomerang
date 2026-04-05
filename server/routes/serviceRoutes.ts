@@ -107,8 +107,14 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 });
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, image } = req.body;
+  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, image, city } = req.body;
   if (!title || !description || !category_id) return res.status(400).json({ error: 'Title, description, and category are required' });
+  // Auto-fill city from user profile if not provided
+  let serviceCity = city;
+  if (!serviceCity) {
+    const userProfile = await db.get('SELECT city FROM users WHERE id = ?', req.userId);
+    serviceCity = userProfile?.city || null;
+  }
   if (image && image.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
   const imageUrl = image ? await uploadImage(image, 'boomerang/services') : null;
   let finalPoints = points_cost;
@@ -116,12 +122,11 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
     const cat = await db.get('SELECT * FROM categories WHERE id = ?', category_id);
     finalPoints = cat ? Math.round(((duration_minutes || 60) / 60) * cat.base_rate * cat.multiplier) : 10;
   }
-  // Apply bundle discount if applicable
   if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
     finalPoints = Math.round(finalPoints * req.body.sessions_count * (1 - req.body.bundle_discount / 100));
   }
-  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl);
+  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl, serviceCity);
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
 });
 

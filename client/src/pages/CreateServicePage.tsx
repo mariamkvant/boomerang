@@ -10,7 +10,7 @@ export default function CreateServicePage() {
   const groupId = searchParams.get('group');
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10' });
+  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10', city: '' });
   const [suggested, setSuggested] = useState<{ suggested: number; min: number; max: number; multiplier: number } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -137,6 +137,18 @@ export default function CreateServicePage() {
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1.5">Service Title</label>
           <input id="title" required value={form.title} onChange={set('title')} placeholder="e.g. Guitar lessons for beginners"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+        </div>
+
+        {/* Location / Commune */}
+        <div>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">Location (Commune)</label>
+          <select id="city" required value={form.city} onChange={set('city')}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white">
+            <option value="">Select your commune</option>
+            {['Luxembourg City','Esch-sur-Alzette','Differdange','Dudelange','Ettelbruck','Diekirch','Wiltz','Echternach','Remich','Grevenmacher','Mersch','Capellen','Steinfort','Mamer','Strassen','Bertrange','Hesperange','Sandweiler','Niederanven','Walferdange','Steinsel','Lorentzweiler','Lintgen','Bettembourg','Schifflange','Kayl','Rumelange','Sanem','Mondercange','Pétange','Bascharage','Clemency','Garnich','Hobscheid','Koerich','Septfontaines','Kehlen','Kopstal','Leudelange','Reckange-sur-Mess','Roeser','Weiler-la-Tour','Contern','Frisange','Mondorf-les-Bains','Dalheim','Lenningen','Stadtbredimus','Waldbredimus','Bous','Betzdorf','Flaxweiler','Junglinster','Manternach','Mertert','Wormeldange','Bech','Beaufort','Consdorf','Larochette','Medernach','Nommern','Reisdorf','Rosport-Mompach','Waldbillig','Berdorf','Bourscheid','Clervaux','Esch-sur-Sûre','Feulen','Grosbous','Hoscheid','Kiischpelt','Lac de la Haute-Sûre','Parc Hosingen','Putscheid','Tandel','Troisvierges','Vianden','Weiswampach','Wincrange','Winseler','Bissen','Colmar-Berg','Ell','Fischbach','Helperknapp','Préizerdaul','Rambrouch','Redange-sur-Attert','Saeul','Useldange','Vichten','Wahl','Other'].map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
         {/* Description */}

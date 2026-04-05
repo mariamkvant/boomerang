@@ -26,15 +26,14 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, search } = req.query;
-  let query = `SELECT hw.*, c.name as category_name, c.icon as category_icon, u.username as requester_name, u.city as requester_city
-    FROM help_wanted hw JOIN categories c ON hw.category_id = c.id JOIN users u ON hw.requester_id = u.id WHERE hw.status = 'open'`;
-  const params: any[] = [];
-  let n = 0;
-  if (category) { query += ` AND hw.category_id = $${++n}`; params.push(category); }
-  if (search) { query += ` AND (hw.title ILIKE $${++n} OR hw.description ILIKE $${++n})`; params.push(`%${search}%`, `%${search}%`); n++; }
-  query += ' ORDER BY hw.created_at DESC LIMIT 50';
-  const requests = await db.all(query, ...params);
+  const { category, search, include_completed } = req.query;
+  const statusClause = include_completed ? "hw.status IN ('open','accepted','delivered','completed')" : "hw.status = 'open'";
+  const requests = await db.all(`SELECT hw.*, c.name as category_name, c.icon as category_icon, u.username as requester_name, u.city as requester_city,
+    h.username as helper_name
+    FROM help_wanted hw JOIN categories c ON hw.category_id = c.id JOIN users u ON hw.requester_id = u.id
+    LEFT JOIN users h ON hw.accepted_by = h.id
+    WHERE ${statusClause}
+    ORDER BY CASE WHEN hw.status = 'open' THEN 0 ELSE 1 END, hw.created_at DESC LIMIT 50`);
   res.json(requests);
 });
 

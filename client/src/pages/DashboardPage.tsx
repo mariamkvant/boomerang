@@ -737,7 +737,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · {h.points_budget} 🪃</p>
+                  <p className="text-xs text-gray-500">{h.category_name} · {h.points_budget} 🪃</p>
                   {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
                 </div>
                 <div className="flex gap-2">
@@ -765,7 +765,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_icon} {h.category_name} · {h.points_budget} 🪃</p>
+                  <p className="text-xs text-gray-500">{h.category_name} · {h.points_budget} 🪃</p>
                   <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
                 </div>
                 <div className="flex gap-2">
@@ -792,7 +792,7 @@ export default function DashboardPage() {
             <div key={s.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm flex items-center justify-between">
               <Link to={`/services/${s.id}`} className="flex-1 group">
                 <h3 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white cursor-pointer">{s.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">{s.category_icon} {s.category_name} · {s.points_cost} 🪃</p>
+                <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} 🪃</p>
               </Link>
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">✏️</Link>
