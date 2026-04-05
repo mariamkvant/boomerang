@@ -86,7 +86,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
     LEFT JOIN subcategories sc ON s.subcategory_id = sc.id WHERE s.id = ?`, req.params.id);
   if (!service) return res.status(404).json({ error: 'Service not found' });
-  const reviews = await db.all('SELECT r.*, u.username as reviewer_name FROM reviews r JOIN users u ON r.reviewer_id = u.id JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = ? AND (r.is_hidden = false OR r.is_hidden IS NULL) ORDER BY r.created_at DESC', req.params.id);
+  const reviews = await db.all('SELECT r.*, u.username as reviewer_name, r.provider_reply, r.provider_reply_at FROM reviews r JOIN users u ON r.reviewer_id = u.id JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = ? AND (r.is_hidden = false OR r.is_hidden IS NULL) ORDER BY r.created_at DESC', req.params.id);
 
   // Provider stats: avg response time + completion rate
   const providerStats = await db.get(`SELECT

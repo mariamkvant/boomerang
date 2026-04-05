@@ -41,7 +41,10 @@ router.get('/score/:userId', async (req: AuthRequest, res: Response) => {
   const level = score >= 80 ? 'Platinum' : score >= 60 ? 'Gold' : score >= 35 ? 'Silver' : 'Bronze';
   const emoji = score >= 80 ? '💎' : score >= 60 ? '🥇' : score >= 35 ? '🥈' : '🥉';
 
-  res.json({ score, level, emoji, completed: stats?.completed || 0, total_requests: totalAsProvider, completion_rate: completionRate, avg_hours: responseTime?.avg_hours || null, avg_rating: rating?.avg_rating, review_count: rating?.review_count || 0 });
+  // Get streak
+  const streakData = await db.get('SELECT streak_weeks FROM users WHERE id = ?', req.params.userId);
+
+  res.json({ score, level, emoji, completed: stats?.completed || 0, total_requests: totalAsProvider, completion_rate: completionRate, avg_hours: responseTime?.avg_hours || null, avg_rating: rating?.avg_rating, review_count: rating?.review_count || 0, streak_weeks: streakData?.streak_weeks || 0 });
 });
 
 // Report a user

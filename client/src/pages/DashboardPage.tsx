@@ -196,6 +196,22 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
+      {/* Welcome message */}
+      {user && (() => {
+        const pendingCount = incoming.filter(r => r.status === 'pending').length;
+        const unconfirmed = outgoing.filter(r => r.status === 'delivered').length;
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+        const actions = [];
+        if (pendingCount > 0) actions.push(`${pendingCount} pending request${pendingCount > 1 ? 's' : ''}`);
+        if (unconfirmed > 0) actions.push(`${unconfirmed} to confirm`);
+        return actions.length > 0 ? (
+          <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl px-4 py-3 mb-4">
+            <p className="text-sm text-primary-700 dark:text-primary-300">{greeting}, <span className="font-semibold">{user.username}</span>! You have {actions.join(' and ')}.</p>
+          </div>
+        ) : null;
+      })()}
+
       {/* Header */}
       <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 sm:p-6 mb-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -67,6 +67,9 @@ export const api = {
   cancelRequest: (id: number) => request(`/requests/${id}/cancel`, { method: 'PUT' }),
   nudgeRequest: (id: number) => request(`/requests/${id}/nudge`, { method: 'POST' }),
   reviewRequest: (id: number, body: any) => request(`/requests/${id}/review`, { method: 'POST', body: JSON.stringify(body) }),
+  editReview: (reviewId: number, body: any) => request(`/requests/reviews/${reviewId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteReview: (reviewId: number) => request(`/requests/reviews/${reviewId}`, { method: 'DELETE' }),
+  replyToReview: (reviewId: number, reply: string) => request(`/requests/reviews/${reviewId}/reply`, { method: 'POST', body: JSON.stringify({ reply }) }),
 
   // Messages
   getMessages: (requestId: number) => request(`/requests/${requestId}/messages`),
@@ -136,6 +139,8 @@ export const api = {
 
   // Social
   postShoutout: (body: any) => request('/social/shoutouts', { method: 'POST', body: JSON.stringify(body) }),
+  editShoutout: (id: number, message: string) => request(`/social/shoutouts/${id}`, { method: 'PUT', body: JSON.stringify({ message }) }),
+  deleteShoutout: (id: number) => request(`/social/shoutouts/${id}`, { method: 'DELETE' }),
   getShoutouts: () => request('/social/shoutouts'),
   getUserShoutouts: (id: number) => request(`/social/shoutouts/user/${id}`),
   getSuperhelperStatus: (id: number) => request(`/social/superhelper/${id}`),

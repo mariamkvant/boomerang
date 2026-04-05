@@ -33,6 +33,22 @@ router.get('/shoutouts/user/:id', async (req: AuthRequest, res: Response) => {
   res.json(shoutouts);
 });
 
+// Edit own shoutout
+router.put('/shoutouts/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { message } = req.body;
+  if (!message?.trim()) return res.status(400).json({ error: 'Message required' });
+  const result = await db.run('UPDATE shoutouts SET message = $1 WHERE id = $2 AND from_user_id = $3', message.trim(), req.params.id, req.userId);
+  if (result.changes === 0) return res.status(404).json({ error: 'Shoutout not found or not yours' });
+  res.json({ message: 'Updated' });
+});
+
+// Delete own shoutout
+router.delete('/shoutouts/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const result = await db.run('DELETE FROM shoutouts WHERE id = ? AND from_user_id = ?', req.params.id, req.userId);
+  if (result.changes === 0) return res.status(404).json({ error: 'Shoutout not found or not yours' });
+  res.json({ message: 'Deleted' });
+});
+
 // Check Superhelper status for a user
 router.get('/superhelper/:id', async (req: AuthRequest, res: Response) => {
   const stats = await db.get(`SELECT

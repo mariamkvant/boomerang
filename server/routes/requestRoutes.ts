@@ -221,4 +221,34 @@ router.put('/reviews/:reviewId/hide', authMiddleware, async (req: AuthRequest, r
   res.json({ message: hidden ? 'Review hidden' : 'Review visible' });
 });
 
+// Edit own review
+router.put('/reviews/:reviewId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const review = await db.get('SELECT * FROM reviews WHERE id = ? AND reviewer_id = ?', req.params.reviewId, req.userId);
+  if (!review) return res.status(404).json({ error: 'Review not found or not yours' });
+  const { rating, comment } = req.body;
+  if (rating && (rating < 1 || rating > 5)) return res.status(400).json({ error: 'Rating must be 1-5' });
+  await db.run('UPDATE reviews SET rating = COALESCE($1, rating), comment = COALESCE($2, comment) WHERE id = $3',
+    rating || null, comment !== undefined ? comment : null, req.params.reviewId);
+  res.json({ message: 'Review updated' });
+});
+
+// Delete own review
+router.delete('/reviews/:reviewId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const result = await db.run('DELETE FROM reviews WHERE id = ? AND reviewer_id = ?', req.params.reviewId, req.userId);
+  if (result.changes === 0) return res.status(404).json({ error: 'Review not found or not yours' });
+  res.json({ message: 'Review deleted' });
+});
+
+// Provider replies to a review
+router.post('/reviews/:reviewId/reply', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const review = await db.get(`SELECT r.*, s.provider_id FROM reviews r
+    JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE r.id = ?`, req.params.reviewId);
+  if (!review) return res.status(404).json({ error: 'Review not found' });
+  if (review.provider_id !== req.userId) return res.status(403).json({ error: 'Only the service provider can reply' });
+  const { reply } = req.body;
+  if (!reply?.trim()) return res.status(400).json({ error: 'Reply cannot be empty' });
+  await db.run('UPDATE reviews SET provider_reply = $1, provider_reply_at = NOW() WHERE id = $2', reply.trim(), req.params.reviewId);
+  res.json({ message: 'Reply posted' });
+});
+
 export default router;

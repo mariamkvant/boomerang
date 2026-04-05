@@ -266,21 +266,41 @@ export default function ServiceDetailPage() {
 
       {/* Reviews */}
       {service.reviews?.length > 0 && (
-        <div className="bg-white p-8 rounded-2xl shadow-card mb-6">
-          <h3 className="font-bold text-lg mb-5">Reviews ({service.reviews.length})</h3>
+        <div className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm mb-6">
+          <h3 className="font-bold text-lg dark:text-white mb-5">Reviews ({service.reviews.length})</h3>
           <div className="space-y-4">
             {service.reviews.map((r: any) => (
-              <div key={r.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-500">
-                    {r.reviewer_name?.charAt(0).toUpperCase()}
+              <div key={r.id} className="border-b border-gray-50 dark:border-gray-700 pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-xs font-medium text-white">
+                      {r.reviewer_name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium dark:text-white">{r.reviewer_name}</span>
+                      <div className="text-yellow-500 text-xs">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium">{r.reviewer_name}</span>
-                    <div className="text-yellow-500 text-xs">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
-                  </div>
+                  {user?.id === r.reviewer_id && (
+                    <button onClick={async () => { if (confirm('Delete your review?')) { try { await api.deleteReview(r.id); window.location.reload(); } catch {} } }}
+                      className="text-[10px] text-gray-400 hover:text-red-500">Delete</button>
+                  )}
                 </div>
-                {r.comment && <p className="text-sm text-gray-600 ml-11">{r.comment}</p>}
+                {r.comment && <p className="text-sm text-gray-600 dark:text-gray-300 ml-11">{r.comment}</p>}
+                {/* Provider reply */}
+                {r.provider_reply && (
+                  <div className="ml-11 mt-2 bg-gray-50 dark:bg-[#2a3942] rounded-lg p-3">
+                    <p className="text-[10px] text-gray-400 mb-1">Provider reply</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{r.provider_reply}</p>
+                  </div>
+                )}
+                {/* Reply button for provider */}
+                {user?.id === service.provider_id && !r.provider_reply && (
+                  <button onClick={async () => {
+                    const reply = prompt('Reply to this review:');
+                    if (reply?.trim()) { try { await api.replyToReview(r.id, reply); window.location.reload(); } catch {} }
+                  }} className="text-[10px] text-primary-500 hover:text-primary-600 ml-11 mt-1">Reply</button>
+                )}
               </div>
             ))}
           </div>
