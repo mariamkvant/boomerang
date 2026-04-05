@@ -122,6 +122,7 @@ export default function DashboardPage() {
   const [trust, setTrust] = useState<any>(null);
   const [shoutoutPrompt, setShoutoutPrompt] = useState<{ userId: number; name: string } | null>(null);
   const [shoutoutMsg, setShoutoutMsg] = useState('');
+  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const { toast } = useToast();
   const { confirm } = useConfirm();
 
@@ -134,6 +135,7 @@ export default function DashboardPage() {
       api.getMyHelping().then(setMyHelping).catch(() => {});
       api.getDailyMatch().then(setDailyMatch).catch(() => {});
       if (user) api.getTrustScore(user.id).then(setTrust).catch(() => {});
+      api.getUpcomingBookings().then(setUpcomingBookings).catch(() => {});
     } catch {}
   };
 
@@ -284,6 +286,41 @@ export default function DashboardPage() {
           <span className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">{t('groups.title')}</span>
         </Link>
       </div>
+
+      {/* Upcoming bookings */}
+      {upcomingBookings.length > 0 && (
+        <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-5 mb-6">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Next up</h3>
+          <div className="space-y-3">
+            {upcomingBookings.slice(0, 3).map((b: any) => {
+              const isProvider = b.provider_id === user?.id;
+              const otherName = isProvider ? b.requester_name : b.provider_name;
+              const dateStr = new Date(b.booked_date + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+              const calTitle = encodeURIComponent(b.service_title);
+              const calDate = b.booked_date.replace(/-/g, '');
+              const calStart = b.start_time.replace(':', '') + '00';
+              const calEnd = b.end_time.replace(':', '') + '00';
+              const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${calTitle}&dates=${calDate}T${calStart}/${calDate}T${calEnd}&details=${encodeURIComponent(`Boomerang exchange with ${otherName}`)}`;
+              return (
+                <div key={b.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-12 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex flex-col items-center justify-center shrink-0">
+                      <span className="text-[10px] text-primary-500 font-medium">{dateStr.split(' ')[0]}</span>
+                      <span className="text-sm font-bold text-primary-700 dark:text-primary-400">{dateStr.split(' ')[2]}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium dark:text-white">{b.service_title}</p>
+                      <p className="text-xs text-gray-400">{b.start_time} – {b.end_time} · with {otherName}</p>
+                    </div>
+                  </div>
+                  <a href={gcalUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-[11px] text-primary-500 hover:text-primary-600 shrink-0">+ Calendar</a>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Monthly stats */}
       {(incoming.length > 0 || outgoing.length > 0) && (() => {

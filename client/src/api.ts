@@ -78,6 +78,8 @@ export const api = {
   getAvailableSlots: (serviceId: number, date: string) => request(`/availability/slots?service_id=${serviceId}&date=${date}`),
   bookSlot: (body: any) => request('/availability/book', { method: 'POST', body: JSON.stringify(body) }),
   getBooking: (requestId: number) => request(`/availability/booking/${requestId}`),
+  getUpcomingBookings: () => request('/availability/upcoming'),
+  getNextAvailable: (userId: number) => request(`/availability/next-available/${userId}`),
 
   // Trust & Safety
   getTrustScore: (userId: number) => request(`/trust/score/${userId}`),

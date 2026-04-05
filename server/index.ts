@@ -243,6 +243,33 @@ initDatabase().then(() => {
           link: '/dashboard',
         });
       }
+
+      // Booking reminders — 1 hour before scheduled time
+      const nowHour = new Date();
+      const inOneHour = new Date(nowHour.getTime() + 60 * 60_000);
+      const todayStr = nowHour.toISOString().split('T')[0];
+      const nowTime = nowHour.toTimeString().slice(0, 5);
+      const soonTime = inOneHour.toTimeString().slice(0, 5);
+      
+      const upcomingSessions = await db.all(
+        `SELECT b.*, sr.id as request_id, s.title, s.provider_id, sr.requester_id,
+          p.username as provider_name, p.email as provider_email,
+          r.username as requester_name, r.email as requester_email
+        FROM bookings b
+        JOIN service_requests sr ON b.request_id = sr.id
+        JOIN services s ON sr.service_id = s.id
+        JOIN users p ON s.provider_id = p.id
+        JOIN users r ON sr.requester_id = r.id
+        WHERE b.booked_date = $1
+        AND b.start_time > $2 AND b.start_time <= $3
+        AND sr.status IN ('accepted', 'delivered')`,
+        todayStr, nowTime, soonTime
+      );
+      for (const session of upcomingSessions) {
+        const msg = `Reminder: "${session.title}" at ${session.start_time} today`;
+        await notify({ userId: session.provider_id, type: 'booking_reminder', title: 'Coming up soon', body: `${msg} with ${session.requester_name}`, link: '/dashboard' });
+        await notify({ userId: session.requester_id, type: 'booking_reminder', title: 'Coming up soon', body: `${msg} with ${session.provider_name}`, link: '/dashboard' });
+      }
     } catch (err) {
       console.error('[REMINDERS] Error:', err);
     }

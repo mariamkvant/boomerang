@@ -82,4 +82,45 @@ router.get('/booking/:requestId', async (req: AuthRequest, res: Response) => {
   res.json(booking || null);
 });
 
+// Get upcoming bookings for the logged-in user
+router.get('/upcoming', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const today = new Date().toISOString().split('T')[0];
+  const bookings = await db.all(
+    `SELECT b.*, sr.id as request_id, sr.status, s.title as service_title, s.id as service_id,
+      p.username as provider_name, p.id as provider_id,
+      r.username as requester_name, r.id as requester_id
+    FROM bookings b
+    JOIN service_requests sr ON b.request_id = sr.id
+    JOIN services s ON sr.service_id = s.id
+    JOIN users p ON s.provider_id = p.id
+    JOIN users r ON sr.requester_id = r.id
+    WHERE (s.provider_id = $1 OR sr.requester_id = $1)
+    AND b.booked_date >= $2
+    AND sr.status IN ('accepted', 'delivered')
+    ORDER BY b.booked_date, b.start_time
+    LIMIT 10`,
+    req.userId, today
+  );
+  res.json(bookings);
+});
+
+// Get provider's next available day (for browse card badges)
+router.get('/next-available/:userId', async (req: AuthRequest, res: Response) => {
+  const slots = await db.all('SELECT day_of_week FROM availability WHERE user_id = ? ORDER BY day_of_week', req.params.userId);
+  if (slots.length === 0) return res.json({ next: null });
+  const today = new Date().getDay();
+  const days = slots.map((s: any) => s.day_of_week);
+  // Find next available day from today
+  for (let i = 0; i < 7; i++) {
+    const check = (today + i) % 7;
+    if (days.includes(check)) {
+      if (i === 0) return res.json({ next: 'today' });
+      if (i === 1) return res.json({ next: 'tomorrow' });
+      const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return res.json({ next: names[check] });
+    }
+  }
+  res.json({ next: null });
+});
+
 export default router;
