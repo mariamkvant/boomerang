@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { api } from '../api';
 
 const FAQS = [
   {
