@@ -65,6 +65,7 @@ export const api = {
   resolveDispute: (id: number, resolution: string) => request(`/requests/${id}/resolve`, { method: 'PUT', body: JSON.stringify({ resolution }) }),
   adminResolveDispute: (id: number, resolution: string) => request(`/requests/${id}/admin-resolve`, { method: 'PUT', body: JSON.stringify({ resolution }) }),
   cancelRequest: (id: number) => request(`/requests/${id}/cancel`, { method: 'PUT' }),
+  nudgeRequest: (id: number) => request(`/requests/${id}/nudge`, { method: 'POST' }),
   reviewRequest: (id: number, body: any) => request(`/requests/${id}/review`, { method: 'POST', body: JSON.stringify(body) }),
 
   // Messages

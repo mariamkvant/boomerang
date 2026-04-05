@@ -295,18 +295,23 @@ export default function DashboardPage() {
             {upcomingBookings.slice(0, 3).map((b: any) => {
               const isProvider = b.provider_id === user?.id;
               const otherName = isProvider ? b.requester_name : b.provider_name;
-              const dateStr = new Date(b.booked_date + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
-              const calTitle = encodeURIComponent(b.service_title);
-              const calDate = b.booked_date.replace(/-/g, '');
-              const calStart = b.start_time.replace(':', '') + '00';
-              const calEnd = b.end_time.replace(':', '') + '00';
+              const rawDate = b.booked_date?.split?.('T')?.[0] || b.booked_date;
+              const dateObj = new Date(rawDate + 'T12:00:00');
+              const isValidDate = !isNaN(dateObj.getTime());
+              const dateStr = isValidDate ? dateObj.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : rawDate;
+              const dayName = isValidDate ? dateObj.toLocaleDateString('en', { weekday: 'short' }) : '';
+              const dayNum = isValidDate ? String(dateObj.getDate()) : '';
+              const calTitle = encodeURIComponent(b.service_title || '');
+              const calDate = rawDate?.replace(/-/g, '') || '';
+              const calStart = (b.start_time || '').replace(':', '') + '00';
+              const calEnd = (b.end_time || '').replace(':', '') + '00';
               const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${calTitle}&dates=${calDate}T${calStart}/${calDate}T${calEnd}&details=${encodeURIComponent(`Boomerang exchange with ${otherName}`)}`;
               return (
                 <div key={b.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-12 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[10px] text-primary-500 font-medium">{dateStr.split(' ')[0]}</span>
-                      <span className="text-sm font-bold text-primary-700 dark:text-primary-400">{dateStr.split(' ')[2]}</span>
+                      <span className="text-[10px] text-primary-500 font-medium">{dayName}</span>
+                      <span className="text-sm font-bold text-primary-700 dark:text-primary-400">{dayNum}</span>
                     </div>
                     <div>
                       <p className="text-sm font-medium dark:text-white">{b.service_title}</p>
@@ -578,10 +583,18 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (
-                    <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                    <>
+                      <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
+                        className="text-xs bg-primary-50 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                    </>
                   )}
                   {r.status === 'accepted' && (
-                    <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                    <>
+                      <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
+                        className="text-xs bg-primary-50 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                    </>
                   )}
                   {r.status === 'delivered' && (
                     <>

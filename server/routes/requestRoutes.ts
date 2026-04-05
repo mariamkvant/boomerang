@@ -149,6 +149,23 @@ router.put('/:id/admin-resolve', authMiddleware, async (req: AuthRequest, res: R
   res.json({ message: `Admin resolved as ${resolution}` });
 });
 
+// Nudge — send a reminder to the other party (rate limited: once per 24h per request)
+router.post('/:id/nudge', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id, s.title FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  if (!['pending', 'accepted', 'delivered'].includes(r.status)) return res.status(400).json({ error: 'Cannot nudge on this status' });
+  // Rate limit: check last nudge
+  const lastNudge = await db.get("SELECT created_at FROM notifications WHERE user_id = $1 AND type = 'nudge' AND link = $2 AND created_at > NOW() - INTERVAL '24 hours'",
+    r.requester_id === req.userId ? r.provider_id : r.requester_id, '/dashboard');
+  if (lastNudge) return res.status(429).json({ error: 'Already nudged in the last 24 hours' });
+  const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
+  const targetId = r.requester_id === req.userId ? r.provider_id : r.requester_id;
+  const action = r.status === 'pending' ? 'respond to' : r.status === 'delivered' ? 'confirm' : 'complete';
+  await notify({ userId: targetId, type: 'nudge', title: 'Friendly reminder', body: `${sender?.username} is waiting for you to ${action} "${r.title}"`, link: '/dashboard' });
+  res.json({ message: 'Nudge sent!' });
+});
+
 router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response) => {
   const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
