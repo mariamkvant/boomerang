@@ -84,7 +84,9 @@ workflows:
 
       - name: Upload to App Store Connect
         script: |
-          IPA_PATH=$(find $CM_BUILD_DIR -name "*.ipa" -type f | head -1)
+          echo "Searching for IPA files everywhere..."
+          find / -name "*.ipa" -type f 2>/dev/null
+          IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
