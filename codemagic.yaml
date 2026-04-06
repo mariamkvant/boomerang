@@ -7,7 +7,6 @@ workflows:
       groups:
         - app_store_credentials
       vars:
-        XCODE_PROJECT: "client/ios/App/App.xcodeproj"
         BUNDLE_ID: "fyi.boomerang.app"
       node: 22
     scripts:
@@ -47,43 +46,20 @@ workflows:
         script: |
           xcode-project use-profiles
 
-      - name: Build iOS app
+      - name: Build and export IPA
         script: |
           cd client/ios/App
-          xcodebuild -project App.xcodeproj \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath build/App.xcarchive \
-            archive
-
-      - name: Export IPA
-        script: |
-          # Create export options plist
-          cat > /tmp/exportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>destination</key>
-            <string>upload</string>
-          </dict>
-          </plist>
-          EOF
-
-          cd client/ios/App
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist /tmp/exportOptions.plist
+          xcode-project build-ipa \
+            --project App.xcodeproj \
+            --scheme App
 
       - name: Upload to App Store Connect
         script: |
           KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           app-store-connect publish \
-            --path "client/ios/App/build/ipa/*.ipa"
+            --path build/ios/ipa/*.ipa
 
     artifacts:
-      - client/ios/App/build/ipa/*.ipa
+      - build/ios/ipa/*.ipa
+      - client/ios/App/build/**/*.ipa
+      - "**/*.ipa"
