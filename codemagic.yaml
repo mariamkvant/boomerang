@@ -36,14 +36,26 @@ workflows:
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
           
-          # Generate RSA key and save it for later use
-          openssl genrsa -out $CM_BUILD_DIR/cert_key.pem 2048
-          CERT_KEY=$(cat $CM_BUILD_DIR/cert_key.pem)
+          # Write the certificate key to a file
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
           
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --certificate-key "$CERT_KEY" \
+            --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
             --create
+
+      - name: Set up code signing
+        script: |
+          # Write cert key again
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
+          
+          # Import certificates and profiles
+          xcode-project use-profiles
+          
+          # Import the private key into the build keychain
+          keychain initialize
+          security import /tmp/cert_key.pem -k $(keychain get-default) -T /usr/bin/codesign -A 2>/dev/null || \
+          security import /tmp/cert_key.pem -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A 2>/dev/null || true
 
       - name: Set up code signing
         script: |
