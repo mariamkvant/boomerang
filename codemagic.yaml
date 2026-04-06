@@ -65,8 +65,7 @@ workflows:
         script: |
           xcode-project build-ipa \
             --project "client/ios/App/App.xcodeproj" \
-            --scheme App \
-            --archive-path "client/ios/App/build/App.xcarchive"
+            --scheme App
 
       - name: Upload to App Store Connect
         script: |
@@ -74,4 +73,6 @@ workflows:
             --path "client/ios/App/build/**/*.ipa"
 
     artifacts:
+      - build/ios/ipa/*.ipa
       - client/ios/App/build/**/*.ipa
+      - /tmp/xcodebuild_logs/*.log
