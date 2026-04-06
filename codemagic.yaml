@@ -6,11 +6,9 @@ workflows:
     environment:
       groups:
         - app_store_credentials
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: fyi.boomerang.app
       vars:
         XCODE_PROJECT: "client/ios/App/App.xcodeproj"
+        BUNDLE_ID: "fyi.boomerang.app"
       node: 18
     scripts:
       - name: Install client dependencies
@@ -32,6 +30,20 @@ workflows:
         script: |
           cd client/ios/App
           pod install || true
+
+      - name: Create certificate and profile
+        script: |
+          # Create a new certificate
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --save
+
+          # Create provisioning profile
+          app-store-connect profiles create \
+            --name "Boomerang App Store" \
+            --type IOS_APP_STORE \
+            --bundle-id-identifier "$BUNDLE_ID" \
+            --save
 
       - name: Set up code signing
         script: |
