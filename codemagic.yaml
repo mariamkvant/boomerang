@@ -49,9 +49,16 @@ workflows:
       - name: Build and export IPA
         script: |
           cd client/ios/App
-          xcode-project build-ipa \
-            --project App.xcodeproj \
-            --scheme App
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/App.xcarchive \
+            archive \
+            DEVELOPMENT_TEAM=FQ8GX7UR2S \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            2>&1 | tail -50
 
       - name: Upload to App Store Connect
         script: |
