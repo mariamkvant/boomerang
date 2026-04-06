@@ -9,7 +9,7 @@ workflows:
       vars:
         XCODE_PROJECT: "client/ios/App/App.xcodeproj"
         BUNDLE_ID: "fyi.boomerang.app"
-      node: 18
+      node: 22
     scripts:
       - name: Install client dependencies
         script: |
