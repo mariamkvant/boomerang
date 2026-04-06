@@ -33,15 +33,11 @@ workflows:
 
       - name: Fetch signing files
         script: |
-          # Write the API key to the expected file location
           KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
-          
-          # Generate a new RSA key for certificate signing
           openssl genrsa -out /tmp/cert_key.pem 2048
           CERT_KEY=$(cat /tmp/cert_key.pem)
-          
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "$CERT_KEY" \
@@ -63,16 +59,31 @@ workflows:
 
       - name: Export IPA
         script: |
-          xcode-project build-ipa \
-            --project "client/ios/App/App.xcodeproj" \
-            --scheme App
+          # Create export options plist
+          cat > /tmp/exportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>destination</key>
+            <string>upload</string>
+          </dict>
+          </plist>
+          EOF
+
+          cd client/ios/App
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist /tmp/exportOptions.plist
 
       - name: Upload to App Store Connect
         script: |
+          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           app-store-connect publish \
-            --path "client/ios/App/build/**/*.ipa"
+            --path "client/ios/App/build/ipa/*.ipa"
 
     artifacts:
-      - build/ios/ipa/*.ipa
-      - client/ios/App/build/**/*.ipa
-      - /tmp/xcodebuild_logs/*.log
+      - client/ios/App/build/ipa/*.ipa
