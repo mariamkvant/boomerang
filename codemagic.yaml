@@ -33,16 +33,38 @@ workflows:
 
       - name: Create certificate and profile
         script: |
+          # Debug: check env vars are set
+          echo "Key ID set: $([ -n "$APP_STORE_CONNECT_KEY_IDENTIFIER" ] && echo YES || echo NO)"
+          echo "Issuer ID set: $([ -n "$APP_STORE_CONNECT_ISSUER_ID" ] && echo YES || echo NO)"
+          echo "Private key set: $([ -n "$APP_STORE_CONNECT_PRIVATE_KEY" ] && echo YES || echo NO)"
+
           # Create a new certificate
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
             --save
+
+          # Get the certificate ID
+          CERT_ID=$(app-store-connect certificates list \
+            --type IOS_DISTRIBUTION \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            | grep -o '[A-Z0-9]\{10,\}' | head -1)
+
+          echo "Certificate ID: $CERT_ID"
 
           # Create provisioning profile
           app-store-connect profiles create \
             --name "Boomerang App Store" \
             --type IOS_APP_STORE \
             --bundle-id-identifier "$BUNDLE_ID" \
+            --certificate-id "$CERT_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
             --save
 
       - name: Set up code signing
@@ -69,7 +91,10 @@ workflows:
       - name: Upload to App Store Connect
         script: |
           app-store-connect publish \
-            --path "client/ios/App/build/**/*.ipa"
+            --path "client/ios/App/build/**/*.ipa" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
 
     artifacts:
       - client/ios/App/build/**/*.ipa
