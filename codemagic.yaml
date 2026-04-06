@@ -35,8 +35,11 @@ workflows:
           KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
-          openssl genrsa -out /tmp/cert_key.pem 2048
-          CERT_KEY=$(cat /tmp/cert_key.pem)
+          
+          # Generate RSA key and save it for later use
+          openssl genrsa -out $CM_BUILD_DIR/cert_key.pem 2048
+          CERT_KEY=$(cat $CM_BUILD_DIR/cert_key.pem)
+          
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "$CERT_KEY" \
@@ -44,47 +47,27 @@ workflows:
 
       - name: Set up code signing
         script: |
-          xcode-project use-profiles
+          xcode-project use-profiles --certificate-key=$CM_BUILD_DIR/cert_key.pem
 
-      - name: Build archive
+      - name: Build and export IPA
         script: |
           cd client/ios/App
-          xcodebuild -project App.xcodeproj \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
-            archive \
-            DEVELOPMENT_TEAM=FQ8GX7UR2S \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+          xcode-project build-ipa \
+            --project App.xcodeproj \
+            --scheme App
 
-      - name: Export IPA
+      - name: Find and upload IPA
         script: |
-          cat > /tmp/exportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>destination</key>
-            <string>upload</string>
-            <key>teamID</key>
-            <string>FQ8GX7UR2S</string>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild -exportArchive \
-            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
-            -exportPath $CM_BUILD_DIR/build/ipa \
-            -exportOptionsPlist /tmp/exportOptions.plist
-
-      - name: Upload to App Store Connect
-        script: |
-          app-store-connect publish \
-            --path "$CM_BUILD_DIR/build/ipa/*.ipa"
+          echo "Looking for IPA files..."
+          find $CM_BUILD_DIR -name "*.ipa" -type f
+          IPA_PATH=$(find $CM_BUILD_DIR -name "*.ipa" -type f | head -1)
+          echo "Found IPA: $IPA_PATH"
+          if [ -n "$IPA_PATH" ]; then
+            app-store-connect publish --path "$IPA_PATH"
+          else
+            echo "No IPA found!"
+            exit 1
+          fi
 
     artifacts:
-      - build/ipa/*.ipa
+      - "**/*.ipa"
