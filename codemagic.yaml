@@ -47,7 +47,20 @@ workflows:
 
       - name: Set up code signing
         script: |
-          xcode-project use-profiles --certificate-key=$CM_BUILD_DIR/cert_key.pem
+          # Import the certificate private key into keychain
+          # Convert PEM to p12 format
+          openssl pkcs12 -export \
+            -inkey $CM_BUILD_DIR/cert_key.pem \
+            -in "$(find $HOME/Library/MobileDevice/Certificates -name '*.cer' -o -name '*.pem' 2>/dev/null | head -1)" \
+            -out /tmp/cert.p12 \
+            -passout pass:temp123 || true
+          
+          # Import certificates and profiles
+          xcode-project use-profiles
+          
+          # Also import the private key directly into the keychain
+          security import $CM_BUILD_DIR/cert_key.pem -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A || \
+          security import $CM_BUILD_DIR/cert_key.pem -k /Library/Keychains/System.keychain -T /usr/bin/codesign -A || true
 
       - name: Build and export IPA
         script: |
