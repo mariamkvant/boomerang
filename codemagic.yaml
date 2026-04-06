@@ -33,13 +33,17 @@ workflows:
 
       - name: Fetch signing files
         script: |
-          # Write the key to the expected file location
+          # Write the API key to the expected file location
           KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
           
+          # Generate a new RSA key for certificate signing
+          openssl genrsa -out /tmp/cert_key.pem 2048
+          
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key /tmp/cert_key.pem \
             --create
 
       - name: Set up code signing
