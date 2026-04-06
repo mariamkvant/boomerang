@@ -33,24 +33,12 @@ workflows:
 
       - name: Create certificate and profile
         script: |
-          # Write private key to file
-          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
-
-          # List existing certificates first
-          app-store-connect certificates list \
-            --type IOS_DISTRIBUTION \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key @/tmp/AuthKey.p8 \
-            --save || true
-
-          # If no cert exists, create one
-          app-store-connect certificates create \
-            --type IOS_DISTRIBUTION \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key @/tmp/AuthKey.p8 \
-            --save || true
+          # Write private key to file preserving newlines
+          printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
+          
+          # Debug: verify key file looks correct
+          echo "Key file lines: $(wc -l < /tmp/AuthKey.p8)"
+          head -1 /tmp/AuthKey.p8
 
           # Fetch signing files (cert + profile) automatically
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
@@ -83,7 +71,7 @@ workflows:
 
       - name: Upload to App Store Connect
         script: |
-          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
+          printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
           app-store-connect publish \
             --path "client/ios/App/build/**/*.ipa" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
