@@ -6,6 +6,10 @@ workflows:
     environment:
       groups:
         - app_store_credentials
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: fyi.boomerang.app
+        certificate_private_key: $CERTIFICATE_PRIVATE_KEY
       vars:
         BUNDLE_ID: "fyi.boomerang.app"
       node: 22
@@ -30,48 +34,8 @@ workflows:
           cd client/ios/App
           pod install || true
 
-      - name: Fetch signing files
+      - name: Set up code signing
         script: |
-          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
-          mkdir -p "$HOME/private_keys"
-          echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
-          
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
-            --create
-
-      - name: Set up keychain and profiles
-        script: |
-          # Initialize the Codemagic keychain
-          keychain initialize
-          
-          # Write cert key to file
-          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
-          
-          # Import the private key into the keychain
-          # First create a p12 from the key + downloaded certificate
-          CERT_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.p12" 2>/dev/null | head -1)
-          if [ -z "$CERT_FILE" ]; then
-            # No p12 found, try to find .cer and convert
-            CER_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.cer" 2>/dev/null | head -1)
-            if [ -n "$CER_FILE" ]; then
-              # Convert DER cert to PEM
-              openssl x509 -inform DER -in "$CER_FILE" -out /tmp/cert.pem 2>/dev/null || \
-              cp "$CER_FILE" /tmp/cert.pem
-              # Create p12
-              openssl pkcs12 -export -inkey /tmp/cert_key.pem -in /tmp/cert.pem -out /tmp/cert.p12 -passout pass:""
-              # Import p12 into keychain
-              security import /tmp/cert.p12 -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
-            fi
-          else
-            security import "$CERT_FILE" -k "$(keychain get-default)" -T /usr/bin/codesign -A 2>/dev/null || true
-          fi
-          
-          # Allow codesign to access the keychain
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$(keychain get-default)" 2>/dev/null || true
-          
-          # Install provisioning profiles
           xcode-project use-profiles
 
       - name: Build and export IPA
@@ -79,44 +43,19 @@ workflows:
           set -e
           cd client/ios/App
           
-          # List keychain identities to verify signing is set up
           echo "=== Available signing identities ==="
           security find-identity -v -p codesigning
           
-          echo "=== Starting archive ==="
-          xcodebuild -project App.xcodeproj \
-            -scheme App \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
-            archive \
-            DEVELOPMENT_TEAM=FQ8GX7UR2S \
-            CODE_SIGN_STYLE=Manual \
-            "CODE_SIGN_IDENTITY=Apple Distribution"
-          
-          echo "=== Archive succeeded, exporting IPA ==="
-          
-          cat > /tmp/exportOptions.plist << 'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store-connect</string>
-            <key>teamID</key>
-            <string>FQ8GX7UR2S</string>
-          </dict>
-          </plist>
-          EOF
-          
-          xcodebuild -exportArchive \
-            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
-            -exportPath $CM_BUILD_DIR/build/ipa \
-            -exportOptionsPlist /tmp/exportOptions.plist
+          xcode-project build-ipa \
+            --project App.xcodeproj \
+            --scheme App
 
       - name: Upload to App Store Connect
         script: |
-          IPA_PATH=$(find $CM_BUILD_DIR/build -name "*.ipa" -type f | head -1)
+          IPA_PATH=$(find $CM_BUILD_DIR -name "*.ipa" -type f 2>/dev/null | head -1)
+          if [ -z "$IPA_PATH" ]; then
+            IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
+          fi
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
