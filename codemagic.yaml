@@ -36,55 +36,54 @@ workflows:
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
           
-          # Write the certificate key to a file
-          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
-          
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
             --create
 
-      - name: Set up code signing
+      - name: Set up keychain and profiles
         script: |
-          # Write cert key again
+          # Initialize the Codemagic keychain
+          keychain initialize
+          
+          # Write cert key to file
           printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
           
-          # Import certificates and profiles
+          # Import the private key into the keychain
+          # First create a p12 from the key + downloaded certificate
+          CERT_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.p12" 2>/dev/null | head -1)
+          if [ -z "$CERT_FILE" ]; then
+            # No p12 found, try to find .cer and convert
+            CER_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.cer" 2>/dev/null | head -1)
+            if [ -n "$CER_FILE" ]; then
+              # Convert DER cert to PEM
+              openssl x509 -inform DER -in "$CER_FILE" -out /tmp/cert.pem 2>/dev/null || \
+              cp "$CER_FILE" /tmp/cert.pem
+              # Create p12
+              openssl pkcs12 -export -inkey /tmp/cert_key.pem -in /tmp/cert.pem -out /tmp/cert.p12 -passout pass:""
+              # Import p12 into keychain
+              security import /tmp/cert.p12 -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
+            fi
+          else
+            security import "$CERT_FILE" -k "$(keychain get-default)" -T /usr/bin/codesign -A 2>/dev/null || true
+          fi
+          
+          # Allow codesign to access the keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$(keychain get-default)" 2>/dev/null || true
+          
+          # Install provisioning profiles
           xcode-project use-profiles
-          
-          # Import the private key into the build keychain
-          keychain initialize
-          security import /tmp/cert_key.pem -k $(keychain get-default) -T /usr/bin/codesign -A 2>/dev/null || \
-          security import /tmp/cert_key.pem -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A 2>/dev/null || true
-
-      - name: Set up code signing
-        script: |
-          # Import the certificate private key into keychain
-          # Convert PEM to p12 format
-          openssl pkcs12 -export \
-            -inkey $CM_BUILD_DIR/cert_key.pem \
-            -in "$(find $HOME/Library/MobileDevice/Certificates -name '*.cer' -o -name '*.pem' 2>/dev/null | head -1)" \
-            -out /tmp/cert.p12 \
-            -passout pass:temp123 || true
-          
-          # Import certificates and profiles
-          xcode-project use-profiles
-          
-          # Also import the private key directly into the keychain
-          security import $CM_BUILD_DIR/cert_key.pem -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A || \
-          security import $CM_BUILD_DIR/cert_key.pem -k /Library/Keychains/System.keychain -T /usr/bin/codesign -A || true
 
       - name: Build and export IPA
         script: |
           cd client/ios/App
           xcode-project build-ipa \
             --project App.xcodeproj \
-            --scheme App
+            --scheme App \
+            2>&1 | tail -80
 
-      - name: Find and upload IPA
+      - name: Upload to App Store Connect
         script: |
-          echo "Looking for IPA files..."
-          find $CM_BUILD_DIR -name "*.ipa" -type f
           IPA_PATH=$(find $CM_BUILD_DIR -name "*.ipa" -type f | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
