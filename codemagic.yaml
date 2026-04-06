@@ -76,17 +76,47 @@ workflows:
 
       - name: Build and export IPA
         script: |
+          set -e
           cd client/ios/App
-          xcode-project build-ipa \
-            --project App.xcodeproj \
-            --scheme App \
-            2>&1 | tail -80
+          
+          # List keychain identities to verify signing is set up
+          echo "=== Available signing identities ==="
+          security find-identity -v -p codesigning
+          
+          echo "=== Starting archive ==="
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
+            archive \
+            DEVELOPMENT_TEAM=FQ8GX7UR2S \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=Apple Distribution"
+          
+          echo "=== Archive succeeded, exporting IPA ==="
+          
+          cat > /tmp/exportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>FQ8GX7UR2S</string>
+          </dict>
+          </plist>
+          EOF
+          
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
+            -exportPath $CM_BUILD_DIR/build/ipa \
+            -exportOptionsPlist /tmp/exportOptions.plist
 
       - name: Upload to App Store Connect
         script: |
-          echo "Searching for IPA files everywhere..."
-          find / -name "*.ipa" -type f 2>/dev/null
-          IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
+          IPA_PATH=$(find $CM_BUILD_DIR/build -name "*.ipa" -type f | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
