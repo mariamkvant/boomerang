@@ -9,9 +9,6 @@ workflows:
         bundle_identifier: fyi.boomerang.app
       vars:
         XCODE_PROJECT: "client/ios/App/App.xcodeproj"
-        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
-        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
       node: 18
     scripts:
       - name: Install client dependencies
@@ -55,11 +52,10 @@ workflows:
             --scheme App \
             --archive-path "client/ios/App/build/App.xcarchive"
 
+      - name: Upload to App Store Connect
+        script: |
+          app-store-connect publish \
+            --path "client/ios/App/build/**/*.ipa"
+
     artifacts:
       - client/ios/App/build/**/*.ipa
-
-    publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        submit_to_app_store: false
