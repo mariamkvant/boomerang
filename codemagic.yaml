@@ -31,21 +31,15 @@ workflows:
           cd client/ios/App
           pod install || true
 
-      - name: Create certificate and profile
+      - name: Fetch signing files
         script: |
-          # Write private key to file preserving newlines
-          printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
+          # Write the key to the expected file location
+          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
+          mkdir -p "$HOME/private_keys"
+          echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
           
-          # Debug: verify key file looks correct
-          echo "Key file lines: $(wc -l < /tmp/AuthKey.p8)"
-          head -1 /tmp/AuthKey.p8
-
-          # Fetch signing files (cert + profile) automatically
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key @/tmp/AuthKey.p8 \
             --create
 
       - name: Set up code signing
@@ -71,12 +65,8 @@ workflows:
 
       - name: Upload to App Store Connect
         script: |
-          printf '%s\n' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/AuthKey.p8
           app-store-connect publish \
-            --path "client/ios/App/build/**/*.ipa" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key @/tmp/AuthKey.p8
+            --path "client/ios/App/build/**/*.ipa"
 
     artifacts:
       - client/ios/App/build/**/*.ipa
