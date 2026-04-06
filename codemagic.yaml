@@ -1,0 +1,62 @@
+workflows:
+  ios-release:
+    name: iOS App Store Release
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: fyi.boomerang.app
+      vars:
+        XCODE_WORKSPACE: "client/ios/App/App.xcodeproj"
+      node: 18
+    scripts:
+      - name: Install client dependencies
+        script: |
+          cd client
+          npm install
+
+      - name: Build web app
+        script: |
+          cd client
+          npm run build
+
+      - name: Sync Capacitor
+        script: |
+          cd client
+          npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd client/ios/App
+          pod install || true
+
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+
+      - name: Build iOS app
+        script: |
+          cd client/ios/App
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/App.xcarchive \
+            archive
+
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "client/ios/App/App.xcodeproj" \
+            --scheme App \
+            --archive-path "client/ios/App/build/App.xcarchive"
+
+    artifacts:
+      - client/ios/App/build/**/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
