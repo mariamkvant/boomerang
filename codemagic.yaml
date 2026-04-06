@@ -46,27 +46,45 @@ workflows:
         script: |
           xcode-project use-profiles
 
-      - name: Build and export IPA
+      - name: Build archive
         script: |
           cd client/ios/App
           xcodebuild -project App.xcodeproj \
             -scheme App \
             -sdk iphoneos \
             -configuration Release \
-            -archivePath build/App.xcarchive \
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
             archive \
             DEVELOPMENT_TEAM=FQ8GX7UR2S \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            2>&1 | tail -50
+            CODE_SIGN_IDENTITY="Apple Distribution"
+
+      - name: Export IPA
+        script: |
+          cat > /tmp/exportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>destination</key>
+            <string>upload</string>
+            <key>teamID</key>
+            <string>FQ8GX7UR2S</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
+            -exportPath $CM_BUILD_DIR/build/ipa \
+            -exportOptionsPlist /tmp/exportOptions.plist
 
       - name: Upload to App Store Connect
         script: |
-          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           app-store-connect publish \
-            --path build/ios/ipa/*.ipa
+            --path "$CM_BUILD_DIR/build/ipa/*.ipa"
 
     artifacts:
-      - build/ios/ipa/*.ipa
-      - client/ios/App/build/**/*.ipa
-      - "**/*.ipa"
+      - build/ipa/*.ipa
