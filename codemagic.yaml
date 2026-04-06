@@ -8,7 +8,10 @@ workflows:
         distribution_type: app_store
         bundle_identifier: fyi.boomerang.app
       vars:
-        XCODE_WORKSPACE: "client/ios/App/App.xcodeproj"
+        XCODE_PROJECT: "client/ios/App/App.xcodeproj"
+        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
+        APP_STORE_CONNECT_KEY_IDENTIFIER: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
       node: 18
     scripts:
       - name: Install client dependencies
@@ -48,9 +51,15 @@ workflows:
       - name: Export IPA
         script: |
           xcode-project build-ipa \
-            --workspace "client/ios/App/App.xcodeproj" \
+            --project "client/ios/App/App.xcodeproj" \
             --scheme App \
             --archive-path "client/ios/App/build/App.xcarchive"
 
     artifacts:
       - client/ios/App/build/**/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
