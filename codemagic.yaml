@@ -6,10 +6,6 @@ workflows:
     environment:
       groups:
         - app_store_credentials
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: fyi.boomerang.app
-        certificate_private_key: $CERTIFICATE_PRIVATE_KEY
       vars:
         BUNDLE_ID: "fyi.boomerang.app"
       node: 22
@@ -34,28 +30,62 @@ workflows:
           cd client/ios/App
           pod install || true
 
+      - name: Fetch signing files
+        script: |
+          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
+          mkdir -p "$HOME/private_keys"
+          echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
+          
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
+            --create
+
       - name: Set up code signing
         script: |
+          keychain initialize
+          
+          # Write the certificate private key
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
+          
+          # Find the downloaded certificate
+          CER_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.cer" 2>/dev/null | head -1)
+          P12_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.p12" 2>/dev/null | head -1)
+          
+          echo "Found CER: $CER_FILE"
+          echo "Found P12: $P12_FILE"
+          
+          if [ -n "$P12_FILE" ]; then
+            echo "Importing existing p12..."
+            security import "$P12_FILE" -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
+          elif [ -n "$CER_FILE" ]; then
+            echo "Converting cer + key to p12..."
+            openssl x509 -inform DER -in "$CER_FILE" -out /tmp/cert.pem 2>/dev/null || cp "$CER_FILE" /tmp/cert.pem
+            openssl pkcs12 -export -inkey /tmp/cert_key.pem -in /tmp/cert.pem -out /tmp/cert.p12 -passout pass:""
+            security import /tmp/cert.p12 -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
+          else
+            echo "No certificate files found!"
+            ls -la "$HOME/Library/MobileDevice/Certificates/" 2>/dev/null || echo "Directory not found"
+          fi
+          
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$(keychain get-default)"
+          
+          echo "=== Signing identities in keychain ==="
+          security find-identity -v -p codesigning
+          
           xcode-project use-profiles
 
       - name: Build and export IPA
         script: |
           set -e
           cd client/ios/App
-          
-          echo "=== Available signing identities ==="
-          security find-identity -v -p codesigning
-          
           xcode-project build-ipa \
             --project App.xcodeproj \
             --scheme App
 
       - name: Upload to App Store Connect
         script: |
-          IPA_PATH=$(find $CM_BUILD_DIR -name "*.ipa" -type f 2>/dev/null | head -1)
-          if [ -z "$IPA_PATH" ]; then
-            IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
-          fi
+          IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
