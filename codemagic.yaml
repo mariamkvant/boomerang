@@ -39,7 +39,13 @@ workflows:
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
-            --create
+            --create \
+            --save
+          
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo "=== Searching for p12 after fetch ==="
+          find /Users/builder -name "*.p12" -type f 2>/dev/null
 
       - name: Set up code signing
         script: |
@@ -48,29 +54,34 @@ workflows:
           # Write the certificate private key
           printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
           
-          # Find the downloaded certificate
-          CER_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.cer" 2>/dev/null | head -1)
-          P12_FILE=$(find "$HOME/Library/MobileDevice/Certificates" -name "*.p12" 2>/dev/null | head -1)
+          # Find certificate files ANYWHERE on the system
+          echo "=== Searching for .cer files ==="
+          find /Users/builder -name "*.cer" -type f 2>/dev/null
+          echo "=== Searching for .p12 files ==="
+          find /Users/builder -name "*.p12" -type f 2>/dev/null
+          echo "=== Searching for certificate directories ==="
+          find /Users/builder -type d -name "*ertificate*" 2>/dev/null
+          find /Users/builder -type d -name "*signing*" 2>/dev/null
           
-          echo "Found CER: $CER_FILE"
-          echo "Found P12: $P12_FILE"
+          # Try to find and import the certificate
+          CER_FILE=$(find /Users/builder -name "*.cer" -type f 2>/dev/null | head -1)
+          P12_FILE=$(find /Users/builder -name "*.p12" -type f 2>/dev/null | head -1)
           
           if [ -n "$P12_FILE" ]; then
-            echo "Importing existing p12..."
+            echo "Importing p12: $P12_FILE"
             security import "$P12_FILE" -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
           elif [ -n "$CER_FILE" ]; then
-            echo "Converting cer + key to p12..."
+            echo "Converting cer to p12: $CER_FILE"
             openssl x509 -inform DER -in "$CER_FILE" -out /tmp/cert.pem 2>/dev/null || cp "$CER_FILE" /tmp/cert.pem
             openssl pkcs12 -export -inkey /tmp/cert_key.pem -in /tmp/cert.pem -out /tmp/cert.p12 -passout pass:""
             security import /tmp/cert.p12 -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
           else
-            echo "No certificate files found!"
-            ls -la "$HOME/Library/MobileDevice/Certificates/" 2>/dev/null || echo "Directory not found"
+            echo "No certificate files found anywhere!"
           fi
           
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$(keychain get-default)"
           
-          echo "=== Signing identities in keychain ==="
+          echo "=== Signing identities ==="
           security find-identity -v -p codesigning
           
           xcode-project use-profiles
