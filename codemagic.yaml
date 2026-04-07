@@ -30,53 +30,55 @@ workflows:
           cd client/ios/App
           pod install || true
 
-      - name: Fetch signing files
+      - name: Set up signing
         script: |
+          # Write API key
           KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
           mkdir -p "$HOME/private_keys"
           echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
           
+          # Write certificate private key
+          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
+          
+          # Initialize keychain
+          keychain initialize
+          
+          # Fetch signing files and save to specific directory
+          mkdir -p /tmp/signing
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key "$CERTIFICATE_PRIVATE_KEY" \
-            --create \
-            --save
+            --certificates-dir /tmp/signing/certs \
+            --profiles-dir /tmp/signing/profiles \
+            --create
           
-          echo "=== Contents of current directory ==="
-          ls -la
-          echo "=== Searching for p12 after fetch ==="
-          find /Users/builder -name "*.p12" -type f 2>/dev/null
-
-      - name: Set up code signing
-        script: |
-          keychain initialize
+          echo "=== Files in /tmp/signing ==="
+          find /tmp/signing -type f 2>/dev/null
           
-          # Write the certificate private key
-          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
+          # Find the p12 file that fetch-signing-files created
+          P12_FILE=$(find /tmp/signing -name "*.p12" -type f 2>/dev/null | head -1)
+          CER_FILE=$(find /tmp/signing -name "*.cer" -type f 2>/dev/null | head -1)
+          PROFILE_FILE=$(find /tmp/signing -name "*.mobileprovision" -type f 2>/dev/null | head -1)
           
-          # Find certificate files ANYWHERE on the system
-          echo "=== Searching for .cer files ==="
-          find /Users/builder -name "*.cer" -type f 2>/dev/null
-          echo "=== Searching for .p12 files ==="
-          find /Users/builder -name "*.p12" -type f 2>/dev/null
-          echo "=== Searching for certificate directories ==="
-          find /Users/builder -type d -name "*ertificate*" 2>/dev/null
-          find /Users/builder -type d -name "*signing*" 2>/dev/null
+          echo "P12: $P12_FILE"
+          echo "CER: $CER_FILE"
+          echo "PROFILE: $PROFILE_FILE"
           
-          # Try to find and import the certificate
-          CER_FILE=$(find /Users/builder -name "*.cer" -type f 2>/dev/null | head -1)
-          P12_FILE=$(find /Users/builder -name "*.p12" -type f 2>/dev/null | head -1)
-          
+          # Import p12 if found
           if [ -n "$P12_FILE" ]; then
-            echo "Importing p12: $P12_FILE"
+            echo "Importing p12..."
             security import "$P12_FILE" -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
           elif [ -n "$CER_FILE" ]; then
-            echo "Converting cer to p12: $CER_FILE"
+            echo "Creating p12 from cer + key..."
             openssl x509 -inform DER -in "$CER_FILE" -out /tmp/cert.pem 2>/dev/null || cp "$CER_FILE" /tmp/cert.pem
             openssl pkcs12 -export -inkey /tmp/cert_key.pem -in /tmp/cert.pem -out /tmp/cert.p12 -passout pass:""
             security import /tmp/cert.p12 -k "$(keychain get-default)" -P "" -T /usr/bin/codesign -A
-          else
-            echo "No certificate files found anywhere!"
+          fi
+          
+          # Install provisioning profile
+          if [ -n "$PROFILE_FILE" ]; then
+            mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+            cp "$PROFILE_FILE" "$HOME/Library/MobileDevice/Provisioning Profiles/"
           fi
           
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$(keychain get-default)"
@@ -84,6 +86,7 @@ workflows:
           echo "=== Signing identities ==="
           security find-identity -v -p codesigning
           
+          # Set up xcode project profiles
           xcode-project use-profiles
 
       - name: Build and export IPA
@@ -96,7 +99,7 @@ workflows:
 
       - name: Upload to App Store Connect
         script: |
-          IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | head -1)
+          IPA_PATH=$(find / -name "*.ipa" -type f 2>/dev/null | grep -v ".cocoapods" | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
