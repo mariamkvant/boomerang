@@ -124,6 +124,37 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response) => {
   res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude, languages_spoken: user.languages_spoken, is_admin: user.is_admin } });
 });
 
+// Delete account
+router.delete('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await db.transaction(async (tx) => {
+      await tx.run('DELETE FROM reviews WHERE reviewer_id = ?', req.userId);
+      await tx.run('DELETE FROM messages WHERE sender_id = ?', req.userId);
+      await tx.run('DELETE FROM direct_messages WHERE sender_id = ? OR receiver_id = ?', req.userId, req.userId);
+      await tx.run('DELETE FROM notifications WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM favorites WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM push_subscriptions WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM user_achievements WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM gifts WHERE sender_id = ? OR receiver_id = ?', req.userId, req.userId);
+      await tx.run('DELETE FROM blocks WHERE blocker_id = ? OR blocked_id = ?', req.userId, req.userId);
+      await tx.run('DELETE FROM reports WHERE reporter_id = ? OR reported_id = ?', req.userId, req.userId);
+      await tx.run('DELETE FROM group_members WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM availability WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM service_requests WHERE requester_id = ?', req.userId);
+      await tx.run('DELETE FROM services WHERE provider_id = ?', req.userId);
+      await tx.run('DELETE FROM help_wanted WHERE requester_id = ?', req.userId);
+      await tx.run('DELETE FROM shoutouts WHERE from_user_id = ? OR to_user_id = ?', req.userId, req.userId);
+      await tx.run('DELETE FROM support_tickets WHERE user_id = ?', req.userId);
+      await tx.run('DELETE FROM page_views WHERE viewer_id = ?', req.userId);
+      await tx.run('DELETE FROM users WHERE id = ?', req.userId);
+    });
+    res.json({ message: 'Account deleted' });
+  } catch (err: any) {
+    console.error('Delete account error:', err);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 // Get my referral info
 router.get('/referral', authMiddleware, async (req: AuthRequest, res: Response) => {
   const count = await db.get('SELECT COUNT(*) as count FROM users WHERE referred_by = ?', req.userId);

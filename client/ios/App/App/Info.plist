@@ -47,5 +47,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Boomerang needs camera access to take photos for messages and your profile.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Boomerang needs photo library access to share photos in messages and update your profile picture.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Boomerang needs microphone access for video recording.</string>
 </dict>
 </plist>
