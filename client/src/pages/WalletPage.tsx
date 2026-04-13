@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { isIOS } from '../utils/platform';
 
 export default function WalletPage() {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function WalletPage() {
       <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-6 mb-6 text-white">
         <p className="text-primary-100 text-sm mb-1">Your balance</p>
         <div className="text-4xl font-bold mb-4">{user?.points} <span className="text-lg font-normal text-primary-200">boomerangs</span></div>
-        <Link to="/buy" className="inline-block bg-white text-primary-600 px-6 py-2.5 rounded-full text-sm font-semibold hover:shadow-lg transition-all">+ Buy more</Link>
+        {!isIOS && <Link to="/buy" className="inline-block bg-white text-primary-600 px-6 py-2.5 rounded-full text-sm font-semibold hover:shadow-lg transition-all">+ Buy more</Link>}
       </div>
 
       {/* Summary */}

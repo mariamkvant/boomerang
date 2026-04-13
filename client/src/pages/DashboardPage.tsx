@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { isIOS } from '../utils/platform';
 import { useConfirm } from '../components/ConfirmModal';
 import { t } from '../i18n';
 
@@ -234,7 +235,8 @@ export default function DashboardPage() {
           <div className="flex gap-4 overflow-x-auto pb-1 -mx-1 px-1">
             <div className="text-center shrink-0">
               <div className="text-2xl font-bold text-gray-900">{user?.points}</div>
-              <Link to="/buy" className="text-[11px] text-primary-500 hover:underline uppercase tracking-wide">+ {t('dashboard.boomerangs')}</Link>
+              {!isIOS && <Link to="/buy" className="text-[11px] text-primary-500 hover:underline uppercase tracking-wide">+ {t('dashboard.boomerangs')}</Link>}
+              {isIOS && <span className="text-[11px] text-gray-400 uppercase tracking-wide">🪃 boomerangs</span>}
             </div>
             <div className="text-center shrink-0">
               <div className="text-2xl font-bold text-gray-900">{myServices.length}</div>

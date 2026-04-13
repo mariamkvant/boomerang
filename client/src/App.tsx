@@ -8,6 +8,7 @@ import NotificationBell from './components/NotificationBell';
 import BottomNav from './components/BottomNav';
 import OfflineBanner from './components/OfflineBanner';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
+import { isIOS } from './utils/platform';
 
 // Lazy-loaded pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -93,10 +94,17 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <>
-              <Link to="/buy" className="flex items-center gap-2 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors">
-                <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-                <span className="text-xs text-primary-500">🪃</span>
-              </Link>
+              {isIOS ? (
+                <div className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-full">
+                  <span className="text-sm font-semibold text-primary-700">{user.points}</span>
+                  <span className="text-xs text-primary-500">🪃</span>
+                </div>
+              ) : (
+                <Link to="/buy" className="flex items-center gap-2 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors">
+                  <span className="text-sm font-semibold text-primary-700">{user.points}</span>
+                  <span className="text-xs text-primary-500">🪃</span>
+                </Link>
+              )}
               <NotificationBell />
               <button onClick={toggleDark} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Toggle dark mode">
                 {dark ? '☀️' : '🌙'}
@@ -249,7 +257,7 @@ export default function App() {
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/support" element={<SupportPage />} />
-          <Route path="/buy" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />
+          <Route path="/buy" element={user ? (isIOS ? <Navigate to="/dashboard" /> : <BuyBoomerangsPage />) : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

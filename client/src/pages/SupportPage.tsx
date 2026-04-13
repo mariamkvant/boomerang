@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { api } from '../api';
@@ -206,12 +206,8 @@ export default function SupportPage() {
           </div>
           <div>
             <h3 className="font-semibold dark:text-white">Support the mission</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Boomerang is free for everyone. If you believe in what we're building, you can help us keep it running.</p>
-            <a href="https://buy.stripe.com/test_placeholder" target="_blank" rel="noopener noreferrer"
-              className="inline-block mt-3 bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 transition-colors">
-              Donate
-            </a>
-            <p className="text-[11px] text-gray-400 mt-2">100% goes to hosting, development, and community growth.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Boomerang is free for everyone. Help us grow by sharing the app with friends and leaving a review on the App Store.</p>
+            <p className="text-[11px] text-gray-400 mt-2">Every share and review helps us reach more communities.</p>
           </div>
         </div>
       </div>
