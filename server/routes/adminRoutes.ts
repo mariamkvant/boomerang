@@ -174,16 +174,93 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
     FROM users WHERE created_at > NOW() - INTERVAL '14 days'
     GROUP BY DATE(created_at) ORDER BY day`);
 
+  // Traffic sources (referrers)
+  const trafficSources = await db.all(`SELECT 
+    CASE 
+      WHEN referrer = '' OR referrer IS NULL THEN 'Direct'
+      WHEN referrer LIKE '%google%' THEN 'Google'
+      WHEN referrer LIKE '%bing%' THEN 'Bing'
+      WHEN referrer LIKE '%facebook%' OR referrer LIKE '%fb.%' THEN 'Facebook'
+      WHEN referrer LIKE '%instagram%' THEN 'Instagram'
+      WHEN referrer LIKE '%twitter%' OR referrer LIKE '%t.co%' THEN 'Twitter/X'
+      WHEN referrer LIKE '%linkedin%' THEN 'LinkedIn'
+      WHEN referrer LIKE '%reddit%' THEN 'Reddit'
+      WHEN referrer LIKE '%tiktok%' THEN 'TikTok'
+      WHEN referrer LIKE '%youtube%' THEN 'YouTube'
+      WHEN referrer LIKE '%producthunt%' THEN 'Product Hunt'
+      WHEN referrer LIKE '%boomerang.fyi%' THEN 'Internal'
+      ELSE 'Other'
+    END as source,
+    COUNT(*) as views,
+    COUNT(DISTINCT ip) as unique_visitors
+    FROM page_views WHERE created_at > NOW() - INTERVAL '30 days'
+    GROUP BY source ORDER BY views DESC`);
+
+  // Raw referrer domains (top 20)
+  const referrerDomains = await db.all(`SELECT 
+    CASE 
+      WHEN referrer = '' OR referrer IS NULL THEN 'Direct / None'
+      ELSE SUBSTRING(referrer FROM '://([^/]+)')
+    END as domain,
+    COUNT(*) as views,
+    COUNT(DISTINCT ip) as unique_visitors
+    FROM page_views WHERE created_at > NOW() - INTERVAL '30 days'
+    GROUP BY domain ORDER BY views DESC LIMIT 20`);
+
+  // Device types (from user agent)
+  const deviceTypes = await db.all(`SELECT 
+    CASE 
+      WHEN user_agent LIKE '%iPhone%' THEN 'iPhone'
+      WHEN user_agent LIKE '%iPad%' THEN 'iPad'
+      WHEN user_agent LIKE '%Android%' AND user_agent LIKE '%Mobile%' THEN 'Android Phone'
+      WHEN user_agent LIKE '%Android%' THEN 'Android Tablet'
+      WHEN user_agent LIKE '%Macintosh%' THEN 'Mac'
+      WHEN user_agent LIKE '%Windows%' THEN 'Windows'
+      WHEN user_agent LIKE '%Linux%' THEN 'Linux'
+      WHEN user_agent IS NULL OR user_agent = '' THEN 'Unknown'
+      ELSE 'Other'
+    END as device,
+    COUNT(*) as views,
+    COUNT(DISTINCT ip) as unique_visitors
+    FROM page_views WHERE created_at > NOW() - INTERVAL '30 days'
+    GROUP BY device ORDER BY views DESC`);
+
+  // Browsers (from user agent)
+  const browsers = await db.all(`SELECT 
+    CASE 
+      WHEN user_agent LIKE '%Chrome%' AND user_agent NOT LIKE '%Edg%' THEN 'Chrome'
+      WHEN user_agent LIKE '%Safari%' AND user_agent NOT LIKE '%Chrome%' THEN 'Safari'
+      WHEN user_agent LIKE '%Firefox%' THEN 'Firefox'
+      WHEN user_agent LIKE '%Edg%' THEN 'Edge'
+      WHEN user_agent IS NULL OR user_agent = '' THEN 'Unknown'
+      ELSE 'Other'
+    END as browser,
+    COUNT(*) as views
+    FROM page_views WHERE created_at > NOW() - INTERVAL '30 days'
+    GROUP BY browser ORDER BY views DESC`);
+
+  // Unique visitors today / this week / total
+  const todayVisitorsCount = await db.get("SELECT COUNT(DISTINCT ip) as c FROM page_views WHERE created_at > NOW() - INTERVAL '1 day'");
+  const weekVisitorsCount = await db.get("SELECT COUNT(DISTINCT ip) as c FROM page_views WHERE created_at > NOW() - INTERVAL '7 days'");
+  const totalVisitorsCount = await db.get("SELECT COUNT(DISTINCT ip) as c FROM page_views");
+
   res.json({
     total_views: parseInt(totalViews?.c || '0'),
     today_views: parseInt(todayViews?.c || '0'),
     week_views: parseInt(weekViews?.c || '0'),
+    today_visitors: parseInt(todayVisitorsCount?.c || '0'),
+    week_visitors: parseInt(weekVisitorsCount?.c || '0'),
+    total_visitors: parseInt(totalVisitorsCount?.c || '0'),
     top_pages: topPages,
     top_profiles: topProfiles,
     top_services: topServices,
     daily_views: dailyViews,
     daily_visitors: dailyVisitors,
     daily_signups: dailySignups,
+    traffic_sources: trafficSources,
+    referrer_domains: referrerDomains,
+    device_types: deviceTypes,
+    browsers: browsers,
   });
 });
 

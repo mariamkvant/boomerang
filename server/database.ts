@@ -216,6 +216,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_dm_created ON direct_messages(created_at DESC)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_page_views_created ON page_views(created_at DESC)'); } catch(e) {}
+    try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS referrer TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS user_agent TEXT'); } catch(e) {}
 
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }

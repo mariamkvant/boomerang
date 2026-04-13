@@ -67,7 +67,7 @@ export default function AdminPage() {
       {tab === 'analytics' && analytics && (
         <div className="space-y-6">
           {/* View counts */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
               <div className="text-2xl font-bold dark:text-white">{analytics.today_views}</div>
               <div className="text-xs text-gray-400 mt-1">Views today</div>
@@ -79,6 +79,18 @@ export default function AdminPage() {
             <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
               <div className="text-2xl font-bold dark:text-white">{analytics.total_views}</div>
               <div className="text-xs text-gray-400 mt-1">Total views</div>
+            </div>
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold text-blue-600">{analytics.today_visitors || 0}</div>
+              <div className="text-xs text-gray-400 mt-1">Visitors today</div>
+            </div>
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold text-blue-600">{analytics.week_visitors || 0}</div>
+              <div className="text-xs text-gray-400 mt-1">Visitors this week</div>
+            </div>
+            <div className="bg-white dark:bg-[#202c33] p-4 rounded-2xl shadow-sm text-center">
+              <div className="text-2xl font-bold text-blue-600">{analytics.total_visitors || 0}</div>
+              <div className="text-xs text-gray-400 mt-1">Total visitors</div>
             </div>
           </div>
 
@@ -167,6 +179,75 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+
+          {/* Traffic Sources */}
+          {analytics.traffic_sources?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">📊 Traffic Sources (30 days)</h3>
+              <div className="space-y-2">
+                {analytics.traffic_sources.filter((s: any) => s.source !== 'Internal').map((s: any, i: number) => {
+                  const max = Math.max(...analytics.traffic_sources.map((x: any) => parseInt(x.views)));
+                  const pct = max > 0 ? (parseInt(s.views) / max) * 100 : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-gray-600 dark:text-gray-300">{s.source}</span>
+                        <span className="text-gray-400">{s.views} views · {s.unique_visitors} visitors</span>
+                      </div>
+                      <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-primary-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Referrer Domains */}
+          {analytics.referrer_domains?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">🔗 Top Referrer Domains (30 days)</h3>
+              <div className="space-y-2">
+                {analytics.referrer_domains.map((r: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300 truncate">{r.domain || 'Direct'}</span>
+                    <span className="text-gray-400 shrink-0 ml-2">{r.views} views · {r.unique_visitors} visitors</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Devices & Browsers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {analytics.device_types?.length > 0 && (
+              <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">📱 Devices (30 days)</h3>
+                <div className="space-y-2">
+                  {analytics.device_types.map((d: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">{d.device}</span>
+                      <span className="text-gray-400">{d.views} · {d.unique_visitors} unique</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analytics.browsers?.length > 0 && (
+              <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">🌐 Browsers (30 days)</h3>
+                <div className="space-y-2">
+                  {analytics.browsers.map((b: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">{b.browser}</span>
+                      <span className="text-gray-400">{b.views}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

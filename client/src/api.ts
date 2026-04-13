@@ -162,7 +162,7 @@ export const api = {
   getSupportTickets: () => request('/admin/support'),
   replySupportTicket: (id: number, body: any) => request(`/admin/support/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   trackView: (page: string, entity_id?: number) => {
-    fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id }) }).catch(() => {});
+    fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id, referrer: document.referrer }) }).catch(() => {});
   },
   getAdminUsers: (params?: string) => request(`/admin/users${params ? `?${params}` : ''}`),
   banUser: (id: number, banned: boolean) => request(`/admin/users/${id}/ban`, { method: 'PUT', body: JSON.stringify({ banned }) }),

@@ -74,7 +74,9 @@ app.post('/api/track', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
   let viewerId: number | null = null;
   if (token) { try { const d: any = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'skillswap-dev-secret-change-in-production'); viewerId = d.userId; } catch {} }
-  db.run('INSERT INTO page_views (page, entity_id, viewer_id, ip) VALUES ($1, $2, $3, $4)', page, entity_id || null, viewerId, req.ip).catch(() => {});
+  const referrer = (req.body.referrer || req.headers.referer || '').substring(0, 500);
+  const userAgent = (req.headers['user-agent'] || '').substring(0, 500);
+  db.run('INSERT INTO page_views (page, entity_id, viewer_id, ip, referrer, user_agent) VALUES ($1, $2, $3, $4, $5, $6)', page, entity_id || null, viewerId, req.ip, referrer, userAgent).catch(() => {});
   res.json({ ok: true });
 });
 
