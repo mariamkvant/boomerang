@@ -69,7 +69,7 @@ export default function SettingsPage() {
             )}
             <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-50 shadow-sm">
               <span className="text-xs">📷</span>
-              <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleAvatarChange} className="hidden" />
             </label>
           </div>
           <div>

@@ -174,7 +174,7 @@ export default function CreateServicePage() {
           ) : (
             <label className="block border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-primary-300">
               <span className="text-gray-400 text-sm">Click to upload an image</span>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImageChange} className="hidden" />
             </label>
           )}
         </div>

@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
     contentInset: 'automatic',
     allowsLinkPreview: false,
     scrollEnabled: true,
+    webContentsDebuggingEnabled: false,
   },
 };
 

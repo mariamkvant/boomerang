@@ -13,8 +13,16 @@ export default function BuyBoomerangsPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   // Detect iOS native app (Capacitor) — hide Stripe to comply with Apple guidelines
-  const isIOSApp = /iPhone|iPad/.test(navigator.userAgent) && (window as any).Capacitor !== undefined;
-  const [tab, setTab] = useState<'topup' | 'gift' | 'history'>(isIOSApp ? 'gift' : 'topup');
+  const isIOSApp = /iPhone|iPad|iPod/.test(navigator.userAgent) && (
+    (window as any).Capacitor !== undefined || 
+    (window as any).webkit?.messageHandlers?.bridge !== undefined ||
+    navigator.userAgent.includes('Boomerang')
+  );
+  // Also hide on any iOS device in standalone mode (installed PWA)
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isStandalone = (window.navigator as any).standalone === true;
+  const hideStripe = isIOSApp || (isIOS && isStandalone) || isIOS;
+  const [tab, setTab] = useState<'topup' | 'gift' | 'history'>(hideStripe ? 'gift' : 'topup');
   const [giftTo, setGiftTo] = useState('');
   const [giftAmount, setGiftAmount] = useState('10');
   const [giftSearch, setGiftSearch] = useState<any[]>([]);
@@ -71,7 +79,7 @@ export default function BuyBoomerangsPage() {
       </div>
 
       <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl">
-        {(['topup', 'gift', 'history'] as const).filter(tb => !(tb === 'topup' && isIOSApp)).map(tb => (
+        {(['topup', 'gift', 'history'] as const).filter(tb => !(tb === 'topup' && hideStripe)).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
             className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white dark:bg-[#2a3942] text-gray-900 dark:text-gray-100 shadow-sm' : 'text-gray-500'}`}>
             {tb === 'topup' ? 'Top Up' : tb === 'gift' ? 'Gift' : 'History'}
@@ -92,7 +100,7 @@ export default function BuyBoomerangsPage() {
             </button>
           ))}
           {!enabled && <p className="text-center text-xs text-gray-400 mt-3">Payments coming soon</p>}
-          <p className="text-[10px] text-gray-400 text-center mt-4">No cash value. Cannot be withdrawn. Powered by Stripe.</p>
+          {!hideStripe && <p className="text-[10px] text-gray-400 text-center mt-4">No cash value. Cannot be withdrawn. Powered by Stripe.</p>}
         </div>
       )}
 

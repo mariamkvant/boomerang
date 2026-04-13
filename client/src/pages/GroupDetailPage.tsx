@@ -203,7 +203,7 @@ export default function GroupDetailPage() {
           {isAdmin && (
             <label className="absolute top-2 right-2 bg-black/30 hover:bg-black/50 text-white text-xs px-2.5 py-1.5 rounded-lg cursor-pointer backdrop-blur transition-colors">
               {group.cover_image ? 'Change cover' : 'Add cover'}
-              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={async (e) => {
                 const file = e.target.files?.[0]; if (!file) return;
                 const reader = new FileReader();
                 reader.onload = async () => { try { await api.updateGroupCover(Number(id), reader.result as string); reload(); } catch {} };
@@ -372,7 +372,7 @@ export default function GroupDetailPage() {
                   <label className="text-xs text-gray-400 hover:text-primary-500 cursor-pointer flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 0 0 2.25-2.25V5.25a2.25 2.25 0 0 0-2.25-2.25H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" /></svg>
                     Photo
-                    <input type="file" accept="image/*" className="hidden" onChange={e => {
+                    <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="hidden" onChange={e => {
                       const file = e.target.files?.[0]; if (!file) return;
                       const reader = new FileReader();
                       reader.onload = () => setPostImage(reader.result as string);
