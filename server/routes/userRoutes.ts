@@ -237,12 +237,6 @@ router.get('/search/people', async (req: AuthRequest, res: Response) => {
   res.json(users);
 });
 
-// Delete account
-router.delete('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  await db.run('DELETE FROM users WHERE id = ?', req.userId);
-  res.json({ message: 'Account deleted' });
-});
-
 // Get any user's public profile
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at FROM users WHERE id = ?', req.params.id);
