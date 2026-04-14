@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import ShareCard from '../components/ShareCard';
+import { nativeShare, haptic } from '../utils/platform';
 
 export default function ServiceDetailPage() {
   const { id } = useParams();
@@ -106,7 +107,8 @@ export default function ServiceDetailPage() {
         <h1 className="text-2xl md:text-3xl font-bold mb-3 flex items-center gap-3">
           {service.title}
           {user && (
-            <button onClick={toggleFavorite} className="text-2xl hover:scale-110 transition-transform" aria-label={favorited ? 'Unfavorite' : 'Favorite'}>
+            <button onClick={toggleFavorite} className="text-2xl hover:scale-110 transition-transform" aria-label={favorited ? 'Unfavorite' : 'Favorite'}
+              onPointerDown={() => haptic('light')}>
               {favorited ? '❤️' : '🤍'}
             </button>
           )}
@@ -116,6 +118,12 @@ export default function ServiceDetailPage() {
             providerName={service.provider_name} rating={service.avg_rating}
             url={window.location.href}
           />
+          {navigator.share && (
+            <button onClick={() => { haptic('light'); nativeShare({ title: service.title, text: `${service.title} — ${service.points_cost} boomerangs on Boomerang`, url: window.location.href }); }}
+              className="text-xl hover:scale-110 transition-transform" aria-label="Share">
+              📤
+            </button>
+          )}
         </h1>
         <p className="text-gray-600 leading-relaxed mb-6">{service.description}</p>
 

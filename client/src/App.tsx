@@ -71,7 +71,7 @@ function Navbar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {!isHome && (
-            <button onClick={() => navigate(-1)} className="md:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Go back">
+            <button onClick={() => navigate(-1)} className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Go back">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
           )}
@@ -82,7 +82,7 @@ function Navbar() {
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1">
           {navLink('/browse', t('nav.browse'))}
           {user && navLink('/services/new', t('nav.offer'))}
           {navLink('/help-wanted', t('nav.help'))}
@@ -91,7 +91,7 @@ function Navbar() {
           {navLink('/leaderboard', '🏆')}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {user ? (
             <>
               {isIOS ? (
@@ -141,7 +141,7 @@ function Navbar() {
         </div>
 
         {/* Mobile hamburger */}
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle menu">
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle menu">
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {mobileOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
@@ -151,7 +151,7 @@ function Navbar() {
 
       {/* Mobile menu — only items NOT in bottom nav */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-3 space-y-1 animate-fade-in">
+        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-3 space-y-1 animate-fade-in">
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
           {navLink('/leaderboard', t('leaderboard.title'))}
@@ -228,7 +228,7 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-6 w-full pb-20 md:pb-6">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-20 lg:pb-6">
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />

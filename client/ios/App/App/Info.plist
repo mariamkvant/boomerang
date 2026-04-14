@@ -51,5 +51,9 @@
 	<string>Boomerang uses the camera to let you take photos for messages and your profile picture.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Boomerang needs photo library access to share photos in messages and update your profile picture.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Boomerang needs microphone access for video recording.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Boomerang uses your location to show nearby services and connect you with people in your area.</string>
 </dict>
 </plist>

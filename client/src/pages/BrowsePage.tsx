@@ -61,13 +61,15 @@ export default function BrowsePage() {
   useEffect(() => {
     setLoading(true);
     if (nearMe) {
+      if (!navigator.geolocation) { setNearMe(false); setLoading(false); toast('Geolocation not supported', 'error'); return; }
       setLocating(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
           api.getNearbyServices(pos.coords.latitude, pos.coords.longitude).then(s => { setServices(s); setLoading(false); setLocating(false); }).catch(() => { setLoading(false); setLocating(false); });
         },
-        () => { setNearMe(false); setLoading(false); setLocating(false); toast('Could not get your location', 'error'); }
+        () => { setNearMe(false); setLoading(false); setLocating(false); toast('Location access denied. Enable it in settings.', 'error'); },
+        { enableHighAccuracy: false, timeout: 10000 }
       );
       return;
     }

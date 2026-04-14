@@ -48,8 +48,14 @@ export default function OnboardingPage() {
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
-  const detectLocation = () => {
+  const detectLocation = async () => {
     if (!navigator.geolocation) return;
+    try {
+      if (navigator.permissions) {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        if (perm.state === 'denied') return;
+      }
+    } catch {}
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -63,7 +69,8 @@ export default function OnboardingPage() {
         } catch {}
         setLocating(false);
       },
-      () => setLocating(false)
+      () => setLocating(false),
+      { enableHighAccuracy: false, timeout: 10000 }
     );
   };
 

@@ -34,23 +34,27 @@ export default function SettingsPage() {
     catch (err: any) { toast(err.message, 'error'); }
   };
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) return;
+  const detectLocation = async () => {
+    if (!navigator.geolocation) {
+      toast('Geolocation is not supported on this device.', 'error');
+      return;
+    }
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await res.json();
-          const detectedCity = data.address?.city || data.address?.town || data.address?.village || '';
-          setCity(detectedCity);
-          await api.updateProfile({ city: detectedCity, latitude, longitude }); await refreshUser();
-        } catch {}
-        setLocating(false);
-      },
-      () => { setLocating(false); }
-    );
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 10000 });
+      });
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+      const data = await res.json();
+      const detectedCity = data.address?.city || data.address?.town || data.address?.village || '';
+      setCity(detectedCity);
+      await api.updateProfile({ city: detectedCity, latitude, longitude }); await refreshUser();
+    } catch (err: any) {
+      if (err?.code === 1) toast('Location access denied. Please enable it in your device settings.', 'error');
+      else toast('Could not detect location. Please enter your city manually.', 'error');
+    }
+    setLocating(false);
   };
 
   return (
