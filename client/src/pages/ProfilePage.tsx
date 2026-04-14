@@ -75,7 +75,7 @@ export default function ProfilePage() {
             <div className="flex gap-2">
               <Link to={`/messages?to=${id}`} className="text-xs bg-gray-900 dark:bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Message</Link>
               <button onClick={() => setShowQR(q => !q)} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">QR</button>
-              {navigator.share && <button onClick={() => { haptic('light'); nativeShare({ title: `${profile.username} on Boomerang`, text: `Check out ${profile.username}'s profile on Boomerang`, url: window.location.href }); }} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">Share</button>}
+              {'share' in navigator && <button onClick={() => { haptic('light'); nativeShare({ title: `${profile.username} on Boomerang`, text: `Check out ${profile.username}'s profile on Boomerang`, url: window.location.href }); }} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">Share</button>}
               <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">Report</button>
               <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">{isBlocked ? 'Unblock' : 'Block'}</button>
             </div>

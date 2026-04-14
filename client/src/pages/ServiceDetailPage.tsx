@@ -118,7 +118,7 @@ export default function ServiceDetailPage() {
             providerName={service.provider_name} rating={service.avg_rating}
             url={window.location.href}
           />
-          {navigator.share && (
+          {'share' in navigator && (
             <button onClick={() => { haptic('light'); nativeShare({ title: service.title, text: `${service.title} — ${service.points_cost} boomerangs on Boomerang`, url: window.location.href }); }}
               className="text-xl hover:scale-110 transition-transform" aria-label="Share">
               📤
