@@ -1,4 +1,6 @@
-const BASE = '/api';
+// Use full URL when running as native app (local files), relative when on web
+const isNativeApp = typeof (window as any).Capacitor !== 'undefined' || window.location.protocol === 'file:' || window.location.hostname === 'localhost' && window.location.port === '';
+const BASE = isNativeApp ? 'https://www.boomerang.fyi/api' : '/api';
 
 async function request(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
@@ -162,7 +164,7 @@ export const api = {
   getSupportTickets: () => request('/admin/support'),
   replySupportTicket: (id: number, body: any) => request(`/admin/support/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   trackView: (page: string, entity_id?: number) => {
-    fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id, referrer: document.referrer }) }).catch(() => {});
+    fetch(`${BASE.replace('/api', '')}/api/track`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}) }, body: JSON.stringify({ page, entity_id, referrer: document.referrer }) }).catch(() => {});
   },
   getAdminUsers: (params?: string) => request(`/admin/users${params ? `?${params}` : ''}`),
   banUser: (id: number, banned: boolean) => request(`/admin/users/${id}/ban`, { method: 'PUT', body: JSON.stringify({ banned }) }),

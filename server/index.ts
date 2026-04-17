@@ -43,7 +43,8 @@ const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) callback(null, true);
+    // Allow Capacitor native app origins
+    if (!origin || ALLOWED_ORIGINS.includes(origin) || origin === 'capacitor://localhost' || origin === 'ionic://localhost' || origin === 'http://localhost') callback(null, true);
     else {
       console.warn(`[CORS] Blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));

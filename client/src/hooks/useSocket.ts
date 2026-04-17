@@ -8,6 +8,10 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let currentToken: string | null = null;
 
 function getWsUrl() {
+  // Native app (Capacitor) uses file:// or capacitor:// protocol
+  if (window.location.protocol === 'file:' || window.location.protocol === 'capacitor:' || !window.location.host) {
+    return 'wss://www.boomerang.fyi/ws';
+  }
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.host;
   return `${proto}//${host}/ws`;
