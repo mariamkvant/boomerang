@@ -77,7 +77,21 @@ app.post('/api/track', (req, res) => {
   if (token) { try { const d: any = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'skillswap-dev-secret-change-in-production'); viewerId = d.userId; } catch {} }
   const referrer = (req.body.referrer || req.headers.referer || '').substring(0, 500);
   const userAgent = (req.headers['user-agent'] || '').substring(0, 500);
-  db.run('INSERT INTO page_views (page, entity_id, viewer_id, ip, referrer, user_agent) VALUES ($1, $2, $3, $4, $5, $6)', page, entity_id || null, viewerId, req.ip, referrer, userAgent).catch(() => {});
+  const ip = req.ip || '';
+  
+  // Async country lookup — don't block the response
+  const saveView = async () => {
+    let country = '';
+    try {
+      if (ip && ip !== '::1' && ip !== '127.0.0.1' && !ip.startsWith('::ffff:127')) {
+        const cleanIp = ip.replace('::ffff:', '');
+        const geoRes = await fetch(`http://ip-api.com/json/${cleanIp}?fields=country`, { signal: AbortSignal.timeout(2000) });
+        if (geoRes.ok) { const geo = await geoRes.json(); country = geo.country || ''; }
+      }
+    } catch {}
+    db.run('INSERT INTO page_views (page, entity_id, viewer_id, ip, referrer, user_agent, country) VALUES ($1, $2, $3, $4, $5, $6, $7)', page, entity_id || null, viewerId, ip, referrer, userAgent, country).catch(() => {});
+  };
+  saveView();
   res.json({ ok: true });
 });
 

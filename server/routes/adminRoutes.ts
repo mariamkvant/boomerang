@@ -244,6 +244,45 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
   const weekVisitorsCount = await db.get("SELECT COUNT(DISTINCT ip) as c FROM page_views WHERE created_at > NOW() - INTERVAL '7 days'");
   const totalVisitorsCount = await db.get("SELECT COUNT(DISTINCT ip) as c FROM page_views");
 
+  // Daily views by source (last 14 days)
+  const dailyBySource = await db.all(`SELECT 
+    DATE(created_at) as day,
+    CASE 
+      WHEN referrer = '' OR referrer IS NULL THEN 'Direct'
+      WHEN referrer LIKE '%google%' THEN 'Google'
+      WHEN referrer LIKE '%facebook%' OR referrer LIKE '%fb.%' THEN 'Facebook'
+      WHEN referrer LIKE '%instagram%' THEN 'Instagram'
+      WHEN referrer LIKE '%twitter%' OR referrer LIKE '%t.co%' THEN 'Twitter/X'
+      WHEN referrer LIKE '%linkedin%' THEN 'LinkedIn'
+      WHEN referrer LIKE '%reddit%' THEN 'Reddit'
+      WHEN referrer LIKE '%boomerang.fyi%' THEN 'Internal'
+      ELSE 'Other'
+    END as source,
+    COUNT(*) as views
+    FROM page_views WHERE created_at > NOW() - INTERVAL '14 days'
+    GROUP BY day, source ORDER BY day, views DESC`);
+
+  // Top countries (30 days)
+  const topCountries = await db.all(`SELECT 
+    COALESCE(NULLIF(country, ''), 'Unknown') as country,
+    COUNT(*) as views,
+    COUNT(DISTINCT ip) as unique_visitors
+    FROM page_views WHERE created_at > NOW() - INTERVAL '30 days'
+    GROUP BY country ORDER BY views DESC LIMIT 20`);
+
+  // Daily views by country (top 5 countries, last 14 days)
+  const dailyByCountry = await db.all(`SELECT 
+    DATE(created_at) as day,
+    COALESCE(NULLIF(country, ''), 'Unknown') as country,
+    COUNT(*) as views
+    FROM page_views WHERE created_at > NOW() - INTERVAL '14 days'
+    AND country IN (
+      SELECT COALESCE(NULLIF(country, ''), 'Unknown') FROM page_views 
+      WHERE created_at > NOW() - INTERVAL '30 days'
+      GROUP BY country ORDER BY COUNT(*) DESC LIMIT 5
+    )
+    GROUP BY day, country ORDER BY day, views DESC`);
+
   res.json({
     total_views: parseInt(totalViews?.c || '0'),
     today_views: parseInt(todayViews?.c || '0'),
@@ -261,6 +300,9 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
     referrer_domains: referrerDomains,
     device_types: deviceTypes,
     browsers: browsers,
+    daily_by_source: dailyBySource,
+    top_countries: topCountries,
+    daily_by_country: dailyByCountry,
   });
 });
 

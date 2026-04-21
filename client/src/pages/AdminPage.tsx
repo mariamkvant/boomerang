@@ -248,6 +248,57 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+
+          {/* Top Countries */}
+          {analytics.top_countries?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">🌍 Top Countries (30 days)</h3>
+              <div className="space-y-2">
+                {analytics.top_countries.map((c: any, i: number) => {
+                  const max = Math.max(...analytics.top_countries.map((x: any) => parseInt(x.views)));
+                  const pct = max > 0 ? (parseInt(c.views) / max) * 100 : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-gray-600 dark:text-gray-300">{c.country}</span>
+                        <span className="text-gray-400">{c.views} views · {c.unique_visitors} visitors</span>
+                      </div>
+                      <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
+                        <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Daily views by source */}
+          {analytics.daily_by_source?.length > 0 && (
+            <div className="bg-white dark:bg-[#202c33] p-5 rounded-2xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">📈 Daily Views by Source (14 days)</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                      <th className="text-left py-2 pr-4">Date</th>
+                      <th className="text-left py-2 pr-4">Source</th>
+                      <th className="text-right py-2">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.daily_by_source.map((r: any, i: number) => (
+                      <tr key={i} className="border-b border-gray-50 dark:border-gray-800">
+                        <td className="py-1.5 pr-4 text-gray-500">{new Date(r.day).toLocaleDateString('en', { day: 'numeric', month: 'short' })}</td>
+                        <td className="py-1.5 pr-4 text-gray-600 dark:text-gray-300">{r.source}</td>
+                        <td className="py-1.5 text-right font-medium dark:text-white">{r.views}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
