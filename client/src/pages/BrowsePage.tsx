@@ -202,7 +202,7 @@ export default function BrowsePage() {
                 )}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-400">{translateCat(s.category_name)}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
+                    <span className="text-xs text-gray-400">{s.is_product ? '📦 Item' : translateCat(s.category_name)}{s.subcategory_name ? ` · ${s.subcategory_name}` : ''}</span>
                     {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 group-hover:text-primary-600 transition-colors">{s.title}</h3>

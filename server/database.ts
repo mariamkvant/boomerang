@@ -194,6 +194,7 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS dispute_reason TEXT'); } catch(e) {}
     try { await client.query(`CREATE TABLE IF NOT EXISTS support_tickets (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), email TEXT NOT NULL, subject TEXT NOT NULL, message TEXT NOT NULL, status TEXT DEFAULT 'open', admin_reply TEXT, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
     try { await client.query(`CREATE TABLE IF NOT EXISTS group_announcements (id SERIAL PRIMARY KEY, group_id INTEGER NOT NULL REFERENCES groups(id), author_id INTEGER NOT NULL REFERENCES users(id), content TEXT NOT NULL, image TEXT, pinned BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS service_id INTEGER REFERENCES services(id)'); } catch(e) {}
     try { await client.query('ALTER TABLE groups ADD COLUMN IF NOT EXISTS cover_image TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_email BOOLEAN DEFAULT true'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_push BOOLEAN DEFAULT true'); } catch(e) {}
@@ -219,6 +220,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS referrer TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS user_agent TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS country TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_product BOOLEAN DEFAULT false'); } catch(e) {}
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1'); } catch(e) {}
 
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }

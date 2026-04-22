@@ -220,23 +220,31 @@ router.put('/:id/cover', authMiddleware, async (req: AuthRequest, res: Response)
 router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: Response) => {
   const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   if (!member) return res.status(403).json({ error: 'Members only' });
-  const { content, image, pinned } = req.body;
+  const { content, image, pinned, service_id } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
   let imageUrl = image || null;
   if (image && image.startsWith('data:')) {
     try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
   }
   const canPin = member.role === 'admin' && pinned;
-  const result = await db.run('INSERT INTO group_announcements (group_id, author_id, content, image, pinned) VALUES ($1, $2, $3, $4, $5)',
-    req.params.id, req.userId, content.trim(), imageUrl, canPin || false);
+  const result = await db.run('INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id) VALUES ($1, $2, $3, $4, $5, $6)',
+    req.params.id, req.userId, content.trim(), imageUrl, canPin || false, service_id || null);
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 // Get announcements
 router.get('/:id/announcements', async (req: AuthRequest, res: Response) => {
   const announcements = await db.all(
-    `SELECT ga.*, u.username as author_name, u.avatar as author_avatar
-    FROM group_announcements ga JOIN users u ON ga.author_id = u.id
+    `SELECT ga.*, u.username as author_name, u.avatar as author_avatar,
+    s.id as service_id, s.title as service_title, s.description as service_description,
+    s.points_cost as service_points, s.category_id as service_category_id,
+    c.name as service_category, c.icon as service_category_icon,
+    su.username as service_provider
+    FROM group_announcements ga 
+    JOIN users u ON ga.author_id = u.id
+    LEFT JOIN services s ON ga.service_id = s.id
+    LEFT JOIN categories c ON s.category_id = c.id
+    LEFT JOIN users su ON s.provider_id = su.id
     WHERE ga.group_id = ? ORDER BY ga.pinned DESC, ga.created_at DESC LIMIT 30`, req.params.id);
   res.json(announcements);
 });

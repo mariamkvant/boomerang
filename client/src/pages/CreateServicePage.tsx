@@ -10,7 +10,7 @@ export default function CreateServicePage() {
   const groupId = searchParams.get('group');
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10', city: '' });
+  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10', city: '', is_product: false, quantity: '1' });
   const [suggested, setSuggested] = useState<{ suggested: number; min: number; max: number; multiplier: number } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,6 +75,7 @@ export default function CreateServicePage() {
         points_cost: Number(form.points_cost), duration_minutes: Number(form.duration_minutes),
         is_bundle: form.is_bundle, sessions_count: Number(form.sessions_count), bundle_discount: Number(form.bundle_discount),
         group_id: groupId ? Number(groupId) : null, image,
+        is_product: form.is_product, quantity: Number(form.quantity),
       });
       navigate(`/services/${res.id}`);
     } catch (err: any) { setError(err.message); setLoading(false); }
@@ -95,6 +96,23 @@ export default function CreateServicePage() {
         </div>
       )}
       <form onSubmit={handleSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+        {/* Service type toggle */}
+        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
+          <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            🛠️ Service
+          </button>
+          <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            📦 Item / Product
+          </button>
+        </div>
+        {form.is_product && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
+            List a physical item you're offering to the community — homemade goods, plants, books, crafts, etc. Arrange pickup/delivery via messages.
+          </div>
+        )}
+
         {/* Quick/Advanced toggle */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500 dark:text-gray-400">{quickMode ? 'Quick mode' : 'Advanced mode'}</span>
@@ -180,8 +198,8 @@ export default function CreateServicePage() {
         </div>
         )}
 
-        {/* Duration */}
-        {!quickMode && (
+        {/* Duration — only for services */}
+        {!quickMode && !form.is_product && (
         <div>
           <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1.5">Duration (minutes)</label>
           <div className="flex gap-2">
@@ -221,8 +239,18 @@ export default function CreateServicePage() {
           </div>
         </div>
 
-        {/* Bundle option */}
-        {!quickMode && (
+        {/* Quantity — only for products */}
+        {form.is_product && (
+          <div>
+            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quantity available</label>
+            <input id="quantity" type="number" min="1" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
+            <p className="text-xs text-gray-400 mt-1">How many of this item do you have available?</p>
+          </div>
+        )}
+
+        {/* Bundle option — only for services */}
+        {!quickMode && !form.is_product && (
         <div className="border-t border-gray-100 pt-5">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={form.is_bundle} onChange={e => setForm(f => ({...f, is_bundle: e.target.checked}))} className="rounded" />
@@ -247,7 +275,7 @@ export default function CreateServicePage() {
 
         <button type="submit" disabled={loading}
           className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 hover:shadow-md">
-          {loading ? 'Creating...' : 'Publish Service'}
+          {loading ? 'Creating...' : form.is_product ? 'List Item' : 'Publish Service'}
         </button>
       </form>
     </div>
