@@ -181,9 +181,13 @@ export default function CreateServicePage() {
         </div>
 
         {/* Image */}
-        {!quickMode && (
+        {/* Image — always visible for products, optional for services in advanced mode */}
+        {(form.is_product || !quickMode) && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Service Image (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            {form.is_product ? 'Item Photo' : 'Service Image (optional)'}
+            {form.is_product && <span className="text-red-500 ml-1">*</span>}
+          </label>
           {image ? (
             <div className="relative">
               <img src={image} alt="" className="w-full h-40 object-cover rounded-xl" />

@@ -151,7 +151,7 @@ function Navbar() {
 
       {/* Mobile menu — only items NOT in bottom nav */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-3 space-y-1 animate-fade-in">
+        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-2 space-y-0.5 animate-fade-in max-h-[70vh] overflow-y-auto">
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
           {navLink('/leaderboard', t('leaderboard.title'))}
@@ -162,7 +162,7 @@ function Navbar() {
           {!user && navLink('/register', 'Sign up free')}
           {user && (
             <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
-              className="w-full text-left text-sm text-red-500 px-3 py-2 rounded-lg hover:bg-red-50">Log out</button>
+              className="w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 min-h-[44px]">Log out</button>
           )}
         </div>
       )}
@@ -228,7 +228,7 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-20 lg:pb-6">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6">
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />
