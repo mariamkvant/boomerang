@@ -3,7 +3,7 @@ type Translations = Record<string, Record<string, string>>;
 const en: Record<string, string> = {
   "nav.browse": "Browse Services",
   "nav.offer": "Offer Service",
-  "nav.help": "Help Needed",
+  "nav.help": "Help",
   "nav.communities": "Communities",
   "nav.dashboard": "My Dashboard",
   "nav.home": "Home",
