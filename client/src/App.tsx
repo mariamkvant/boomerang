@@ -53,7 +53,7 @@ function Navbar() {
   const isHome = location.pathname === '/';
   const navLink = (to: string, label: string) => (
     <Link to={to} onClick={() => setMobileOpen(false)}
-      className={`text-sm font-medium px-3 py-2 rounded-lg ${isActive(to) ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'}`}>
+      className={`text-sm font-medium px-3 py-3 rounded-lg whitespace-nowrap ${isActive(to) ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'}`}>
       {label}
     </Link>
   );
