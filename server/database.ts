@@ -195,6 +195,14 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query(`CREATE TABLE IF NOT EXISTS support_tickets (id SERIAL PRIMARY KEY, user_id INTEGER REFERENCES users(id), email TEXT NOT NULL, subject TEXT NOT NULL, message TEXT NOT NULL, status TEXT DEFAULT 'open', admin_reply TEXT, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
     try { await client.query(`CREATE TABLE IF NOT EXISTS group_announcements (id SERIAL PRIMARY KEY, group_id INTEGER NOT NULL REFERENCES groups(id), author_id INTEGER NOT NULL REFERENCES users(id), content TEXT NOT NULL, image TEXT, pinned BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
     try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS service_id INTEGER REFERENCES services(id)'); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS event_date DATE'); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS event_time TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS event_location TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS max_attendees INTEGER'); } catch(e) {}
+    try { await client.query(`CREATE TABLE IF NOT EXISTS announcement_rsvps (id SERIAL PRIMARY KEY, announcement_id INTEGER NOT NULL REFERENCES group_announcements(id) ON DELETE CASCADE, user_id INTEGER NOT NULL REFERENCES users(id), created_at TIMESTAMPTZ DEFAULT NOW(), UNIQUE(announcement_id, user_id))`); } catch(e) {}
+    try { await client.query(`CREATE TABLE IF NOT EXISTS announcement_comments (id SERIAL PRIMARY KEY, announcement_id INTEGER NOT NULL REFERENCES group_announcements(id) ON DELETE CASCADE, author_id INTEGER NOT NULL REFERENCES users(id), content TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_ann_comments_ann ON announcement_comments(announcement_id)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_ann_rsvps_ann ON announcement_rsvps(announcement_id)'); } catch(e) {}
     try { await client.query('ALTER TABLE groups ADD COLUMN IF NOT EXISTS cover_image TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_email BOOLEAN DEFAULT true'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_push BOOLEAN DEFAULT true'); } catch(e) {}

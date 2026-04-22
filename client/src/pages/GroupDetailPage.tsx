@@ -141,6 +141,14 @@ export default function GroupDetailPage() {
   const [attachedService, setAttachedService] = useState<any>(null);
   const [myServices, setMyServices] = useState<any[]>([]);
   const [showServicePicker, setShowServicePicker] = useState(false);
+  const [isEvent, setIsEvent] = useState(false);
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+  const [maxAttendees, setMaxAttendees] = useState('');
+  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
+  const [comments, setComments] = useState<Record<number, any[]>>({});
+  const [newComment, setNewComment] = useState<Record<number, string>>({});
 
   const reload = () => {
     api.getGroup(Number(id)).then(g => {
@@ -168,6 +176,40 @@ export default function GroupDetailPage() {
   const shareUrl = group.invite_code ? `${window.location.origin}/register?group=${group.invite_code}` : '';
 
   const handleJoin = async () => { try { await api.joinGroup(Number(id)); toast('Request sent!', 'success'); reload(); } catch {} };
+
+  const loadComments = async (annId: number) => {
+    const data = await api.getAnnouncementComments(Number(id), annId);
+    setComments(prev => ({ ...prev, [annId]: data }));
+  };
+
+  const toggleComments = async (annId: number) => {
+    const next = new Set(expandedComments);
+    if (next.has(annId)) { next.delete(annId); } else { next.add(annId); await loadComments(annId); }
+    setExpandedComments(next);
+  };
+
+  const submitComment = async (annId: number) => {
+    const content = newComment[annId]?.trim();
+    if (!content) return;
+    try {
+      await api.postAnnouncementComment(Number(id), annId, content);
+      setNewComment(prev => ({ ...prev, [annId]: '' }));
+      await loadComments(annId);
+      setAnnouncements(prev => prev.map(a => a.id === annId ? { ...a, comment_count: (a.comment_count || 0) + 1 } : a));
+    } catch (err: any) { toast(err.message, 'error'); }
+  };
+
+  const handleRsvp = async (annId: number, iRsvped: boolean) => {
+    try {
+      if (iRsvped) { await api.cancelRsvp(Number(id), annId); }
+      else { await api.rsvpAnnouncement(Number(id), annId); }
+      setAnnouncements(prev => prev.map(a => a.id === annId ? {
+        ...a,
+        i_rsvped: !iRsvped,
+        rsvp_count: (a.rsvp_count || 0) + (iRsvped ? -1 : 1)
+      } : a));
+    } catch (err: any) { toast(err.message, 'error'); }
+  };
   const handleLeave = async () => {
     const ok = await confirm({ title: t('groups.leave'), message: 'Are you sure you want to leave this community?', confirmText: 'Leave', danger: true });
     if (ok) { try { await api.leaveGroup(Number(id)); reload(); } catch {} }
@@ -361,8 +403,48 @@ export default function GroupDetailPage() {
             <div className="mb-6">
               {/* Post form */}
               <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-3">
+                {/* Post type toggle */}
+                <div className="flex gap-2 mb-3">
+                  <button onClick={() => setIsEvent(false)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${!isEvent ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-500 dark:text-gray-400'}`}>
+                    📢 Post
+                  </button>
+                  <button onClick={() => setIsEvent(true)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${isEvent ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-500 dark:text-gray-400'}`}>
+                    📅 Event
+                  </button>
+                </div>
+
+                {/* Event fields */}
+                {isEvent && (
+                  <div className="space-y-2 mb-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Date</label>
+                        <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)}
+                          className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Time</label>
+                        <input type="time" value={eventTime} onChange={e => setEventTime(e.target.value)}
+                          className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Location</label>
+                      <input type="text" value={eventLocation} onChange={e => setEventLocation(e.target.value)} placeholder="e.g. Parc Merl, Luxembourg City"
+                        className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Max attendees (optional)</label>
+                      <input type="number" min="1" value={maxAttendees} onChange={e => setMaxAttendees(e.target.value)} placeholder="Leave empty for unlimited"
+                        className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                    </div>
+                  </div>
+                )}
+
                 <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
-                  placeholder="Share something with the community..."
+                  placeholder={isEvent ? "Describe the event..." : "Share something with the community..."}
                   className="w-full border-0 bg-transparent text-sm resize-none outline-none dark:text-white placeholder:text-gray-400 min-h-[60px]" />
                 {postImage && (
                   <div className="relative mt-2">
@@ -416,13 +498,20 @@ export default function GroupDetailPage() {
                   <button onClick={async () => {
                     if (!newPost.trim()) return;
                     try {
-                      await api.postAnnouncement(Number(id), { content: newPost, image: postImage, service_id: attachedService?.id || null });
+                      await api.postAnnouncement(Number(id), {
+                        content: newPost, image: postImage, service_id: attachedService?.id || null,
+                        event_date: isEvent && eventDate ? eventDate : null,
+                        event_time: isEvent && eventTime ? eventTime : null,
+                        event_location: isEvent && eventLocation ? eventLocation : null,
+                        max_attendees: isEvent && maxAttendees ? Number(maxAttendees) : null,
+                      });
                       setNewPost(''); setPostImage(null); setAttachedService(null); setShowServicePicker(false);
+                      setIsEvent(false); setEventDate(''); setEventTime(''); setEventLocation(''); setMaxAttendees('');
                       reload(); toast('Posted!', 'success');
                     } catch (err: any) { toast(err.message, 'error'); }
                   }} disabled={!newPost.trim()}
                     className="bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 disabled:opacity-40 transition-colors">
-                    Post
+                    {isEvent ? 'Create Event' : 'Post'}
                   </button>
                 </div>
               </div>
@@ -444,6 +533,40 @@ export default function GroupDetailPage() {
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 whitespace-pre-wrap">{a.content}</p>
                           {a.image && <img src={a.image} alt="" className="mt-2 rounded-lg max-h-64 object-cover" />}
+
+                          {/* Event details card */}
+                          {a.event_date && (
+                            <div className="mt-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">📅</span>
+                                <span className="text-sm font-semibold text-primary-700 dark:text-primary-300">
+                                  {new Date(a.event_date + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                  {a.event_time && ` at ${a.event_time}`}
+                                </span>
+                              </div>
+                              {a.event_location && (
+                                <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400">
+                                  <span>📍</span><span>{a.event_location}</span>
+                                </div>
+                              )}
+                              {a.max_attendees && (
+                                <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 mt-1">
+                                  <span>👥</span><span>{a.rsvp_count || 0} / {a.max_attendees} spots taken</span>
+                                </div>
+                              )}
+                              {/* RSVP button */}
+                              {user && isMember && (
+                                <button onClick={() => handleRsvp(a.id, a.i_rsvped)}
+                                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors ${a.i_rsvped ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-primary-300 text-primary-600 hover:bg-primary-50'}`}>
+                                  {a.i_rsvped ? `✓ Going (${a.rsvp_count || 0})` : `I'm Going · ${a.rsvp_count || 0} attending`}
+                                </button>
+                              )}
+                              {!user && (
+                                <div className="mt-2 text-xs text-primary-600 dark:text-primary-400">{a.rsvp_count || 0} attending</div>
+                              )}
+                            </div>
+                          )}
+
                           {/* Attached service card */}
                           {a.service_id && (
                             <Link to={`/services/${a.service_id}`} className="mt-3 flex items-center gap-3 bg-gray-50 dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-primary-300 transition-colors block">
@@ -457,14 +580,60 @@ export default function GroupDetailPage() {
                               <span className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg shrink-0 font-medium">Request</span>
                             </Link>
                           )}
-                          {(a.author_id === user?.id || isAdmin) && (
-                            <div className="flex gap-2 mt-2">
-                              {isAdmin && (
-                                <button onClick={async () => { await api.togglePinAnnouncement(Number(id), a.id); reload(); }}
-                                  className="text-[10px] text-gray-400 hover:text-primary-500">{a.pinned ? 'Unpin' : 'Pin'}</button>
+
+                          {/* Actions row */}
+                          <div className="flex items-center gap-3 mt-3 pt-2 border-t border-gray-50 dark:border-gray-700">
+                            <button onClick={() => toggleComments(a.id)}
+                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-500 transition-colors">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
+                              {a.comment_count > 0 ? `${a.comment_count} comment${a.comment_count !== 1 ? 's' : ''}` : 'Comment'}
+                            </button>
+                            {(a.author_id === user?.id || isAdmin) && (
+                              <>
+                                {isAdmin && (
+                                  <button onClick={async () => { await api.togglePinAnnouncement(Number(id), a.id); reload(); }}
+                                    className="text-xs text-gray-400 hover:text-primary-500">{a.pinned ? 'Unpin' : 'Pin'}</button>
+                                )}
+                                <button onClick={async () => { await api.deleteAnnouncement(Number(id), a.id); reload(); }}
+                                  className="text-xs text-gray-400 hover:text-red-500">Delete</button>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Comments section */}
+                          {expandedComments.has(a.id) && (
+                            <div className="mt-3 space-y-2">
+                              {(comments[a.id] || []).map((c: any) => (
+                                <div key={c.id} className="flex gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-[9px] font-medium shrink-0 mt-0.5">
+                                    {c.author_name?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex-1 bg-gray-50 dark:bg-[#2a3942] rounded-xl px-3 py-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-medium dark:text-white">{c.author_name}</span>
+                                      {(c.author_id === user?.id || isAdmin) && (
+                                        <button onClick={async () => { await api.deleteAnnouncementComment(Number(id), a.id, c.id); await loadComments(a.id); setAnnouncements(prev => prev.map(ann => ann.id === a.id ? { ...ann, comment_count: Math.max(0, (ann.comment_count || 0) - 1) } : ann)); }}
+                                          className="text-[9px] text-gray-400 hover:text-red-500">✕</button>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{c.content}</p>
+                                  </div>
+                                </div>
+                              ))}
+                              {user && isMember && (
+                                <div className="flex gap-2 mt-2">
+                                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-[9px] font-medium shrink-0 mt-1">
+                                    {user.username?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex-1 flex gap-2">
+                                    <input value={newComment[a.id] || ''} onChange={e => setNewComment(prev => ({ ...prev, [a.id]: e.target.value }))}
+                                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(a.id); } }}
+                                      placeholder="Write a comment..." className="flex-1 bg-gray-50 dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary-500 dark:text-white" />
+                                    <button onClick={() => submitComment(a.id)} disabled={!newComment[a.id]?.trim()}
+                                      className="bg-primary-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-primary-600 disabled:opacity-40">Post</button>
+                                  </div>
+                                </div>
                               )}
-                              <button onClick={async () => { await api.deleteAnnouncement(Number(id), a.id); reload(); }}
-                                className="text-[10px] text-gray-400 hover:text-red-500">Delete</button>
                             </div>
                           )}
                         </div>

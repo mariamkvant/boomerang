@@ -220,33 +220,109 @@ router.put('/:id/cover', authMiddleware, async (req: AuthRequest, res: Response)
 router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: Response) => {
   const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   if (!member) return res.status(403).json({ error: 'Members only' });
-  const { content, image, pinned, service_id } = req.body;
+  const { content, image, pinned, service_id, event_date, event_time, event_location, max_attendees } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
   let imageUrl = image || null;
   if (image && image.startsWith('data:')) {
     try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
   }
   const canPin = member.role === 'admin' && pinned;
-  const result = await db.run('INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id) VALUES ($1, $2, $3, $4, $5, $6)',
-    req.params.id, req.userId, content.trim(), imageUrl, canPin || false, service_id || null);
+  const result = await db.run(
+    'INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id, event_date, event_time, event_location, max_attendees) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+    req.params.id, req.userId, content.trim(), imageUrl, canPin || false, service_id || null,
+    event_date || null, event_time || null, event_location || null, max_attendees || null
+  );
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
-// Get announcements
+// Get announcements with RSVP counts and comment counts
 router.get('/:id/announcements', async (req: AuthRequest, res: Response) => {
+  // Get viewer ID if authenticated
+  let viewerId: number | null = null;
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try { const jwt = require('jsonwebtoken'); const d = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET || 'skillswap-dev-secret-change-in-production') as { userId: number }; viewerId = d.userId; } catch {}
+  }
+
   const announcements = await db.all(
     `SELECT ga.*, u.username as author_name, u.avatar as author_avatar,
-    s.id as service_id, s.title as service_title, s.description as service_description,
-    s.points_cost as service_points, s.category_id as service_category_id,
+    s.id as service_id, s.title as service_title, s.points_cost as service_points,
     c.name as service_category, c.icon as service_category_icon,
-    su.username as service_provider
+    su.username as service_provider,
+    (SELECT COUNT(*) FROM announcement_rsvps ar WHERE ar.announcement_id = ga.id) as rsvp_count,
+    (SELECT COUNT(*) FROM announcement_comments ac WHERE ac.announcement_id = ga.id) as comment_count
     FROM group_announcements ga 
     JOIN users u ON ga.author_id = u.id
     LEFT JOIN services s ON ga.service_id = s.id
     LEFT JOIN categories c ON s.category_id = c.id
     LEFT JOIN users su ON s.provider_id = su.id
-    WHERE ga.group_id = ? ORDER BY ga.pinned DESC, ga.created_at DESC LIMIT 30`, req.params.id);
+    WHERE ga.group_id = ? ORDER BY ga.pinned DESC, ga.created_at DESC LIMIT 50`, req.params.id);
+
+  // Add viewer's RSVP status
+  if (viewerId) {
+    const myRsvps = await db.all('SELECT announcement_id FROM announcement_rsvps WHERE user_id = ?', viewerId);
+    const rsvpSet = new Set(myRsvps.map((r: any) => r.announcement_id));
+    return res.json(announcements.map((a: any) => ({ ...a, i_rsvped: rsvpSet.has(a.id) })));
+  }
   res.json(announcements);
+});
+
+// RSVP to an event
+router.post('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member) return res.status(403).json({ error: 'Members only' });
+  const ann = await db.get('SELECT * FROM group_announcements WHERE id = ? AND group_id = ?', req.params.annId, req.params.id);
+  if (!ann) return res.status(404).json({ error: 'Not found' });
+  // Check capacity
+  if (ann.max_attendees) {
+    const count = await db.get('SELECT COUNT(*) as c FROM announcement_rsvps WHERE announcement_id = ?', req.params.annId);
+    if (parseInt(count?.c || '0') >= ann.max_attendees) return res.status(400).json({ error: 'Event is full' });
+  }
+  try {
+    await db.run('INSERT INTO announcement_rsvps (announcement_id, user_id) VALUES (?, ?)', req.params.annId, req.userId);
+    res.json({ message: 'RSVP confirmed' });
+  } catch { res.status(409).json({ error: 'Already RSVPed' }); }
+});
+
+// Cancel RSVP
+router.delete('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRequest, res: Response) => {
+  await db.run('DELETE FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?', req.params.annId, req.userId);
+  res.json({ message: 'RSVP cancelled' });
+});
+
+// Get RSVPs for an event
+router.get('/:id/announcements/:annId/rsvps', async (req: AuthRequest, res: Response) => {
+  const rsvps = await db.all('SELECT u.id, u.username, u.avatar FROM announcement_rsvps ar JOIN users u ON ar.user_id = u.id WHERE ar.announcement_id = ? ORDER BY ar.created_at', req.params.annId);
+  res.json(rsvps);
+});
+
+// Get comments for an announcement
+router.get('/:id/announcements/:annId/comments', async (req: AuthRequest, res: Response) => {
+  const comments = await db.all(
+    'SELECT ac.*, u.username as author_name, u.avatar as author_avatar FROM announcement_comments ac JOIN users u ON ac.author_id = u.id WHERE ac.announcement_id = ? ORDER BY ac.created_at',
+    req.params.annId
+  );
+  res.json(comments);
+});
+
+// Post a comment
+router.post('/:id/announcements/:annId/comments', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const member = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (!member) return res.status(403).json({ error: 'Members only' });
+  const { content } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
+  const result = await db.run('INSERT INTO announcement_comments (announcement_id, author_id, content) VALUES (?, ?, ?)', req.params.annId, req.userId, content.trim());
+  res.status(201).json({ id: result.lastInsertRowid });
+});
+
+// Delete a comment
+router.delete('/:id/announcements/:annId/comments/:commentId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const comment = await db.get('SELECT * FROM announcement_comments WHERE id = ?', req.params.commentId);
+  if (!comment) return res.status(404).json({ error: 'Not found' });
+  const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
+  if (comment.author_id !== req.userId && member?.role !== 'admin') return res.status(403).json({ error: 'Not authorized' });
+  await db.run('DELETE FROM announcement_comments WHERE id = ?', req.params.commentId);
+  res.json({ message: 'Deleted' });
 });
 
 // Delete announcement (author or admin)

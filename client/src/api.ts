@@ -197,5 +197,11 @@ export const api = {
   postAnnouncement: (id: number, body: any) => request(`/groups/${id}/announcements`, { method: 'POST', body: JSON.stringify(body) }),
   deleteAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}`, { method: 'DELETE' }),
   togglePinAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/pin`, { method: 'PUT' }),
+  rsvpAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/rsvp`, { method: 'POST' }),
+  cancelRsvp: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/rsvp`, { method: 'DELETE' }),
+  getAnnouncementRsvps: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/rsvps`),
+  getAnnouncementComments: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}/comments`),
+  postAnnouncementComment: (groupId: number, annId: number, content: string) => request(`/groups/${groupId}/announcements/${annId}/comments`, { method: 'POST', body: JSON.stringify({ content }) }),
+  deleteAnnouncementComment: (groupId: number, annId: number, commentId: number) => request(`/groups/${groupId}/announcements/${annId}/comments/${commentId}`, { method: 'DELETE' }),
   updateGroupCover: (id: number, cover_image: string) => request(`/groups/${id}/cover`, { method: 'PUT', body: JSON.stringify({ cover_image }) }),
 };
