@@ -102,35 +102,37 @@ export default function BrowsePage() {
       </div>
 
       {/* Search bar */}
-      <div className="flex flex-col sm:flex-row gap-2 mb-6">
-        <div className="relative flex-1">
-          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-          <input type="text" placeholder={t('browse.search')} value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
-            aria-label="Search services" />
-        </div>
-        <div className="relative flex-1 sm:max-w-[200px]">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-          </svg>
-          <input type="text" placeholder={t('browse.cityPlaceholder')} value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
-            aria-label="Filter by location" />
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input type="text" placeholder={t('browse.search')} value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              aria-label="Search services" />
+          </div>
+          <div className="relative w-36 shrink-0">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+            <input type="text" placeholder={t('browse.cityPlaceholder')} value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+              className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              aria-label="Filter by location" />
+          </div>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setNearMe(!nearMe)}
-            className={`px-3 py-2.5 rounded-xl text-sm font-medium shrink-0 transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+            className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
             {locating ? '...' : t('browse.nearMe')}
           </button>
           <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
-            className={`px-3 py-2.5 rounded-xl text-sm font-medium shrink-0 transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+            className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
             {viewMode === 'map' ? t('browse.list') : t('browse.map')}
           </button>
           <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 rounded-xl text-sm font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
+            className="flex-1 px-3 py-2 rounded-xl text-sm font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
             <option value="newest">{t('browse.sort.newest')}</option>
             <option value="price_low">{t('browse.sort.priceLow')}</option>
             <option value="price_high">{t('browse.sort.priceHigh')}</option>
@@ -153,7 +155,7 @@ export default function BrowsePage() {
             </button>
           ))}
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 dark:from-[#111b21] pointer-events-none" />
       </div>
 
       {/* Subcategory pills */}
@@ -205,7 +207,7 @@ export default function BrowsePage() {
                   </div>
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 group-hover:text-primary-600 transition-colors">{s.title}</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{s.description}</p>
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-700">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700/50">
                     <span className="text-primary-600 font-semibold text-sm">{s.points_cost} 🪃</span>
                     <div className="flex items-center gap-2">
                       {s.distance != null && <span className="text-[11px] text-gray-400">{Number(s.distance).toFixed(1)} km</span>}

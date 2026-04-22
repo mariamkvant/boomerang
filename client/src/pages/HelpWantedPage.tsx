@@ -45,10 +45,10 @@ export default function HelpWantedPage() {
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
       {success && <div className="bg-green-50 text-green-600 p-3 rounded-xl mb-4 text-sm">✓ {success}</div>}
 
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl">
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl">
         {(['browse', 'mine', 'post'] as const).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium ${tab === tb ? 'bg-white dark:bg-[#2a3942] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
             {tb === 'browse' ? t('help.browseRequests') : tb === 'mine' ? t('help.myRequests') : t('help.askForHelp')}
           </button>
         ))}
@@ -63,8 +63,8 @@ export default function HelpWantedPage() {
             </div>
           )}
           {requests.map((r: any) => (
-            <Link key={r.id} to={`/help-wanted/${r.id}`} className="block bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start justify-between gap-4">
+            <Link key={r.id} to={`/help-wanted/${r.id}`} className="block bg-white dark:bg-[#202c33] p-4 rounded-xl shadow-sm hover:shadow-md transition-all">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs text-gray-400">{r.category_name}</span>
@@ -84,11 +84,13 @@ export default function HelpWantedPage() {
                     {r.requester_name}{r.requester_city ? ` · ${r.requester_city}` : ''}
                     {r.helper_name ? ` · Helper: ${r.helper_name}` : ''}
                   </p>
+                  {user && user.id !== r.requester_id && r.status === 'open' && (
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
+                      className="mt-3 bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">
+                      I Can Help
+                    </button>
+                  )}
                 </div>
-                {user && user.id !== r.requester_id && r.status === 'open' && (
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
-                    className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 shrink-0">I Can Help</button>
-                )}
               </div>
             </Link>
           ))}
@@ -99,7 +101,7 @@ export default function HelpWantedPage() {
         <div className="space-y-3">
           {myRequests.length === 0 && <p className="text-gray-400 text-sm text-center py-8">You haven't posted any help requests yet.</p>}
           {myRequests.map((r: any) => (
-            <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
+            <div key={r.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-card">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold text-sm">{r.title}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${r.status === 'open' ? 'bg-green-50 text-green-600 border-green-200' : r.status === 'accepted' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>{r.status}</span>
