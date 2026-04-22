@@ -150,8 +150,8 @@ export default function BrowsePage() {
           </button>
           {categories.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-              {translateCat(c.name)}
+              className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+              {c.icon} {translateCat(c.name)}
             </button>
           ))}
         </div>
@@ -178,13 +178,15 @@ export default function BrowsePage() {
       {loading ? (
         <SkeletonGrid count={6} />
       ) : services.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl shadow-card">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('browse.noResults')}</h3>
-          <p className="text-gray-500 text-sm mb-4">{t('browse.beFirst')}</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/services/new" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('browse.offerService')}</Link>
-            <Link to="/help-wanted" className="inline-block border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">See Help Wanted requests →</Link>
-          </div>
+        <div className="text-center py-16">
+          <div className="text-4xl mb-3">🔍</div>
+          <h3 className="text-base font-semibold text-gray-700 dark:text-white mb-1">
+            {selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
+          </h3>
+          <p className="text-gray-400 text-sm mb-5">Be the first to offer something in this category</p>
+          <Link to="/services/new" className="inline-block bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">
+            + Offer something
+          </Link>
         </div>
       ) : viewMode === 'map' ? (
         <>

@@ -1,9 +1,9 @@
 type Translations = Record<string, Record<string, string>>;
 
 const en: Record<string, string> = {
-  "nav.browse": "Browse Services",
-  "nav.offer": "Offer Service",
-  "nav.help": "Help",
+  "nav.browse": "Explore",
+  "nav.offer": "Offer",
+  "nav.help": "Requests",
   "nav.communities": "Communities",
   "nav.dashboard": "My Dashboard",
   "nav.home": "Home",
@@ -79,8 +79,8 @@ const en: Record<string, string> = {
   "register.privacy": "Privacy Policy",
   "register.btn": "Create Account",
   "register.hasAccount": "Already have an account?",
-  "browse.title": "Browse Services",
-  "browse.subtitle": "Find the help you need",
+  "browse.title": "Explore",
+  "browse.subtitle": "Services, items & more from your community",
   "browse.search": "Search for services...",
   "browse.nearMe": "Near Me",
   "browse.map": "Map",

@@ -81,7 +81,12 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-        {profile.bio && <p className="text-gray-600 text-sm leading-relaxed mb-4">{profile.bio}</p>}
+        {profile.bio && <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">{profile.bio}</p>}
+        {!profile.bio && isMe && (
+          <Link to="/settings" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-primary-500 mb-4 transition-colors">
+            <span>+</span> Add a bio to build trust with the community
+          </Link>
+        )}
         {trust && (
           <div className="flex flex-wrap gap-3 mt-4">
             {[
