@@ -48,27 +48,21 @@ export default function MePage() {
             <Link to={`/users/${user.id}`} className="text-xs text-primary-500 hover:text-primary-600 shrink-0">View profile</Link>
           </div>
 
-          {/* Stats row */}
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <div className="text-center flex-1">
-              <div className="text-lg font-bold dark:text-white">{user.points}</div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wide">Boomerangs</div>
+          {/* Stats row — simplified */}
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-bold dark:text-white">{user.points}</span>
+              <span className="text-xs text-gray-400">🪃</span>
             </div>
             {trust && (
               <>
-                <div className="text-center flex-1">
-                  <div className="text-lg font-bold dark:text-white">{trust.completed || 0}</div>
-                  <div className="text-[10px] text-gray-400 uppercase tracking-wide">Exchanges</div>
-                </div>
-                <div className="text-center flex-1">
-                  <div className={`text-sm font-semibold px-2.5 py-0.5 rounded-full inline-block ${
-                    trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' :
-                    trust.level === 'Gold' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                    trust.level === 'Silver' ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' :
-                    'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
-                  }`}>{trust.level}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">{trust.score}/100</div>
-                </div>
+                <span className="text-xs text-gray-400">{trust.completed || 0} exchanges</span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
+                  trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
+                  trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' :
+                  'bg-orange-50 text-orange-600'
+                }`}>{trust.level}</span>
               </>
             )}
           </div>

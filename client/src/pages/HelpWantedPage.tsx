@@ -101,13 +101,13 @@ export default function HelpWantedPage() {
         <div className="space-y-3">
           {myRequests.length === 0 && <p className="text-gray-400 text-sm text-center py-8">You haven't posted any help requests yet.</p>}
           {myRequests.map((r: any) => (
-            <div key={r.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-card">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">{r.title}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${r.status === 'open' ? 'bg-green-50 text-green-600 border-green-200' : r.status === 'accepted' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-200'}`}>{r.status}</span>
+            <div key={r.id} className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm dark:text-white">{r.title}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'open' ? 'bg-green-50 text-green-600' : r.status === 'accepted' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>{r.status}</span>
               </div>
-              <p className="text-xs text-gray-500">{r.category_icon} {r.category_name} · 🪃 {r.points_budget} 🪃</p>
-              {r.helper_name && <p className="text-xs text-primary-600 mt-2">Helper: {r.helper_name}</p>}
+              <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name} · 🪃 {r.points_budget}</p>
+              {r.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {r.helper_name}</p>}
             </div>
           ))}
         </div>
