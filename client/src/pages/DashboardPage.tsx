@@ -265,9 +265,13 @@ export default function DashboardPage() {
             <p className="text-sm font-medium dark:text-white">Invite a friend, get 25 🪃</p>
             <p className="text-xs text-gray-400 mt-0.5">They get 25 too.</p>
           </div>
-          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.id}`); toast('Link copied!'); }}
-            className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 shrink-0 font-medium">
-            Copy link
+          <button onClick={async () => {
+            const url = `${window.location.origin}/register?ref=${user.id}`;
+            if ('share' in navigator) { try { await (navigator as any).share({ title: 'Join Boomerang', url }); return; } catch {} }
+            navigator.clipboard.writeText(url); toast('Link copied!');
+          }} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 shrink-0 font-medium flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
+            Share
           </button>
         </div>
       )}

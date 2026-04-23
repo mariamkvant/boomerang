@@ -61,92 +61,94 @@ export default function SettingsPage() {
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
       <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
 
-      <div className="bg-white p-6 rounded-2xl shadow-card space-y-5">
-        <div className="flex items-center gap-4">
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-4">
+        <div className="flex items-center gap-3">
           <div className="relative">
             {user?.avatar ? (
-              <img src={user.avatar} alt="" className="w-16 h-16 rounded-full object-cover" />
+              <img src={user.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-primary-500 flex items-center justify-center text-white text-xl font-semibold">
+              <div className="w-14 h-14 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 text-lg font-semibold">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
             )}
-            <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-white border border-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-50 shadow-sm">
-              <span className="text-xs">📷</span>
+            <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-50 shadow-sm">
+              <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
               <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleAvatarChange} className="hidden" />
             </label>
           </div>
           <div>
-            <p className="font-medium">{user?.username}</p>
-            <p className="text-xs text-gray-400">{avatarUploading ? '...' : t('settings.changePhoto')}</p>
+            <p className="font-medium text-sm dark:text-white">{user?.username}</p>
+            <p className="text-xs text-gray-400">{avatarUploading ? 'Uploading...' : t('settings.changePhoto')}</p>
           </div>
         </div>
 
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">{t('settings.username')}</label>
+          <label htmlFor="username" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">{t('settings.username')}</label>
           <input id="username" value={username} onChange={e => setUsername(e.target.value)} placeholder={t('settings.usernamePlaceholder')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
         </div>
 
         <div>
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1.5">{t('settings.bio')}</label>
+          <label htmlFor="bio" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">{t('settings.bio')}</label>
           <textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder={t('settings.bioPlaceholder')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
         </div>
 
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">📍 {t('settings.location')}</label>
+          <label htmlFor="city" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">{t('settings.location')}</label>
           <div className="flex gap-2">
             <input id="city" value={city} onChange={e => setCity(e.target.value)} placeholder={t('settings.locationPlaceholder')}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+              className="flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
             <button onClick={detectLocation} disabled={locating} type="button"
-              className="bg-gray-100 text-gray-600 px-4 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 disabled:opacity-50 shrink-0">
-              {locating ? '...' : '📍'}
+              className="border border-gray-200 dark:border-gray-600 text-gray-500 px-3 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942] disabled:opacity-50 shrink-0">
+              {locating ? '...' : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>}
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-1">{t('settings.locationHelp')}</p>
         </div>
 
         <div>
-          <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1.5">🗣️ {t('settings.languages')}</label>
+          <label htmlFor="languages" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">{t('settings.languages')}</label>
           <input id="languages" value={languagesSpoken} onChange={e => setLanguagesSpoken(e.target.value)} placeholder={t('settings.languagesPlaceholder')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
           <p className="text-xs text-gray-400 mt-1">{t('settings.languagesHelp')}</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button onClick={handleSave} className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600 hover:shadow-md">{t('settings.save')}</button>
-          {saved && <span className="text-sm text-green-600">✓</span>}
+        <div className="flex items-center gap-3 pt-1">
+          <button onClick={handleSave} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('settings.save')}</button>
+          {saved && <span className="text-xs text-green-600">Saved</span>}
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">🌍 {t('settings.appLanguage')}</h3>
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">{t('settings.appLanguage')}</h3>
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map(l => (
             <button key={l.code} onClick={() => setLang(l.code)} title={l.name}
-              className={`px-3 py-2 rounded-xl text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'}`}>
+              className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
               {l.flag}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">📅 {t('settings.availability')}</h3>
-        <p className="text-sm text-gray-500 mb-3">{t('settings.availabilityDesc')}</p>
-        <Link to="/availability" className="inline-block bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('settings.manageSchedule')} →</Link>
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{t('settings.availability')}</h3>
+        <p className="text-xs text-gray-400 mb-3">{t('settings.availabilityDesc')}</p>
+        <Link to="/availability" className="text-sm text-primary-600 hover:text-primary-700 font-medium">{t('settings.manageSchedule')} →</Link>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-card mt-6">
-        <h3 className="font-semibold mb-3">🪃 {t('settings.invite')}</h3>
-        <p className="text-sm text-gray-500 mb-3">{t('settings.inviteDesc')}</p>
-        <div className="flex gap-2">
-          <input readOnly value={`${window.location.origin}/register?ref=${user?.id}`}
-            className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600" />
-          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user?.id}`); }}
-            className="bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 shrink-0">{t('settings.copy')}</button>
-        </div>
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('settings.invite')}</h3>
+        <p className="text-xs text-gray-400 mb-3">{t('settings.inviteDesc')}</p>
+        <button onClick={async () => {
+          const url = `${window.location.origin}/register?ref=${user?.id}`;
+          if ('share' in navigator) { try { await (navigator as any).share({ title: 'Join Boomerang', url }); return; } catch {} }
+          navigator.clipboard.writeText(url);
+        }} className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
+          Share invite link
+        </button>
       </div>
     </div>
   );
