@@ -6,7 +6,7 @@ import { notify, notificationEmailHtml } from '../notify';
 const router = Router();
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { service_id, message } = req.body;
+  const { service_id, message, pickup_details } = req.body;
   if (!service_id) return res.status(400).json({ error: 'service_id is required' });
   // Gate: must offer at least 1 service before requesting
   const myServices = await db.get('SELECT COUNT(*) as c FROM services WHERE provider_id = ? AND is_active = 1', req.userId);
@@ -18,14 +18,25 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (service.provider_id === req.userId) return res.status(400).json({ error: 'Cannot request your own service' });
   const user = await db.get('SELECT points FROM users WHERE id = ?', req.userId);
   if (user.points < service.points_cost) return res.status(400).json({ error: 'Not enough points' });
-  const result = await db.run('INSERT INTO service_requests (service_id, requester_id, message) VALUES (?, ?, ?)', service_id, req.userId, message || '');
-  const provider = await db.get('SELECT id, email, username FROM users WHERE id = ?', service.provider_id);
-  if (provider) { await notify({ userId: provider.id, type: 'new_request', title: 'New service request', body: 'Someone requested your service: ' + service.title, link: '/dashboard', email: { to: provider.email, subject: 'New request on Boomerang', html: notificationEmailHtml('New Service Request', 'Someone wants your help with: ' + service.title, '') } }); }
-  res.status(201).json({ id: result.lastInsertRowid, message: 'Request created' });
+  const result = await db.run(
+    'INSERT INTO service_requests (service_id, requester_id, message, pickup_details) VALUES (?, ?, ?, ?)',
+    service_id, req.userId, message || '', pickup_details || null
+  );
+  const requestId = result.lastInsertRowid;
+  const provider = await db.get('SELECT id, email, username, auto_accept FROM users WHERE id = ?', service.provider_id);
+  // Auto-accept if provider has it enabled
+  if (provider?.auto_accept) {
+    await db.run("UPDATE service_requests SET status = 'accepted' WHERE id = ?", requestId);
+    const requester = await db.get('SELECT id, email FROM users WHERE id = ?', req.userId);
+    if (requester) { await notify({ userId: requester.id, type: 'request_accepted', title: 'Request auto-accepted!', body: `Your request for "${service.title}" was automatically accepted.`, link: '/dashboard' }); }
+  } else if (provider) {
+    await notify({ userId: provider.id, type: 'new_request', title: 'New service request', body: 'Someone requested your service: ' + service.title, link: '/dashboard', email: { to: provider.email, subject: 'New request on Boomerang', html: notificationEmailHtml('New Service Request', 'Someone wants your help with: ' + service.title, '') } });
+  }
+  res.status(201).json({ id: requestId, message: 'Request created', auto_accepted: !!provider?.auto_accept });
 });
 
 router.get('/incoming', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const requests = await db.all('SELECT sr.*, s.title as service_title, s.points_cost, u.username as requester_name FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON sr.requester_id = u.id WHERE s.provider_id = ? ORDER BY sr.created_at DESC', req.userId);
+  const requests = await db.all('SELECT sr.*, s.title as service_title, s.points_cost, s.is_product, u.username as requester_name, u.id as requester_id FROM service_requests sr JOIN services s ON sr.service_id = s.id JOIN users u ON sr.requester_id = u.id WHERE s.provider_id = ? ORDER BY sr.created_at DESC', req.userId);
   res.json(requests);
 });
 
@@ -50,15 +61,16 @@ router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response
   res.json({ message: 'Request accepted' });
 });
 
-// Provider marks service as delivered
+// Provider marks service as delivered (with optional delivery note)
 router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { delivery_note } = req.body;
   const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'accepted') return res.status(400).json({ error: 'Request must be accepted first' });
-  await db.run("UPDATE service_requests SET status = 'delivered' WHERE id = ?", req.params.id);
+  await db.run("UPDATE service_requests SET status = 'delivered', delivery_note = ?, delivered_at = NOW() WHERE id = ?", delivery_note || null, req.params.id);
   const requesterDeliver = await db.get('SELECT id, email FROM users WHERE id = ?', r.requester_id);
-  if (requesterDeliver) { await notify({ userId: requesterDeliver.id, type: 'service_delivered', title: 'Service delivered!', body: 'The provider marked your service as delivered. Please confirm.', link: '/dashboard' }); }
+  if (requesterDeliver) { await notify({ userId: requesterDeliver.id, type: 'service_delivered', title: 'Service delivered!', body: 'The provider marked your service as delivered. Please confirm within 72 hours.', link: '/dashboard' }); }
   res.json({ message: 'Service marked as delivered. Waiting for requester confirmation.' });
 });
 
@@ -169,6 +181,36 @@ router.post('/:id/nudge', authMiddleware, async (req: AuthRequest, res: Response
   const action = r.status === 'pending' ? 'respond to' : r.status === 'delivered' ? 'confirm' : 'complete';
   await notify({ userId: targetId, type: 'nudge', title: 'Friendly reminder', body: `${sender?.username} is waiting for you to ${action} "${r.title}"`, link: '/dashboard' });
   res.json({ message: 'Nudge sent!' });
+});
+
+// Reschedule — either party proposes a new date/time; stored as pending_reschedule
+router.put('/:id/reschedule', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { new_date, new_time, note } = req.body;
+  if (!new_date) return res.status(400).json({ error: 'new_date is required' });
+  const r = await db.get('SELECT sr.*, s.provider_id, s.title FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  if (!['accepted'].includes(r.status)) return res.status(400).json({ error: 'Can only reschedule accepted requests' });
+  await db.run('UPDATE service_requests SET reschedule_date = ?, reschedule_time = ?, reschedule_note = ?, reschedule_by = ? WHERE id = ?',
+    new_date, new_time || null, note || null, req.userId, req.params.id);
+  const targetId = r.requester_id === req.userId ? r.provider_id : r.requester_id;
+  const sender = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
+  await notify({ userId: targetId, type: 'reschedule', title: 'Reschedule proposed', body: `${sender?.username} wants to reschedule "${r.title}" to ${new_date}${new_time ? ' at ' + new_time : ''}`, link: '/dashboard' });
+  res.json({ message: 'Reschedule proposed' });
+});
+
+// Accept reschedule
+router.put('/:id/reschedule/accept', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get('SELECT sr.*, s.provider_id, s.title FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+  if (r.requester_id !== req.userId && r.provider_id !== req.userId) return res.status(403).json({ error: 'Not authorized' });
+  if (!r.reschedule_date) return res.status(400).json({ error: 'No reschedule pending' });
+  // Update the booking
+  await db.run('UPDATE bookings SET booked_date = ?, start_time = COALESCE(?, start_time) WHERE request_id = ?', r.reschedule_date, r.reschedule_time, req.params.id);
+  await db.run('UPDATE service_requests SET reschedule_date = NULL, reschedule_time = NULL, reschedule_note = NULL, reschedule_by = NULL WHERE id = ?', req.params.id);
+  const targetId = r.requester_id === req.userId ? r.provider_id : r.requester_id;
+  await notify({ userId: targetId, type: 'reschedule_accepted', title: 'Reschedule accepted', body: `"${r.title}" rescheduled to ${r.reschedule_date}`, link: '/dashboard' });
+  res.json({ message: 'Reschedule accepted' });
 });
 
 router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response) => {

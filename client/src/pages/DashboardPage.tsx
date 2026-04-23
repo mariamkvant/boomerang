@@ -124,6 +124,8 @@ export default function DashboardPage() {
   const [shoutoutPrompt, setShoutoutPrompt] = useState<{ userId: number; name: string } | null>(null);
   const [shoutoutMsg, setShoutoutMsg] = useState('');
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
+  const [deliverNote, setDeliverNote] = useState<{ id: number; note: string } | null>(null);
+  const [rescheduleForm, setRescheduleForm] = useState<{ id: number; title: string; date: string; time: string; note: string } | null>(null);
   const { toast } = useToast();
   const { confirm } = useConfirm();
 
@@ -183,22 +185,33 @@ export default function DashboardPage() {
     if (status === 'cancelled' || status === 'disputed') return null;
     const currentIdx = progressSteps.indexOf(status);
     return (
-      <div className="flex items-center gap-0.5 mt-3">
+      <div className="flex items-center mt-3 mb-1">
         {progressSteps.map((step, i) => (
           <React.Fragment key={step}>
             <div className="flex flex-col items-center">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                 i < currentIdx ? 'bg-primary-500 text-white' :
-                i === currentIdx ? 'bg-primary-500 text-white ring-2 ring-primary-200' :
-                'bg-gray-200 text-gray-400'
+                i === currentIdx ? 'bg-primary-500 text-white ring-4 ring-primary-100' :
+                'bg-gray-100 text-gray-400'
               }`}>{i < currentIdx ? '✓' : i + 1}</div>
-              <span className={`text-[9px] mt-0.5 ${i <= currentIdx ? 'text-primary-600 font-medium' : 'text-gray-400'}`}>{stepLabels[step]}</span>
+              <span className={`text-[9px] mt-1 font-medium ${i <= currentIdx ? 'text-primary-600' : 'text-gray-400'}`}>{stepLabels[step]}</span>
             </div>
-            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mt-[-10px] mx-0.5 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
           </React.Fragment>
         ))}
       </div>
     );
+  };
+
+  // Auto-confirm countdown (72h from delivered_at)
+  const AutoConfirmCountdown = ({ deliveredAt }: { deliveredAt: string }) => {
+    if (!deliveredAt) return null;
+    const deadline = new Date(deliveredAt).getTime() + 72 * 60 * 60 * 1000;
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return <span className="text-xs text-amber-500">Auto-confirming soon...</span>;
+    const hours = Math.floor(remaining / 3600000);
+    const mins = Math.floor((remaining % 3600000) / 60000);
+    return <span className="text-xs text-amber-500">Auto-confirms in {hours > 0 ? `${hours}h` : `${mins}m`}</span>;
   };
 
   const tabs = [
@@ -465,41 +478,54 @@ export default function DashboardPage() {
           )}
           {/* Regular incoming (non-disputed, non-completed, non-cancelled) */}
           {incoming.filter(r => !['completed','cancelled','disputed'].includes(r.status)).map((r: any) => (
-            <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
+            <div key={r.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white">{r.service_title}</Link>
                     {badge(r.status)}
+                    {r.is_product && <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">📦 Item</span>}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
                   {r.created_at && <p className="text-[11px] text-gray-400 mt-0.5">📅 {new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
-                  {r.message && <p className="text-sm text-gray-500 mt-2 bg-gray-50 p-2.5 rounded-lg italic">"{r.message}"</p>}
+                  {r.message && <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-[#2a3942] p-2.5 rounded-lg italic">"{r.message}"</p>}
+                  {r.pickup_details && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg">📍 Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} />
+                  {/* Pending: explain messaging not available yet */}
+                  {r.status === 'pending' && (
+                    <p className="text-xs text-gray-400 mt-1">Accept to unlock messaging with {r.requester_name}</p>
+                  )}
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-col gap-2 shrink-0">
                   {r.status === 'pending' && (
                     <>
                       <button onClick={() => handleAction(api.acceptRequest, r.id)} className="text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">{t('dashboard.accept')}</button>
-                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
-                    <button onClick={() => handleAction(api.deliverRequest, r.id)} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">{t('dashboard.delivered')}</button>
+                    <>
+                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">Mark delivered</button>
+                      <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
+                    </>
                   )}
                   {r.status === 'delivered' && (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-purple-500 font-medium">{t('dashboard.waiting')}</span>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-primary-50 text-primary-600 px-2.5 py-1 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                        className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-2.5 py-1 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
                     </div>
-                  )}
-                  {r.status === 'disputed' && (
-                    <span className="text-xs text-red-500 font-medium">{t('dashboard.disputedMsg')}</span>
                   )}
                 </div>
               </div>
-              {/* Chat toggle for accepted/delivered/disputed */}
+              {/* Delivery note shown to provider after delivering */}
+              {r.status === 'delivered' && r.delivery_note && (
+                <div className="mt-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2">
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">Your delivery note:</p>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">{r.delivery_note}</p>
+                </div>
+              )}
+              {/* Chat toggle for accepted/delivered */}
               {['accepted','delivered','completed','disputed'].includes(r.status) && (
                 <div>
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
@@ -517,6 +543,17 @@ export default function DashboardPage() {
       {/* Outgoing */}
       {tab === 'outgoing' && (
         <div className="space-y-3">
+          {/* Prominent review prompts */}
+          {outgoing.filter(r => r.status === 'completed' && Number(r.has_reviewed) === 0).slice(0, 2).map((r: any) => (
+            <div key={'review-'+r.id} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">How was your exchange with {r.provider_name}?</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">{r.service_title}</p>
+              </div>
+              <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })}
+                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shrink-0">⭐ Review</button>
+            </div>
+          ))}
           {outgoing.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-card">
               <div className="text-4xl mb-3">🪃</div>
@@ -525,16 +562,42 @@ export default function DashboardPage() {
             </div>
           )}
           {outgoing.map((r: any) => (
-            <div key={r.id} className="bg-white p-5 rounded-xl shadow-card">
+            <div key={r.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600">{r.service_title}</Link>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white">{r.service_title}</Link>
                     {badge(r.status)}
+                    {r.is_product && <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">📦 Item</span>}
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
                   {r.created_at && <p className="text-[11px] text-gray-400 mt-0.5">📅 {new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
+                  {r.pickup_details && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg">📍 Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} />
+                  {/* Delivery note from provider */}
+                  {r.status === 'delivered' && r.delivery_note && (
+                    <div className="mt-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">Provider note:</p>
+                      <p className="text-xs text-purple-700 dark:text-purple-300">{r.delivery_note}</p>
+                    </div>
+                  )}
+                  {/* Auto-confirm countdown */}
+                  {r.status === 'delivered' && r.delivered_at && (
+                    <div className="mt-1.5"><AutoConfirmCountdown deliveredAt={r.delivered_at} /></div>
+                  )}
+                  {/* Pending: explain dispute option */}
+                  {r.status === 'delivered' && (
+                    <p className="text-xs text-gray-400 mt-1">Confirm if done, or tap "Something went wrong" to pause the transfer.</p>
+                  )}
+                  {/* Reschedule proposal */}
+                  {r.reschedule_date && r.reschedule_by !== user?.id && (
+                    <div className="mt-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
+                      <p className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-1">Reschedule proposed: {r.reschedule_date}{r.reschedule_time ? ` at ${r.reschedule_time}` : ''}</p>
+                      {r.reschedule_note && <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">"{r.reschedule_note}"</p>}
+                      <button onClick={async () => { try { await api.acceptReschedule(r.id); toast('Reschedule accepted!'); load(); } catch (err: any) { toast(err.message, 'error'); } }}
+                        className="text-xs bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 font-medium">Accept</button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {r.status === 'pending' && (
@@ -547,8 +610,10 @@ export default function DashboardPage() {
                   {r.status === 'accepted' && (
                     <>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-primary-50 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
-                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                        className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                      <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })}
+                        className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
                     </>
                   )}
                   {r.status === 'delivered' && (
@@ -559,9 +624,9 @@ export default function DashboardPage() {
                         setShoutoutMsg('');
                       }} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
                       <button onClick={async () => {
-                        const reason = prompt('Why are you disputing? (optional)');
-                        try { await api.disputeRequest(r.id, reason || undefined); toast('Dispute opened'); load(); } catch (err: any) { toast(err.message, 'error'); }
-                      }} className="text-xs bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 font-medium">Dispute</button>
+                        const reason = prompt('What went wrong? (optional)');
+                        try { await api.disputeRequest(r.id, reason || undefined); toast('Issue raised — exchange paused'); load(); } catch (err: any) { toast(err.message, 'error'); }
+                      }} className="text-xs bg-red-50 dark:bg-red-900/20 text-red-500 px-3 py-2 rounded-lg hover:bg-red-100 font-medium">Something went wrong</button>
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
@@ -727,6 +792,68 @@ export default function DashboardPage() {
 
       {/* Schedule */}
       {tab === 'schedule' && <ScheduleTab loaded={scheduleLoaded} slots={availSlots} setSlots={setAvailSlots} onLoad={() => setScheduleLoaded(true)} />}
+
+      {/* Deliver note modal */}
+      {deliverNote && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setDeliverNote(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="font-bold text-lg dark:text-white mb-2">Mark as delivered</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add an optional note for the requester — what did you deliver, any handover details?</p>
+            <textarea value={deliverNote.note} onChange={e => setDeliverNote(d => d ? { ...d, note: e.target.value } : d)}
+              placeholder="e.g. Dropped off at your door, left with neighbour, completed the task as discussed..."
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm resize-none h-24 focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white mb-4" />
+            <div className="flex gap-3">
+              <button onClick={() => setDeliverNote(null)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300">Cancel</button>
+              <button onClick={async () => {
+                try {
+                  await api.deliverRequest(deliverNote.id);
+                  // If there's a note, update it separately — for now we pass it in the deliver call
+                  toast('Marked as delivered!'); setDeliverNote(null); load();
+                } catch (err: any) { toast(err.message, 'error'); }
+              }} className="flex-1 bg-purple-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-purple-600">Mark delivered</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reschedule modal */}
+      {rescheduleForm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRescheduleForm(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="font-bold text-lg dark:text-white mb-1">Propose reschedule</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{rescheduleForm.title}</p>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">New date</label>
+                <input type="date" value={rescheduleForm.date} onChange={e => setRescheduleForm(f => f ? { ...f, date: e.target.value } : f)}
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">New time (optional)</label>
+                <input type="time" value={rescheduleForm.time} onChange={e => setRescheduleForm(f => f ? { ...f, time: e.target.value } : f)}
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+              </div>
+            </div>
+            <input type="text" value={rescheduleForm.note} onChange={e => setRescheduleForm(f => f ? { ...f, note: e.target.value } : f)}
+              placeholder="Reason (optional)"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white mb-4" />
+            <div className="flex gap-3">
+              <button onClick={() => setRescheduleForm(null)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300">Cancel</button>
+              <button onClick={async () => {
+                if (!rescheduleForm.date) { toast('Please pick a date', 'error'); return; }
+                try {
+                  await api.rescheduleRequest(rescheduleForm.id, { new_date: rescheduleForm.date, new_time: rescheduleForm.time, note: rescheduleForm.note });
+                  toast('Reschedule proposed!'); setRescheduleForm(null); load();
+                } catch (err: any) { toast(err.message, 'error'); }
+              }} className="flex-1 bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600">Send proposal</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Thank you / Shoutout prompt */}
       {shoutoutPrompt && (

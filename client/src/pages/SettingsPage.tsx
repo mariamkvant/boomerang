@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [username, setUsername] = useState(user?.username || '');
   const [city, setCity] = useState(user?.city || '');
   const [languagesSpoken, setLanguagesSpoken] = useState(user?.languages_spoken || '');
+  const [autoAccept, setAutoAccept] = useState((user as any)?.auto_accept || false);
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -30,7 +31,7 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken, auto_accept: autoAccept }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -118,6 +119,22 @@ export default function SettingsPage() {
           <button onClick={handleSave} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('settings.save')}</button>
           {saved && <span className="text-xs text-green-600">Saved</span>}
         </div>
+      </div>
+
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Request preferences</h3>
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <p className="text-sm font-medium dark:text-white">Auto-accept requests</p>
+            <p className="text-xs text-gray-400 mt-0.5">New requests go straight to "In progress" without manual approval</p>
+          </div>
+          <button onClick={() => setAutoAccept(!autoAccept)}
+            className={`relative w-11 h-6 rounded-full transition-colors ${autoAccept ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-600'}`}>
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoAccept ? 'translate-x-5' : ''}`} />
+          </button>
+        </label>
+        <button onClick={async () => { await api.updateProfile({ auto_accept: autoAccept }); await refreshUser(); toast('Saved'); }}
+          className="mt-3 text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">Save preference</button>
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">

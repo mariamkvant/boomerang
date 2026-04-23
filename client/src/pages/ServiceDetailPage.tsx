@@ -19,6 +19,7 @@ export default function ServiceDetailPage() {
   const [favorited, setFavorited] = useState(false);
   const [hasServices, setHasServices] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [pickupDetails, setPickupDetails] = useState('');
 
   useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); api.trackView('service', Number(id)); }, [id]);
   useEffect(() => { if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {}); }, [id, user]);
@@ -50,7 +51,7 @@ export default function ServiceDetailPage() {
   const handleRequest = async () => {
     setRequesting(true);
     try {
-      const res = await api.createRequest({ service_id: Number(id), message });
+      const res = await api.createRequest({ service_id: Number(id), message, pickup_details: pickupDetails || undefined });
       // Book the slot if one was selected
       if (selectedSlot && selectedDate) {
         await api.bookSlot({ request_id: res.id, booked_date: selectedDate, start_time: selectedSlot.start_time, end_time: selectedSlot.end_time });
@@ -244,6 +245,14 @@ export default function ServiceDetailPage() {
 
             <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Add a message to the provider (optional)..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" aria-label="Request message" />
+            {service.is_product && (
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">📍 Pickup / delivery details</label>
+                <input type="text" value={pickupDetails} onChange={e => setPickupDetails(e.target.value)}
+                  placeholder="e.g. I can pick up in Luxembourg City, or prefer delivery to Kirchberg"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
+              </div>
+            )}
             <button onClick={() => setShowConfirm(true)} disabled={requesting}
               className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md">
               {requesting ? 'Sending...' : service.is_product ? `Get item for ${service.points_cost} 🪃` : `Request for ${service.points_cost} 🪃`}

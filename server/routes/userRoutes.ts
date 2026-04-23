@@ -215,10 +215,13 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
   await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, req.userId);
   // Update notification preferences if provided
-  const { notify_email, notify_push, notify_reminders } = req.body;
+  const { notify_email, notify_push, notify_reminders, auto_accept } = req.body;
   if (notify_email !== undefined || notify_push !== undefined || notify_reminders !== undefined) {
     await db.run('UPDATE users SET notify_email = COALESCE(?, notify_email), notify_push = COALESCE(?, notify_push), notify_reminders = COALESCE(?, notify_reminders) WHERE id = ?',
       notify_email, notify_push, notify_reminders, req.userId);
+  }
+  if (auto_accept !== undefined) {
+    await db.run('UPDATE users SET auto_accept = ? WHERE id = ?', !!auto_accept, req.userId);
   }
   res.json({ message: 'Profile updated' });
 });
