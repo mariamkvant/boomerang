@@ -210,108 +210,61 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
-      {/* Welcome message */}
-      {user && (() => {
-        const pendingCount = incoming.filter(r => r.status === 'pending').length;
-        const unconfirmed = outgoing.filter(r => r.status === 'delivered').length;
-        const hour = new Date().getHours();
-        const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-        const actions = [];
-        if (pendingCount > 0) actions.push(`${pendingCount} pending request${pendingCount > 1 ? 's' : ''}`);
-        if (unconfirmed > 0) actions.push(`${unconfirmed} to confirm`);
-        return actions.length > 0 ? (
-          <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl px-4 py-3 mb-4">
-            <p className="text-sm text-primary-700 dark:text-primary-300">{greeting}, <span className="font-semibold">{user.username}</span>! You have {actions.join(' and ')}.</p>
-          </div>
-        ) : null;
-      })()}
-
-      {/* Header */}
-      <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 sm:p-6 mb-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link to="/settings" className="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl hover:shadow-lg transition-all">{user?.username.charAt(0).toUpperCase()}</Link>
+      {/* Compact header */}
+      <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/settings">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">{user?.username.charAt(0).toUpperCase()}</div>
+              )}
+            </Link>
             <div>
-              <h2 className="text-lg font-bold dark:text-white">{user?.username}</h2>
-              <Link to="/settings" className="text-xs text-gray-400 hover:text-primary-500">{t('dashboard.editProfile')}</Link>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold dark:text-white">{user?.username}</h2>
+                {trust && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' : trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' : trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' : 'bg-orange-50 text-orange-600'}`}>{trust.level}</span>}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                {trust?.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)}</span>}
+                {trust?.completed > 0 && <span>{trust.completed} exchanges</span>}
+                {myServices.length > 0 && <span>{myServices.length} services</span>}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 mt-3">
-            <div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">{user?.points}</span>
-              <span className="text-xs text-gray-400 ml-1">🪃</span>
+          {isIOS ? (
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{user?.points} <span className="text-base">🪃</span></div>
+          ) : (
+            <Link to="/buy" className="text-2xl font-bold text-gray-900 dark:text-white hover:opacity-80">{user?.points} <span className="text-base">🪃</span></Link>
+          )}
+        </div>
+        {(() => {
+          const pendingCount = incoming.filter(r => r.status === 'pending').length;
+          const unconfirmed = outgoing.filter(r => r.status === 'delivered').length;
+          if (pendingCount === 0 && unconfirmed === 0) return null;
+          const actions = [];
+          if (pendingCount > 0) actions.push(`${pendingCount} pending`);
+          if (unconfirmed > 0) actions.push(`${unconfirmed} to confirm`);
+          return (
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-primary-600 dark:text-primary-400 font-medium">You have {actions.join(' and ')} →</p>
             </div>
-            {trust && trust.avg_rating && (
-              <div className="text-sm text-gray-500 dark:text-gray-400">★ {Number(trust.avg_rating).toFixed(1)} · {trust.completed} exchanges</div>
-            )}
-            {trust && (
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
-                trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
-                trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' :
-                'bg-orange-50 text-orange-600'
-              }`}>{trust.level}</span>
-            )}
-          </div>
-        </div>
-        {user && (
-          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-            <Link to={`/users/${user.id}`} className="text-xs text-gray-400 hover:text-primary-500">View profile →</Link>
-            <span className="text-xs text-gray-400">{myServices.length} services</span>
-          </div>
-        )}
-      </div>
-
-      {/* Referral banner — compact */}
-      {user && (
-        <div className="flex items-center justify-between bg-gray-50 dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 mb-4">
-          <div>
-            <p className="text-sm font-medium dark:text-white">Invite a friend, get 25 🪃</p>
-            <p className="text-xs text-gray-400 mt-0.5">They get 25 too.</p>
-          </div>
-          <button onClick={async () => {
-            const url = `${window.location.origin}/register?ref=${user.id}`;
-            if ('share' in navigator) { try { await (navigator as any).share({ title: 'Join Boomerang', url }); return; } catch {} }
-            navigator.clipboard.writeText(url); toast('Link copied!');
-          }} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 shrink-0 font-medium flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
-            Share
-          </button>
-        </div>
-      )}
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        <Link to="/browse" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700 hover:border-primary-200 transition-all group">
-          <svg className="w-5 h-5 mx-auto text-primary-500 mb-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-          <span className="text-[10px] text-gray-500 dark:text-gray-400">Browse</span>
-        </Link>
-        <Link to="/services/new" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700 hover:border-primary-200 transition-all group">
-          <svg className="w-5 h-5 mx-auto text-green-500 mb-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-          <span className="text-[10px] text-gray-500 dark:text-gray-400">Offer</span>
-        </Link>
-        <Link to="/help-wanted" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700 hover:border-primary-200 transition-all group">
-          <svg className="w-5 h-5 mx-auto text-amber-500 mb-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.657m5.014-2.024a3.004 3.004 0 0 0-.862-4.228 3.005 3.005 0 0 0-4.228.862M11.42 15.17l-1.43-1.43" /></svg>
-          <span className="text-[10px] text-gray-500 dark:text-gray-400">Help</span>
-        </Link>
-        <Link to="/groups" className="bg-white dark:bg-[#202c33] rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700 hover:border-primary-200 transition-all group">
-          <svg className="w-5 h-5 mx-auto text-purple-500 mb-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-          <span className="text-[10px] text-gray-500 dark:text-gray-400">Groups</span>
-        </Link>
+          );
+        })()}
       </div>
 
       {/* Upcoming bookings */}
       {upcomingBookings.length > 0 && (
-        <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-5 mb-6">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Next up</h3>
+        <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Next up</h3>
           <div className="space-y-3">
-            {upcomingBookings.slice(0, 3).map((b: any) => {
+            {upcomingBookings.slice(0, 2).map((b: any) => {
               const isProvider = b.provider_id === user?.id;
               const otherName = isProvider ? b.requester_name : b.provider_name;
               const rawDate = b.booked_date?.split?.('T')?.[0] || b.booked_date;
               const dateObj = new Date(rawDate + 'T12:00:00');
               const isValidDate = !isNaN(dateObj.getTime());
-              const dateStr = isValidDate ? dateObj.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' }) : rawDate;
               const dayName = isValidDate ? dateObj.toLocaleDateString('en', { weekday: 'short' }) : '';
               const dayNum = isValidDate ? String(dateObj.getDate()) : '';
               const calTitle = encodeURIComponent(b.service_title || '');
@@ -322,17 +275,16 @@ export default function DashboardPage() {
               return (
                 <div key={b.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-12 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[10px] text-primary-500 font-medium">{dayName}</span>
-                      <span className="text-sm font-bold text-primary-700 dark:text-primary-400">{dayNum}</span>
+                    <div className="w-9 h-9 bg-primary-50 dark:bg-primary-900/20 rounded-lg flex flex-col items-center justify-center shrink-0">
+                      <span className="text-[8px] text-primary-500 font-medium">{dayName}</span>
+                      <span className="text-sm font-bold text-primary-700 dark:text-primary-400 leading-none">{dayNum}</span>
                     </div>
                     <div>
                       <p className="text-sm font-medium dark:text-white">{b.service_title}</p>
-                      <p className="text-xs text-gray-400">{b.start_time} – {b.end_time} · with {otherName}</p>
+                      <p className="text-xs text-gray-400">{b.start_time} – {b.end_time} · {otherName}</p>
                     </div>
                   </div>
-                  <a href={gcalUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-[11px] text-primary-500 hover:text-primary-600 shrink-0">+ Calendar</a>
+                  <a href={gcalUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-500 shrink-0">+ Cal</a>
                 </div>
               );
             })}
@@ -340,123 +292,46 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Monthly stats */}
-      {(incoming.length > 0 || outgoing.length > 0) && (() => {
-        const thisMonth = new Date(); thisMonth.setDate(1); thisMonth.setHours(0,0,0,0);
-        const monthCompleted = outgoing.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth).length
-          + incoming.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth).length;
-        const monthEarned = incoming.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth)
-          .reduce((sum: number, r: any) => sum + (r.points_cost || 0), 0);
-        const monthSpent = outgoing.filter(r => r.status === 'completed' && new Date(r.completed_at) >= thisMonth)
-          .reduce((sum: number, r: any) => sum + (r.points_cost || 0), 0);
-        if (monthCompleted === 0 && monthEarned === 0 && monthSpent === 0) return null;
+      {/* Profile completeness — new users only */}
+      {user && outgoing.filter(r => r.status === 'completed').length === 0 && incoming.filter(r => r.status === 'completed').length === 0 && (() => {
+        const steps = [
+          { label: 'Add a photo', done: !!user.avatar, link: '/settings' },
+          { label: 'Write a bio', done: !!user.bio, link: '/settings' },
+          { label: 'Set location', done: !!user.city, link: '/settings' },
+          { label: 'Post a service', done: myServices.length > 0, link: '/services/new' },
+        ];
+        const done = steps.filter(s => s.done).length;
+        if (done === steps.length) return null;
+        const pct = Math.round((done / steps.length) * 100);
         return (
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{monthCompleted}</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">Exchanges</div>
+          <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4 border border-primary-100 dark:border-primary-800/50">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">Profile {pct}% complete</p>
+              <span className="text-xs text-gray-400">{done}/{steps.length}</span>
             </div>
-            <div className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center">
-              <div className="text-xl font-bold text-green-600">+{monthEarned}</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">Earned</div>
+            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1 mb-3">
+              <div className="bg-primary-500 h-1 rounded-full transition-all" style={{ width: `${pct}%` }} />
             </div>
-            <div className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center">
-              <div className="text-xl font-bold text-primary-600">-{monthSpent}</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">Spent</div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* First exchange nudge — shown when user has no completed exchanges */}
-      {user && outgoing.filter(r => r.status === 'completed').length === 0 && incoming.filter(r => r.status === 'completed').length === 0 && (
-        <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-5 mb-4 border border-primary-100 dark:border-primary-800">
-          {/* Profile completeness */}
-          {(() => {
-            const steps = [
-              { label: 'Add a photo', done: !!user.avatar, link: '/settings' },
-              { label: 'Write a bio', done: !!user.bio, link: '/settings' },
-              { label: 'Set your location', done: !!user.city, link: '/settings' },
-              { label: 'Post a service', done: myServices.length > 0, link: '/services/new' },
-            ];
-            const done = steps.filter(s => s.done).length;
-            const pct = Math.round((done / steps.length) * 100);
-            if (pct === 100) return null;
-            return (
-              <div className="mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">Profile {pct}% complete</p>
-                  <span className="text-xs text-gray-400">{done}/{steps.length}</span>
-                </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-3">
-                  <div className="bg-primary-500 h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {steps.filter(s => !s.done).map((s, i) => (
-                    <Link key={i} to={s.link} className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors">
-                      + {s.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-500 shrink-0">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /></svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Complete your first exchange</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Browse services nearby and request one. Your first exchange earns you a Superhelper badge.</p>
-              <Link to="/browse" className="inline-block mt-3 bg-primary-500 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors">Browse services</Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Daily Match */}
-      {dailyMatch && (
-        <div className="bg-white border border-primary-100 rounded-2xl p-5 mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold text-sm text-primary-700 mb-1">🎯 Daily Match — Someone needs your skills!</h3>
-              <p className="font-medium text-sm">{dailyMatch.title}</p>
-              <p className="text-xs text-gray-500 mt-1">{dailyMatch.category_icon} {dailyMatch.category_name} · 🪃 {dailyMatch.points_budget} · {dailyMatch.requester_name}{dailyMatch.requester_city ? ` · ${dailyMatch.requester_city}` : ''}</p>
-            </div>
-            <Link to="/help-wanted" className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 shrink-0">Help →</Link>
-          </div>
-        </div>
-      )}
-
-      {/* Recent activity feed */}
-      {(() => {
-        const recentItems: { text: string; time: string; type: string }[] = [];
-        incoming.slice(0, 3).forEach((r: any) => {
-          if (r.status === 'pending') recentItems.push({ text: `${r.requester_name} requested "${r.service_title}"`, time: r.created_at, type: 'incoming' });
-          if (r.status === 'completed') recentItems.push({ text: `Completed "${r.service_title}" for ${r.requester_name}`, time: r.completed_at || r.created_at, type: 'completed' });
-        });
-        outgoing.slice(0, 3).forEach((r: any) => {
-          if (r.status === 'accepted') recentItems.push({ text: `${r.provider_name} accepted your request for "${r.service_title}"`, time: r.created_at, type: 'accepted' });
-          if (r.status === 'completed') recentItems.push({ text: `"${r.service_title}" completed with ${r.provider_name}`, time: r.completed_at || r.created_at, type: 'completed' });
-        });
-        recentItems.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-        if (recentItems.length === 0) return null;
-        const timeAgo = (d: string) => { const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (m < 60) return `${m}m`; const h = Math.floor(m / 60); if (h < 24) return `${h}h`; return `${Math.floor(h / 24)}d`; };
-        return (
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Recent</h3>
-            <div className="space-y-1.5">
-              {recentItems.slice(0, 4).map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'completed' ? 'bg-green-500' : item.type === 'incoming' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-                  <span className="text-gray-600 dark:text-gray-300 truncate flex-1">{item.text}</span>
-                  <span className="text-gray-400 shrink-0">{timeAgo(item.time)}</span>
-                </div>
+            <div className="flex flex-wrap gap-2">
+              {steps.filter(s => !s.done).map((s, i) => (
+                <Link key={i} to={s.link} className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors">+ {s.label}</Link>
               ))}
             </div>
           </div>
         );
       })()}
+
+      {/* Daily Match — compact single line */}
+      {dailyMatch && (
+        <div className="bg-white dark:bg-[#202c33] border border-primary-100 dark:border-primary-800/50 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-primary-600 font-medium mb-0.5">🎯 Match for you</p>
+            <p className="text-sm font-medium dark:text-white truncate">{dailyMatch.title}</p>
+            <p className="text-xs text-gray-400">{dailyMatch.requester_name} · {dailyMatch.points_budget} 🪃</p>
+          </div>
+          <Link to="/help-wanted" className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 shrink-0">Help →</Link>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
