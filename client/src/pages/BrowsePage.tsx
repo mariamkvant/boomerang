@@ -29,6 +29,10 @@ export default function BrowsePage() {
   const [sortBy, setSortBy] = useState('newest');
   const [cityFilter, setCityFilter] = useState('');
   const [debouncedCity, setDebouncedCity] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'services' | 'items'>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
@@ -80,13 +84,17 @@ export default function BrowsePage() {
     if (debouncedCity) params.set('city', debouncedCity);
     if (page > 1) params.set('page', String(page));
     if (sortBy !== 'newest') params.set('sort', sortBy);
+    if (typeFilter === 'items') params.set('is_product', '1');
+    if (typeFilter === 'services') params.set('is_product', '0');
+    if (minPrice) params.set('min_price', minPrice);
+    if (maxPrice) params.set('max_price', maxPrice);
     api.getServices(params.toString()).then((res: any) => {
       // Handle both old array format and new paginated format
       if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
       else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, page, sortBy]);
+  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, page, sortBy, typeFilter, minPrice, maxPrice]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -138,7 +146,41 @@ export default function BrowsePage() {
             <option value="price_high">{t('browse.sort.priceHigh')}</option>
             <option value="rating">{t('browse.sort.rating')}</option>
           </select>
+          <button onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors border ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#202c33] border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+          </button>
         </div>
+
+        {/* Expanded filters */}
+        {showFilters && (
+          <div className="bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl p-3 space-y-3">
+            <div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
+              <div className="flex gap-2">
+                {(['all', 'services', 'items'] as const).map(t => (
+                  <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${typeFilter === t ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300'}`}>
+                    {t === 'all' ? 'All' : t === 'services' ? '🛠 Services' : '📦 Items'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Price range (🪃)</p>
+              <div className="flex items-center gap-2">
+                <input type="number" min="0" placeholder="Min" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
+                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+                <span className="text-gray-400 text-xs">–</span>
+                <input type="number" min="0" placeholder="Max" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
+                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+                {(minPrice || maxPrice) && (
+                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="text-xs text-gray-400 hover:text-red-500">✕</button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Category pills */}

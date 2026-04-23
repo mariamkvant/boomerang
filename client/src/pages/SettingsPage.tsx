@@ -4,10 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useToast } from '../components/Toast';
 import { getLang, setLang, LANGUAGES, t } from '../i18n';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { dark, toggle: toggleDark } = useDarkMode();
   const [bio, setBio] = useState(user?.bio || '');
   const [username, setUsername] = useState(user?.username || '');
   const [city, setCity] = useState(user?.city || '');
@@ -135,6 +137,20 @@ export default function SettingsPage() {
         </label>
         <button onClick={async () => { await api.updateProfile({ auto_accept: autoAccept }); await refreshUser(); toast('Saved'); }}
           className="mt-3 text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">Save preference</button>
+      </div>
+
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Appearance</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium dark:text-white">Dark mode</p>
+            <p className="text-xs text-gray-400 mt-0.5">Switch between light and dark theme</p>
+          </div>
+          <button onClick={toggleDark}
+            className={`relative w-11 h-6 rounded-full transition-colors ${dark ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-600'}`}>
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${dark ? 'translate-x-5' : ''}`} />
+          </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">

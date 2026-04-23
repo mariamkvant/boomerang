@@ -19,9 +19,26 @@ export default function ProfilePage() {
   const [reportDetails, setReportDetails] = useState('');
   const [reportSent, setReportSent] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [similarUsers, setSimilarUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    api.getUser(Number(id)).then(setProfile).catch(() => {});
+    api.getUser(Number(id)).then(p => {
+      setProfile(p);
+      if (p.services?.length > 0) {
+        const catId = p.services[0]?.category_id;
+        if (catId) {
+          api.getServices(`category=${catId}`).then((res: any) => {
+            const svcs = Array.isArray(res) ? res : res.services || [];
+            const seen = new Set<number>();
+            const unique = svcs.filter((s: any) => {
+              if (s.provider_id === Number(id) || seen.has(s.provider_id)) return false;
+              seen.add(s.provider_id); return true;
+            }).slice(0, 3);
+            setSimilarUsers(unique);
+          }).catch(() => {});
+        }
+      }
+    }).catch(() => {});
     api.getTrustScore(Number(id)).then(setTrust).catch(() => {});
     api.getUserAchievements(Number(id)).then(setAchievements).catch(() => {});
     api.getSuperhelperStatus(Number(id)).then(setSuperhelper).catch(() => {});
@@ -65,7 +82,7 @@ export default function ProfilePage() {
                 {superhelper?.is_superhelper && <span className="bg-gray-900 text-white text-xs px-2 py-0.5 rounded-full font-medium">Superhelper</span>}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500 mt-1.5">
-                {profile.city && <span>{profile.city}</span>}
+                {profile.city && <span>📍 {profile.city}</span>}
                 {trust && trust.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)} ({trust.review_count})</span>}
               </div>
             </div>
@@ -103,6 +120,14 @@ export default function ProfilePage() {
             <span>+</span> Add a bio to build trust with the community
           </Link>
         )}
+        {/* Languages + member since */}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
+          {profile.languages_spoken && <span>🗣 {profile.languages_spoken}</span>}
+          {profile.created_at && <span>Member since {new Date(profile.created_at).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</span>}
+          {trust?.avg_hours && Number(trust.avg_hours) > 0 && (
+            <span>⚡ ~{Number(trust.avg_hours) < 24 ? Math.round(Number(trust.avg_hours)) + 'h' : Math.round(Number(trust.avg_hours) / 24) + 'd'} avg response</span>
+          )}
+        </div>
         {trust && (
           <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <div>
@@ -172,9 +197,35 @@ export default function ProfilePage() {
           <h3 className="font-bold text-lg mb-4">Services offered</h3>
           <div className="grid md:grid-cols-2 gap-3">
             {profile.services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="bg-white p-5 rounded-xl shadow-card hover:shadow-card-hover group">
-                <h4 className="font-semibold text-sm group-hover:text-primary-600">{s.title}</h4>
+              <Link key={s.id} to={`/services/${s.id}`} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 group transition-all">
+                <h4 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white">{s.title}</h4>
                 <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} boomerangs</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Similar providers */}
+      {similarUsers.length > 0 && (
+        <div className="mt-8">
+          <h3 className="font-bold text-lg mb-4 dark:text-white">Others offering similar services</h3>
+          <div className="grid md:grid-cols-3 gap-3">
+            {similarUsers.map((s: any) => (
+              <Link key={s.provider_id} to={`/users/${s.provider_id}`}
+                className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  {s.provider_avatar ? (
+                    <img src={s.provider_avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      {s.provider_name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm font-medium dark:text-white group-hover:text-primary-600 transition-colors">{s.provider_name}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{s.title}</p>
+                <p className="text-xs text-primary-600 font-medium mt-1">{s.points_cost} 🪃</p>
               </Link>
             ))}
           </div>

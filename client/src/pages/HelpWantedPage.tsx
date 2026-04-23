@@ -15,6 +15,15 @@ export default function HelpWantedPage() {
   const [form, setForm] = useState({ title: '', description: '', category_id: '', points_budget: '10' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [bumpedIds, setBumpedIds] = useState<Set<number>>(new Set());
+
+  const timeAgo = (d: string) => {
+    const diff = Date.now() - new Date(d).getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    return `${days}d ago`;
+  };
 
   const load = () => {
     api.getHelpWanted('include_completed=true').then(setRequests).catch(() => {});
@@ -83,13 +92,30 @@ export default function HelpWantedPage() {
                   <p className="text-[11px] text-gray-400 mt-2">
                     {r.requester_name}{r.requester_city ? ` · ${r.requester_city}` : ''}
                     {r.helper_name ? ` · Helper: ${r.helper_name}` : ''}
+                    {r.created_at && <span className="ml-2 text-gray-300">· {timeAgo(r.created_at)}</span>}
                   </p>
-                  {user && user.id !== r.requester_id && r.status === 'open' && (
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
-                      className="mt-3 bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">
-                      I Can Help
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    {user && user.id !== r.requester_id && r.status === 'open' && (
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
+                        className="bg-primary-500 text-white px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">
+                        I Can Help
+                      </button>
+                    )}
+                    {user && user.id === r.requester_id && r.status === 'open' && (
+                      <button onClick={async (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        if (bumpedIds.has(r.id)) return;
+                        try {
+                          await api.postHelpWanted({ ...r, category_id: r.category_id, points_budget: r.points_budget, _bump: true });
+                          setBumpedIds(prev => new Set([...prev, r.id]));
+                          toast('Bumped to top!');
+                        } catch {}
+                      }} disabled={bumpedIds.has(r.id)}
+                        className="text-xs text-gray-400 hover:text-primary-500 disabled:opacity-40 border border-gray-200 dark:border-gray-600 px-3 py-1.5 rounded-lg">
+                        {bumpedIds.has(r.id) ? '✓ Bumped' : '↑ Bump'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </Link>

@@ -81,9 +81,18 @@ export default function ServiceDetailPage() {
       {/* Breadcrumb */}
       <div className="flex items-center justify-between text-sm text-gray-400 mb-6">
         <div className="flex items-center gap-2">
-          <Link to="/browse" className="hover:text-primary-600">Browse</Link>
+          <Link to="/browse" className="hover:text-primary-600 flex items-center gap-1">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Browse
+          </Link>
+          {service.category_name && (
+            <>
+              <span>›</span>
+              <Link to={`/browse?category=${service.category_id}`} className="hover:text-primary-600">{service.category_name}</Link>
+            </>
+          )}
           <span>›</span>
-          <span className="text-gray-600">{service.title}</span>
+          <span className="text-gray-600 truncate max-w-[160px]">{service.title}</span>
         </div>
         {isOwner && (
           <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">✏️ Edit</Link>
