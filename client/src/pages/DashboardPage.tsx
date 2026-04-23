@@ -281,7 +281,6 @@ export default function DashboardPage() {
             <Link to="/buy" className="text-xs text-primary-500 hover:text-primary-600 font-medium block mt-1">View all →</Link>
           </div>
         )}
-        </div>
         {(() => {
           const pendingCount = incoming.filter(r => r.status === 'pending').length;
           const unconfirmed = outgoing.filter(r => r.status === 'delivered').length;
