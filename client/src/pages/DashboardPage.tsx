@@ -225,31 +225,35 @@ export default function DashboardPage() {
     <div className="animate-fade-in pb-24 md:pb-8">
       {/* Compact header */}
       <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/settings">
-              {user?.avatar ? (
-                <img src={user.avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">{user?.username.charAt(0).toUpperCase()}</div>
-              )}
-            </Link>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold dark:text-white">{user?.username}</h2>
-                {trust && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' : trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' : trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' : 'bg-orange-50 text-orange-600'}`}>{trust.level}</span>}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
-                {trust?.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)}</span>}
-                {trust?.completed > 0 && <span>{trust.completed} exchanges</span>}
-                {myServices.length > 0 && <span>{myServices.length} services</span>}
-              </div>
+        <div className="flex items-center gap-3">
+          <Link to="/settings" className="shrink-0">
+            {user?.avatar ? (
+              <img src={user.avatar} alt="" className="w-11 h-11 rounded-full object-cover" />
+            ) : (
+              <div className="w-11 h-11 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base">{user?.username.charAt(0).toUpperCase()}</div>
+            )}
+          </Link>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h2 className="text-sm font-bold dark:text-white truncate">{user?.username}</h2>
+              {trust && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' : trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' : trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' : 'bg-orange-50 text-orange-600'}`}>{trust.level}</span>}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 flex-wrap">
+              {trust?.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)}</span>}
+              {trust?.completed > 0 && <span>{trust.completed} exchanges</span>}
+              {myServices.length > 0 && <span>{myServices.length} services</span>}
             </div>
           </div>
           {isIOS ? (
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{user?.points} <span className="text-base">🪃</span></div>
+            <div className="shrink-0 text-right">
+              <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-xs text-gray-400 mt-0.5">🪃 boomerangs</div>
+            </div>
           ) : (
-            <Link to="/buy" className="text-2xl font-bold text-gray-900 dark:text-white hover:opacity-80">{user?.points} <span className="text-base">🪃</span></Link>
+            <Link to="/buy" className="shrink-0 text-right hover:opacity-80 transition-opacity">
+              <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-xs text-gray-400 mt-0.5">🪃 tap to gift</div>
+            </Link>
           )}
         </div>
         {(() => {

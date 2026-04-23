@@ -140,22 +140,16 @@ function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile: balance pill + hamburger */}
         <div className="lg:hidden flex items-center gap-2">
           {user && (
-            isIOS ? (
-              <div className="flex items-center gap-1.5 bg-primary-50 px-2.5 py-1 rounded-full">
-                <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-                <span className="text-xs text-primary-500">🪃</span>
-              </div>
-            ) : (
-              <Link to="/buy" className="flex items-center gap-1.5 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-full transition-colors">
-                <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-                <span className="text-xs text-primary-500">🪃</span>
-              </Link>
-            )
+            <Link to={isIOS ? '/dashboard' : '/buy'}
+              className="flex items-center gap-1.5 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 px-2.5 py-1.5 rounded-full transition-colors min-h-[36px]">
+              <span className="text-sm font-semibold text-primary-700">{user.points}</span>
+              <span className="text-sm">🪃</span>
+            </Link>
           )}
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle menu">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Toggle menu">
             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
@@ -164,21 +158,35 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu — only items NOT in bottom nav */}
+      {/* Mobile menu — full vertical list */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-4 py-2 space-y-0.5 animate-fade-in max-h-[70vh] overflow-y-auto">
-          {navLink('/help-wanted', t('nav.help'))}
-          {navLink('/groups', t('nav.communities'))}
-          {navLink('/leaderboard', t('leaderboard.title'))}
-          {navLink('/people', 'Find People')}
-          {navLink('/community', 'Community Feed')}
-          {user && navLink('/dashboard', t('nav.dashboard'))}
-          {!user && navLink('/login', 'Log in')}
-          {!user && navLink('/register', 'Sign up free')}
+        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-2 py-3 animate-fade-in max-h-[80vh] overflow-y-auto">
           {user && (
-            <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
-              className="w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 min-h-[44px]">Log out</button>
+            <div className="px-3 py-2 mb-2 border-b border-gray-100 dark:border-gray-700">
+              <p className="text-sm font-semibold dark:text-white">{user.username}</p>
+              <p className="text-xs text-gray-400">{user.email}</p>
+            </div>
           )}
+          <div className="space-y-0.5">
+            {navLink('/browse', t('nav.browse'))}
+            {navLink('/help-wanted', t('nav.help'))}
+            {navLink('/groups', t('nav.communities'))}
+            {navLink('/leaderboard', t('leaderboard.title'))}
+            {navLink('/people', 'Find People')}
+            {navLink('/community', 'Community Feed')}
+            {user && navLink('/dashboard', t('nav.dashboard'))}
+            {user && navLink('/messages', 'Messages')}
+            {user && navLink('/settings', 'My Profile')}
+            {user && navLink('/account', 'Account Settings')}
+            {user && navLink('/support', 'Help & Support')}
+            {user?.is_admin && navLink('/admin', 'Admin')}
+            {!user && navLink('/login', 'Log in')}
+            {!user && navLink('/register', 'Sign up free')}
+            {user && (
+              <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
+                className="w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 min-h-[44px]">Log out</button>
+            )}
+          </div>
         </div>
       )}
     </nav>
