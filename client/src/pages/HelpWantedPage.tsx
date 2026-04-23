@@ -71,11 +71,11 @@ export default function HelpWantedPage() {
                     <span className="text-xs text-primary-600 font-medium">{r.points_budget} 🪃</span>
                     {r.status !== 'open' && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        r.status === 'completed' ? 'bg-green-50 text-green-600' :
-                        r.status === 'accepted' ? 'bg-blue-50 text-blue-600' :
-                        r.status === 'delivered' ? 'bg-purple-50 text-purple-600' :
-                        'bg-gray-50 text-gray-500'
-                      }`}>{r.status === 'completed' ? 'Completed ✓' : r.status === 'accepted' ? 'In progress' : r.status === 'delivered' ? 'Delivered' : r.status}</span>
+                        r.status === 'completed' ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' :
+                        r.status === 'accepted' ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400' :
+                        r.status === 'delivered' ? 'bg-gray-100 text-gray-500' :
+                        'bg-gray-50 text-gray-400'
+                      }`}>{r.status === 'completed' ? 'Done' : r.status === 'accepted' ? 'In progress' : r.status === 'delivered' ? 'Delivered' : r.status}</span>
                     )}
                   </div>
                   <h3 className="font-semibold text-sm dark:text-white">{r.title}</h3>
@@ -104,7 +104,7 @@ export default function HelpWantedPage() {
             <div key={r.id} className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm dark:text-white">{r.title}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'open' ? 'bg-green-50 text-green-600' : r.status === 'accepted' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>{r.status}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'open' ? 'bg-primary-50 text-primary-600' : r.status === 'accepted' ? 'bg-primary-50 text-primary-600' : 'bg-gray-50 text-gray-400'}`}>{r.status === 'accepted' ? 'In progress' : r.status}</span>
               </div>
               <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name} · 🪃 {r.points_budget}</p>
               {r.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {r.helper_name}</p>}

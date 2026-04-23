@@ -163,14 +163,18 @@ export default function DashboardPage() {
 
   const badge = (s: string) => {
     const m: Record<string, string> = {
-      pending: 'bg-amber-50 text-amber-600 border-amber-200',
-      accepted: 'bg-blue-50 text-blue-600 border-blue-200',
-      delivered: 'bg-purple-50 text-purple-600 border-purple-200',
-      completed: 'bg-green-50 text-green-600 border-green-200',
-      cancelled: 'bg-gray-50 text-gray-400 border-gray-200',
-      disputed: 'bg-red-50 text-red-600 border-red-200',
+      pending: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600',
+      accepted: 'bg-primary-50 text-primary-600 border-primary-200 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-800',
+      delivered: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600',
+      completed: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+      cancelled: 'bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700',
+      disputed: 'bg-red-50 text-red-500 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
     };
-    return <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${m[s] || ''}`}>{s}</span>;
+    const labels: Record<string, string> = {
+      pending: 'Pending', accepted: 'In progress', delivered: 'Delivered',
+      completed: 'Done', cancelled: 'Cancelled', disputed: 'Disputed',
+    };
+    return <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${m[s] || ''}`}>{labels[s] || s}</span>;
   };
 
   const progressSteps = ['pending', 'accepted', 'delivered', 'completed'];

@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [showQR, setShowQR] = useState(false);
   const [reportDetails, setReportDetails] = useState('');
   const [reportSent, setReportSent] = useState(false);
+  const [showOverflow, setShowOverflow] = useState(false);
 
   useEffect(() => {
     api.getUser(Number(id)).then(setProfile).catch(() => {});
@@ -65,19 +66,34 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500 mt-1.5">
                 {profile.city && <span>{profile.city}</span>}
-                {profile.languages_spoken && <span>{profile.languages_spoken}</span>}
-                {trust && trust.avg_rating && <span>{Number(trust.avg_rating).toFixed(1)} rating ({trust.review_count})</span>}
-                <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
+                {trust && trust.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)} ({trust.review_count})</span>}
               </div>
             </div>
           </div>
           {user && !isMe && (
-            <div className="flex gap-2">
-              <Link to={`/messages?to=${id}`} className="text-xs bg-gray-900 dark:bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-gray-800">Message</Link>
-              <button onClick={() => setShowQR(q => !q)} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">QR</button>
-              {'share' in navigator && <button onClick={() => { haptic('light'); nativeShare({ title: `${profile.username} on Boomerang`, text: `Check out ${profile.username}'s profile on Boomerang`, url: window.location.href }); }} className="text-xs bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200">Share</button>}
-              <button onClick={() => setShowReport(true)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">Report</button>
-              <button onClick={handleBlock} className="text-xs text-gray-400 hover:text-red-500 px-2 py-2">{isBlocked ? 'Unblock' : 'Block'}</button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link to={`/messages?to=${id}`} className="text-sm bg-gray-900 dark:bg-primary-600 text-white px-4 py-2 rounded-xl hover:bg-gray-800 font-medium">Message</Link>
+              <div className="relative">
+                <button onClick={() => setShowOverflow(!showOverflow)}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a3942]">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                {showOverflow && (
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg z-20 min-w-[140px] overflow-hidden" onClick={() => setShowOverflow(false)}>
+                    {'share' in navigator && (
+                      <button onClick={() => { haptic('light'); nativeShare({ title: `${profile.username} on Boomerang`, text: `Check out ${profile.username}'s profile`, url: window.location.href }); }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942]">Share profile</button>
+                    )}
+                    <button onClick={() => setShowQR(q => !q)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942]">Show QR code</button>
+                    <div className="border-t border-gray-100 dark:border-gray-700" />
+                    <button onClick={() => setShowReport(true)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">Report</button>
+                    <button onClick={handleBlock}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">{isBlocked ? 'Unblock' : 'Block'}</button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -88,19 +104,21 @@ export default function ProfilePage() {
           </Link>
         )}
         {trust && (
-          <div className="flex flex-wrap gap-3 mt-4">
-            {[
-              { val: profile.points, label: 'Boomerangs' },
-              { val: trust.completed, label: 'Completed' },
-              trust.completion_rate > 0 ? { val: `${trust.completion_rate}%`, label: 'Completion' } : null,
-              trust.avg_hours && Number(trust.avg_hours) > 0 ? { val: Number(trust.avg_hours) < 24 ? `${Math.round(Number(trust.avg_hours))}h` : `${Math.round(Number(trust.avg_hours) / 24)}d`, label: 'Avg response' } : null,
-              { val: `${trust.review_count || 0}`, label: 'Trusted by' },
-            ].filter(Boolean).map((s: any, i) => (
-              <div key={i} className="bg-gray-50 dark:bg-[#2a3942] px-4 py-3 rounded-xl text-center min-w-[70px]">
-                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{s.val}</div>
-                <div className="text-[10px] text-gray-400">{s.label}</div>
+          <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{profile.points}</div>
+              <div className="text-xs text-gray-400">Boomerangs</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{trust.completed}</div>
+              <div className="text-xs text-gray-400">Exchanges</div>
+            </div>
+            {trust.avg_rating && (
+              <div>
+                <div className="text-lg font-bold text-gray-900 dark:text-gray-100">★ {Number(trust.avg_rating).toFixed(1)}</div>
+                <div className="text-xs text-gray-400">{trust.review_count} reviews</div>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

@@ -125,7 +125,7 @@ export default function BrowsePage() {
         <div className="flex gap-2">
           <button onClick={() => setNearMe(!nearMe)}
             className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
-            {locating ? '...' : t('browse.nearMe')}
+            Near Me
           </button>
           <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
             className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
@@ -151,7 +151,7 @@ export default function BrowsePage() {
           {categories.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
               className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-              {c.icon} {translateCat(c.name)}
+              {translateCat(c.name)}
             </button>
           ))}
         </div>
