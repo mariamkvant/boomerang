@@ -121,13 +121,13 @@ export default function AdminPage() {
 
           <Section title="Daily Views (14 days)" defaultOpen={true}>
             <div className="pt-2">
-              <BarChart data={(analytics.daily_views || []).map((d: any) => ({ ...d, label: new Date(d.day + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' }) }))} valueKey="views" labelKey="label" height="h-48" />
+              <BarChart data={(analytics.daily_views || []).map((d: any) => ({ ...d, label: new Date(String(d.day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' }) }))} valueKey="views" labelKey="label" height="h-48" />
             </div>
           </Section>
 
           <Section title="Daily Signups (14 days)">
             <div className="pt-2">
-              <BarChart data={(analytics.daily_signups || []).map((d: any) => ({ ...d, label: new Date(d.day + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' }) }))} valueKey="signups" labelKey="label" color="bg-green-500" height="h-40" />
+              <BarChart data={(analytics.daily_signups || []).map((d: any) => ({ ...d, label: new Date(String(d.day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' }) }))} valueKey="signups" labelKey="label" color="bg-green-500" height="h-40" />
             </div>
           </Section>
 
@@ -208,7 +208,7 @@ export default function AdminPage() {
                                 return pct > 0 ? <div key={ci} className={`w-full ${colors[ci]}`} style={{ height: `${pct}%` }} /> : null;
                               })}
                             </div>
-                            <span className="text-[8px] text-gray-400">{new Date(day + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}</span>
+                            <span className="text-[8px] text-gray-400">{new Date(String(day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}</span>
                           </div>
                         );
                       })}
