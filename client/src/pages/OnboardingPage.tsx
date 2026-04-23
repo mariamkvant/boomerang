@@ -100,7 +100,7 @@ export default function OnboardingPage() {
         <div className="text-center">
           <div className="text-5xl mb-4">🪃</div>
           <h2 className="text-2xl font-bold mb-2">Welcome to Boomerang</h2>
-          <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Exchange skills with your neighbours — no money needed. Here's how it works:</p>
+          <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Exchange skills, services, and items — no money needed. Here's how it works:</p>
           <div className="space-y-3 text-left mb-8">
             {[
               { icon: '🛠', title: 'Offer a skill', desc: 'Post what you can do — cooking, coding, gardening, anything.' },
@@ -216,7 +216,7 @@ export default function OnboardingPage() {
         <div>
           <h2 className="text-2xl font-bold mb-2">Tell people about yourself ✨</h2>
           <p className="text-gray-500 text-sm mb-6">A short bio helps build trust.</p>
-          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder="e.g. I'm a guitar teacher who loves gardening. Always happy to help neighbors!"
+          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder="e.g. I'm a guitar teacher who loves gardening. Always happy to help!"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none mb-4" />
           <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-6">
             <p className="text-sm text-primary-700 font-medium">🎉 You're all set!</p>
