@@ -370,14 +370,44 @@ export default function DashboardPage() {
 
       {/* First exchange nudge — shown when user has no completed exchanges */}
       {user && outgoing.filter(r => r.status === 'completed').length === 0 && incoming.filter(r => r.status === 'completed').length === 0 && (
-        <div className="bg-white rounded-2xl shadow-card p-5 mb-6 border border-primary-100">
+        <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-5 mb-4 border border-primary-100 dark:border-primary-800">
+          {/* Profile completeness */}
+          {(() => {
+            const steps = [
+              { label: 'Add a photo', done: !!user.avatar, link: '/settings' },
+              { label: 'Write a bio', done: !!user.bio, link: '/settings' },
+              { label: 'Set your location', done: !!user.city, link: '/settings' },
+              { label: 'Post a service', done: myServices.length > 0, link: '/services/new' },
+            ];
+            const done = steps.filter(s => s.done).length;
+            const pct = Math.round((done / steps.length) * 100);
+            if (pct === 100) return null;
+            return (
+              <div className="mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">Profile {pct}% complete</p>
+                  <span className="text-xs text-gray-400">{done}/{steps.length}</span>
+                </div>
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-3">
+                  <div className="bg-primary-500 h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {steps.filter(s => !s.done).map((s, i) => (
+                    <Link key={i} to={s.link} className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors">
+                      + {s.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-500 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-500 shrink-0">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /></svg>
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Complete your first exchange</h3>
-              <p className="text-xs text-gray-500 mt-1">Browse services nearby and request one. Your first exchange earns you a Superhelper badge.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Browse services nearby and request one. Your first exchange earns you a Superhelper badge.</p>
               <Link to="/browse" className="inline-block mt-3 bg-primary-500 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors">Browse services</Link>
             </div>
           </div>

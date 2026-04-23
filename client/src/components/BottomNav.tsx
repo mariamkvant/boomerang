@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
 import { api } from '../api';
 import { t } from '../i18n';
+import { isIOS } from '../utils/platform';
 
 export default function BottomNav() {
   const { user } = useAuth();

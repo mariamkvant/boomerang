@@ -37,7 +37,7 @@ const NEED_OPTIONS = [
 export default function OnboardingPage() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // 0 = intro
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedNeeds, setSelectedNeeds] = useState<string[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -86,12 +86,45 @@ export default function OnboardingPage() {
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in">
-      {/* Progress */}
-      <div className="flex gap-2 mb-8">
-        {[1,2,3,4].map(s => (
-          <div key={s} className={`flex-1 h-1.5 rounded-full ${step >= s ? 'bg-primary-500' : 'bg-gray-200'}`} />
-        ))}
-      </div>
+      {/* Progress — only show after intro */}
+      {step > 0 && (
+        <div className="flex gap-2 mb-8">
+          {[1,2,3,4].map(s => (
+            <div key={s} className={`flex-1 h-1.5 rounded-full ${step >= s ? 'bg-primary-500' : 'bg-gray-200'}`} />
+          ))}
+        </div>
+      )}
+
+      {/* Step 0: Interactive intro */}
+      {step === 0 && (
+        <div className="text-center">
+          <div className="text-5xl mb-4">🪃</div>
+          <h2 className="text-2xl font-bold mb-2">Welcome to Boomerang</h2>
+          <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Exchange skills with your neighbours — no money needed. Here's how it works:</p>
+          <div className="space-y-3 text-left mb-8">
+            {[
+              { icon: '🛠', title: 'Offer a skill', desc: 'Post what you can do — cooking, coding, gardening, anything.' },
+              { icon: '🔍', title: 'Browse & request', desc: 'Find someone who has what you need and send a request.' },
+              { icon: '🪃', title: 'Exchange with Boomerangs', desc: 'Earn Boomerangs when you help others. Spend them to get help back.' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-4 bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4">
+                <div className="w-10 h-10 bg-primary-50 dark:bg-primary-900/30 rounded-xl flex items-center justify-center text-xl shrink-0">{item.icon}</div>
+                <div>
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{item.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setStep(1)} className="w-full bg-primary-500 text-white py-3.5 rounded-xl font-semibold hover:bg-primary-600 text-base">
+            Get started →
+          </button>
+          <button onClick={async () => { localStorage.setItem('onboarding_done', 'true'); await refreshUser(); navigate('/dashboard'); }}
+            className="text-xs text-gray-400 hover:text-gray-500 mt-3 block mx-auto">
+            Skip for now
+          </button>
+        </div>
+      )}
 
       {step === 1 && (
         <div>

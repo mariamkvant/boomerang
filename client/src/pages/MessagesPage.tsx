@@ -131,10 +131,27 @@ export default function MessagesPage() {
   const [activeUserInfo, setActiveUserInfo] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [threadContext, setThreadContext] = useState<any>(null);
 
   useEffect(() => {
     if (activeUser && !convos.find(c => c.id === activeUser)) api.getUser(activeUser).then(setActiveUserInfo).catch(() => {});
     else setActiveUserInfo(null);
+    // Load thread context (shared request/service)
+    if (activeUser) {
+      api.getOutgoing().then((reqs: any[]) => {
+        const related = reqs.find((r: any) => r.provider_id === activeUser && !['completed','cancelled'].includes(r.status));
+        if (related) setThreadContext({ type: 'outgoing', title: related.service_title, status: related.status, id: related.id });
+        else {
+          api.getIncoming().then((inc: any[]) => {
+            const rel = inc.find((r: any) => r.requester_id === activeUser && !['completed','cancelled'].includes(r.status));
+            if (rel) setThreadContext({ type: 'incoming', title: rel.service_title, status: rel.status, id: rel.id });
+            else setThreadContext(null);
+          }).catch(() => setThreadContext(null));
+        }
+      }).catch(() => setThreadContext(null));
+    } else {
+      setThreadContext(null);
+    }
   }, [activeUser, convos]);
 
   const activeName = activeConvo?.username || activeUserInfo?.username || 'User';
@@ -246,6 +263,24 @@ export default function MessagesPage() {
                   </Link>
                 </div>
               </div>
+
+              {/* Thread context banner */}
+              {threadContext && (
+                <div className="bg-white dark:bg-[#202c33] border-b border-gray-200 dark:border-[#2a3942] px-4 py-2 flex items-center justify-between gap-3 shrink-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${
+                      threadContext.status === 'accepted' ? 'bg-primary-500' :
+                      threadContext.status === 'delivered' ? 'bg-amber-500' :
+                      'bg-gray-400'
+                    }`} />
+                    <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {threadContext.type === 'outgoing' ? 'Your request: ' : 'Incoming: '}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">{threadContext.title}</span>
+                    </span>
+                  </div>
+                  <Link to="/dashboard" className="text-xs text-primary-500 hover:text-primary-600 shrink-0 font-medium">View →</Link>
+                </div>
+              )}
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-4 md:px-12 py-3 overscroll-contain">

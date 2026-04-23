@@ -68,6 +68,27 @@ export default function GroupsPage() {
               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white transition-all"
               aria-label="Search communities" />
           </div>
+
+          {/* Suggested for you — shown when user is logged in and not searching */}
+          {user && !groupSearch && myGroups.length === 0 && publicGroups.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Suggested for you</h3>
+              <div className="grid md:grid-cols-2 gap-3">
+                {publicGroups.slice(0, 2).map((g: any) => (
+                  <div key={g.id} className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-2xl p-4 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/groups/${g.id}`} className="font-semibold text-sm text-gray-900 dark:text-white hover:text-primary-600 transition-colors">{g.name}</Link>
+                      {g.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{g.description}</p>}
+                      <p className="text-xs text-gray-400 mt-1">{g.member_count} members</p>
+                    </div>
+                    <button onClick={() => handleJoin(g.id)} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 font-medium shrink-0">Join</button>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-100 dark:border-gray-700 mt-5 mb-4" />
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">All communities</h3>
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-3">
             {publicGroups.map((g: any) => (
               <div key={g.id} className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
@@ -143,10 +164,16 @@ export default function GroupsPage() {
               <svg className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
               </svg>
-              <p className="text-gray-400 dark:text-gray-500 text-sm">{t('groups.noJoined')}</p>
-              <button onClick={() => setTab('browse')} className="text-sm text-primary-600 hover:text-primary-700 font-medium mt-2 transition-colors">
-                {t('groups.browse')}
-              </button>
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">You haven't joined any communities yet</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs mb-4">Communities are where neighbours connect, share skills, and organise events.</p>
+              <div className="flex gap-2 justify-center">
+                <button onClick={() => setTab('browse')} className="text-sm bg-primary-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-600 transition-colors">
+                  Browse communities
+                </button>
+                <button onClick={() => setTab('create')} className="text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors">
+                  Create one
+                </button>
+              </div>
             </div>
           )}
         </div>

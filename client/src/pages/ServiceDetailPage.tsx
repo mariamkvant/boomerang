@@ -18,6 +18,7 @@ export default function ServiceDetailPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [hasServices, setHasServices] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => { api.getService(Number(id)).then(setService).catch(() => {}); api.trackView('service', Number(id)); }, [id]);
   useEffect(() => { if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {}); }, [id, user]);
@@ -243,11 +244,59 @@ export default function ServiceDetailPage() {
 
             <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Add a message to the provider (optional)..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" aria-label="Request message" />
-            <button onClick={handleRequest} disabled={requesting}
+            <button onClick={() => setShowConfirm(true)} disabled={requesting}
               className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md">
               {requesting ? 'Sending...' : service.is_product ? `Get item for ${service.points_cost} 🪃` : `Request for ${service.points_cost} 🪃`}
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
+          </div>
+        )}
+
+        {/* Confirmation bottom sheet */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowConfirm(false)}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+              <h3 className="font-bold text-lg dark:text-white mb-4">Confirm request</h3>
+              <div className="bg-gray-50 dark:bg-[#2a3942] rounded-xl p-4 mb-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Service</span>
+                  <span className="font-medium dark:text-white text-right max-w-[60%]">{service.title}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Provider</span>
+                  <span className="font-medium dark:text-white">{service.provider_name}</span>
+                </div>
+                {selectedDate && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Date</span>
+                    <span className="font-medium dark:text-white">{new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })}{selectedSlot ? ` · ${selectedSlot.start_time}` : ''}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
+                  <span className="text-gray-500">Cost</span>
+                  <span className="font-bold text-primary-600">{service.points_cost} 🪃</span>
+                </div>
+                {user && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Your balance after</span>
+                    <span className={`font-medium ${(user.points - service.points_cost) < 0 ? 'text-red-500' : 'dark:text-white'}`}>{user.points - service.points_cost} 🪃</span>
+                  </div>
+                )}
+              </div>
+              {user && user.points < service.points_cost && (
+                <p className="text-xs text-red-500 mb-3 text-center">You don't have enough Boomerangs for this request.</p>
+              )}
+              <div className="flex gap-3">
+                <button onClick={() => setShowConfirm(false)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50">Cancel</button>
+                <button onClick={async () => { setShowConfirm(false); await handleRequest(); }}
+                  disabled={requesting || (user ? user.points < service.points_cost : false)}
+                  className="flex-1 bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600 disabled:opacity-50">
+                  {requesting ? 'Sending...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
         {status === 'success' && (
@@ -278,10 +327,10 @@ export default function ServiceDetailPage() {
             <span className="text-lg font-bold text-primary-700">{service.points_cost}</span>
             <span className="text-xs text-primary-500 ml-1">🪃</span>
           </div>
-          <a href="#request-form" onClick={(e) => { e.preventDefault(); document.querySelector('.border-t.border-gray-100.pt-6.mt-6 h3')?.scrollIntoView({ behavior: 'smooth' }); }}
+          <button onClick={() => setShowConfirm(true)}
             className="bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-600">
             Request
-          </a>
+          </button>
         </div>
       )}
 

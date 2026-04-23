@@ -199,8 +199,24 @@ export default function BrowsePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
-                {s.image && (
-                  <img src={s.image} alt="" className="w-full h-36 object-cover" />
+                {(s.image || s.is_product) && (
+                  <div className="relative">
+                    {s.image ? (
+                      <img src={s.image} alt="" className="w-full h-36 object-cover" />
+                    ) : (
+                      <div className="w-full h-28 bg-gray-50 dark:bg-[#2a3942] flex items-center justify-center">
+                        <span className="text-3xl opacity-30">📦</span>
+                      </div>
+                    )}
+                    {s.is_product && (
+                      <span className="absolute top-2 left-2 bg-white/90 dark:bg-[#202c33]/90 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300 shadow-sm">📦 Item</span>
+                    )}
+                  </div>
+                )}
+                {!s.image && !s.is_product && (
+                  <div className="px-4 pt-3">
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 dark:bg-[#2a3942] px-2 py-0.5 rounded-full">🛠 Service</span>
+                  </div>
                 )}
                 <div className="p-4">
                   <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">{s.title}</h3>
