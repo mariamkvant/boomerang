@@ -7,4 +7,4 @@
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/api/health"
   }
-}m
+}
