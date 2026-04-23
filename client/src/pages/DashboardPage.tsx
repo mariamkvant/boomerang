@@ -840,8 +840,7 @@ export default function DashboardPage() {
               <button onClick={() => setDeliverNote(null)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300">Cancel</button>
               <button onClick={async () => {
                 try {
-                  await api.deliverRequest(deliverNote.id);
-                  // If there's a note, update it separately — for now we pass it in the deliver call
+                  await api.deliverRequest(deliverNote.id, deliverNote.note || undefined);
                   toast('Marked as delivered!'); setDeliverNote(null); load();
                 } catch (err: any) { toast(err.message, 'error'); }
               }} className="flex-1 bg-purple-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-purple-600">Mark delivered</button>

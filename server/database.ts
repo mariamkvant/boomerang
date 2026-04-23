@@ -231,6 +231,16 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_product BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1'); } catch(e) {}
 
+    // New columns for delivery flow enhancements
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS pickup_details TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS delivery_note TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS reschedule_date DATE'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS reschedule_time TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS reschedule_note TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS reschedule_by INTEGER'); } catch(e) {}
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_accept BOOLEAN DEFAULT false'); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }
