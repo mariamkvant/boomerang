@@ -229,8 +229,8 @@ initDatabase().then(() => {
          JOIN services s ON sr.service_id = s.id
          JOIN users u ON sr.requester_id = u.id
          WHERE sr.status = 'delivered'
-         AND sr.updated_at < NOW() - INTERVAL '48 hours'
-         AND sr.updated_at > NOW() - INTERVAL '49 hours'`
+         AND sr.delivered_at < NOW() - INTERVAL '48 hours'
+         AND sr.delivered_at > NOW() - INTERVAL '49 hours'`
       );
       for (const r of staleDeliveries) {
         await notify({
@@ -249,8 +249,8 @@ initDatabase().then(() => {
          JOIN services s ON sr.service_id = s.id
          JOIN users u ON s.provider_id = u.id
          WHERE sr.status = 'accepted'
-         AND sr.updated_at < NOW() - INTERVAL '7 days'
-         AND sr.updated_at > NOW() - INTERVAL '7 days 5 minutes'`
+         AND sr.created_at < NOW() - INTERVAL '7 days'
+         AND sr.created_at > NOW() - INTERVAL '7 days 5 minutes'`
       );
       for (const r of staleAccepted) {
         await notify({
