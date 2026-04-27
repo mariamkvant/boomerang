@@ -125,8 +125,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
     finalPoints = Math.round(finalPoints * req.body.sessions_count * (1 - req.body.bundle_discount / 100));
   }
-  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl, serviceCity);
+  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image, city, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl, serviceCity, req.body.country || 'Luxembourg');
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
 });
 

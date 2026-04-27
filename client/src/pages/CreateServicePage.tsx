@@ -10,7 +10,7 @@ export default function CreateServicePage() {
   const groupId = searchParams.get('group');
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10', city: '', is_product: false, quantity: '1' });
+  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '60', is_bundle: false, sessions_count: '1', bundle_discount: '10', city: '', country: 'Luxembourg', is_product: false, quantity: '1' });
   const [suggested, setSuggested] = useState<{ suggested: number; min: number; max: number; multiplier: number } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -157,16 +157,31 @@ export default function CreateServicePage() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
         </div>
 
-        {/* Location / Commune */}
+        {/* Location */}
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">Location (Commune)</label>
-          <select id="city" required value={form.city} onChange={set('city')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white">
-            <option value="">Select your commune</option>
-            {['Luxembourg City','Esch-sur-Alzette','Differdange','Dudelange','Ettelbruck','Diekirch','Wiltz','Echternach','Remich','Grevenmacher','Mersch','Capellen','Steinfort','Mamer','Strassen','Bertrange','Hesperange','Sandweiler','Niederanven','Walferdange','Steinsel','Lorentzweiler','Lintgen','Bettembourg','Schifflange','Kayl','Rumelange','Sanem','Mondercange','Pétange','Bascharage','Clemency','Garnich','Hobscheid','Koerich','Septfontaines','Kehlen','Kopstal','Leudelange','Reckange-sur-Mess','Roeser','Weiler-la-Tour','Contern','Frisange','Mondorf-les-Bains','Dalheim','Lenningen','Stadtbredimus','Waldbredimus','Bous','Betzdorf','Flaxweiler','Junglinster','Manternach','Mertert','Wormeldange','Bech','Beaufort','Consdorf','Larochette','Medernach','Nommern','Reisdorf','Rosport-Mompach','Waldbillig','Berdorf','Bourscheid','Clervaux','Esch-sur-Sûre','Feulen','Grosbous','Hoscheid','Kiischpelt','Lac de la Haute-Sûre','Parc Hosingen','Putscheid','Tandel','Troisvierges','Vianden','Weiswampach','Wincrange','Winseler','Bissen','Colmar-Berg','Ell','Fischbach','Helperknapp','Préizerdaul','Rambrouch','Redange-sur-Attert','Saeul','Useldange','Vichten','Wahl','Other'].map(c => (
+          <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
+          <select id="country" required value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:border-gray-600 dark:text-white">
+            {['Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
+        </div>
+        <div>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1.5">City / Area</label>
+          {form.country === 'Luxembourg' ? (
+            <select id="city" required value={form.city} onChange={set('city')}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:border-gray-600 dark:text-white">
+              <option value="">Select your commune</option>
+              {['Luxembourg City','Esch-sur-Alzette','Differdange','Dudelange','Ettelbruck','Diekirch','Wiltz','Echternach','Remich','Grevenmacher','Mersch','Capellen','Steinfort','Mamer','Strassen','Bertrange','Hesperange','Sandweiler','Niederanven','Walferdange','Steinsel','Lorentzweiler','Lintgen','Bettembourg','Schifflange','Kayl','Rumelange','Sanem','Mondercange','Pétange','Bascharage','Clemency','Garnich','Hobscheid','Koerich','Septfontaines','Kehlen','Kopstal','Leudelange','Reckange-sur-Mess','Roeser','Weiler-la-Tour','Contern','Frisange','Mondorf-les-Bains','Dalheim','Lenningen','Stadtbredimus','Waldbredimus','Bous','Betzdorf','Flaxweiler','Junglinster','Manternach','Mertert','Wormeldange','Bech','Beaufort','Consdorf','Larochette','Medernach','Nommern','Reisdorf','Rosport-Mompach','Waldbillig','Berdorf','Bourscheid','Clervaux','Esch-sur-Sûre','Feulen','Grosbous','Hoscheid','Kiischpelt','Lac de la Haute-Sûre','Parc Hosingen','Putscheid','Tandel','Troisvierges','Vianden','Weiswampach','Wincrange','Winseler','Bissen','Colmar-Berg','Ell','Fischbach','Helperknapp','Préizerdaul','Rambrouch','Redange-sur-Attert','Saeul','Useldange','Vichten','Wahl','Other'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <input id="city" required value={form.city} onChange={set('city')}
+              placeholder={form.country === 'United Kingdom' ? 'e.g. London, Bristol, Manchester...' : form.country === 'Germany' ? 'e.g. Berlin, Munich, Hamburg...' : form.country === 'France' ? 'e.g. Paris, Lyon, Marseille...' : 'Your city or area'}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:border-gray-600 dark:text-white" />
+          )}
         </div>
 
         {/* Description */}
