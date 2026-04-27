@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useInstall } from '../components/InstallPrompt';
 import { t } from '../i18n';
+import AnimatedExplainer from '../components/AnimatedExplainer';
 
 function tc(name: string): string {
   const key = 'cat.' + name;
@@ -101,6 +102,8 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      <AnimatedExplainer />
 
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
         <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-4">{t('home.forYou')}</h2>
