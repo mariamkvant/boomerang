@@ -13,20 +13,23 @@ export default function PrivacyPage() {
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
         <li>Account information: username, email address, password (encrypted)</li>
         <li>Profile information: bio, city/location, languages spoken (voluntarily provided)</li>
+        <li>Profile and review photos: avatar images and review images uploaded by you</li>
         <li>Service listings: titles, descriptions, categories, pricing in boomerangs</li>
         <li>Communications: messages between users, service request details</li>
         <li>Usage data: login times, pages visited, features used</li>
         <li>Device data: browser type, operating system (for PWA functionality)</li>
+        <li>Location data: approximate location derived from IP address (country-level, for analytics)</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">2. How We Use Your Data</h2>
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
         <li>To provide and maintain the Boomerang platform</li>
-        <li>To match you with relevant services and help requests</li>
-        <li>To send notifications about your service requests and messages</li>
+        <li>To match you with relevant services and help requests in your area</li>
+        <li>To send notifications about your service requests, messages, and reminders</li>
+        <li>To send periodic digest emails summarizing platform activity (you can unsubscribe)</li>
         <li>To verify your identity (email verification)</li>
         <li>To calculate trust scores and achievements</li>
-        <li>To improve our platform and user experience</li>
+        <li>To generate anonymized analytics and improve our platform</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">3. Legal Basis (GDPR)</h2>
@@ -36,8 +39,12 @@ export default function PrivacyPage() {
       <p className="text-sm text-gray-600">We do not sell your personal data. We share limited data with:</p>
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
         <li>Other Boomerang users: your public profile, services, and reviews</li>
-        <li>Service providers: Resend (email delivery), Railway (hosting)</li>
+        <li>Cloudinary: profile photos and review images are stored on Cloudinary's cloud infrastructure</li>
+        <li>Resend: email delivery for notifications, verification, and digest emails</li>
+        <li>Railway: application hosting and database infrastructure</li>
+        <li>ip-api.com: country-level geolocation lookup from IP addresses (no personal data shared)</li>
       </ul>
+      <p className="text-sm text-gray-600 mt-2">These third-party services process data only as necessary to provide their services and are bound by their own privacy policies.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">5. Your Rights (GDPR)</h2>
       <p className="text-sm text-gray-600">You have the right to:</p>
@@ -52,7 +59,14 @@ export default function PrivacyPage() {
       <p className="text-sm text-gray-600 mt-2">To exercise these rights, go to Account Settings or contact us at privacy@boomerang.fyi.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">6. Data Retention</h2>
-      <p className="text-sm text-gray-600">We retain your data for as long as your account is active. When you delete your account, all personal data is permanently removed within 30 days. Anonymized usage statistics may be retained.</p>
+      <p className="text-sm text-gray-600">We retain your data for as long as your account is active. Specific retention periods:</p>
+      <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
+        <li>Account data: retained until you delete your account</li>
+        <li>Messages and service requests: retained for the lifetime of your account</li>
+        <li>Page view analytics: retained for 12 months, then automatically purged</li>
+        <li>Uploaded images: removed from Cloudinary when you delete your account or replace the image</li>
+      </ul>
+      <p className="text-sm text-gray-600 mt-2">When you delete your account, all personal data is permanently removed within 30 days. Anonymized, aggregated usage statistics may be retained indefinitely.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">7. Data Security</h2>
       <p className="text-sm text-gray-600">We use industry-standard security measures including encrypted passwords (bcrypt), HTTPS encryption, and secure database hosting. No system is 100% secure, and we cannot guarantee absolute security.</p>

@@ -95,6 +95,10 @@ app.post('/api/track', (req, res) => {
   res.json({ ok: true });
 });
 
+// Stricter API rate limit: 100 requests per minute per IP (on top of global 200/min)
+const apiLimiter = rateLimit(60_000, 100);
+app.use('/api', apiLimiter);
+
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/requests', requestRoutes);
@@ -111,8 +115,23 @@ app.use('/api/digest', digestRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/payments', paymentRoutes);
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (_req, res) => {
+  try {
+    const userCount = await db.get('SELECT COUNT(*) as c FROM users');
+    const serviceCount = await db.get('SELECT COUNT(*) as c FROM services WHERE is_active = 1');
+    const requestCount = await db.get('SELECT COUNT(*) as c FROM service_requests');
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      db: {
+        users: parseInt(userCount?.c || '0'),
+        services: parseInt(serviceCount?.c || '0'),
+        requests: parseInt(requestCount?.c || '0'),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Database connection failed' });
+  }
 });
 
 // Catch-all for unknown API routes

@@ -47,22 +47,33 @@ export default function TermsPage() {
       <h2 className="text-lg font-semibold mt-6 mb-2">6. Content & Reviews</h2>
       <p className="text-sm text-gray-600">You retain ownership of content you post. By posting, you grant Boomerang a license to display it on the platform. Reviews must be honest and based on real exchanges. We may remove content that violates these terms.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">7. Liability</h2>
-      <p className="text-sm text-gray-600">Boomerang is a platform connecting people. We are not responsible for the quality, safety, or legality of services exchanged between users. Use the platform at your own risk. We are not liable for any damages arising from exchanges between users.</p>
+      <h2 className="text-lg font-semibold mt-6 mb-2">7. Liability & Disclaimer</h2>
+      <p className="text-sm text-gray-600">Boomerang is a marketplace platform that connects users. We are not a party to any exchange or transaction between users. Specifically:</p>
+      <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
+        <li>Users are solely responsible for the quality, safety, legality, and accuracy of services and items they offer or exchange</li>
+        <li>Boomerang is not liable for any disputes, damages, losses, injuries, or dissatisfaction arising from exchanges between users</li>
+        <li>All exchanges are conducted at your own risk. You acknowledge that Boomerang does not vet, endorse, or guarantee any user or service</li>
+        <li>Boomerang provides dispute resolution tools (messaging, dispute flags, admin mediation) as a courtesy but does not guarantee outcomes or resolutions</li>
+        <li>The platform is provided "as is" without warranties of any kind, express or implied, including but not limited to merchantability, fitness for a particular purpose, or non-infringement</li>
+        <li>To the maximum extent permitted by law, Boomerang's total liability shall not exceed the value of boomerangs in your account at the time of the claim</li>
+      </ul>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">8. Account Termination</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">8. Platform Fee</h2>
+      <p className="text-sm text-gray-600">A small platform fee of 5% (minimum 1 boomerang) is deducted from each completed exchange to maintain the health of the boomerang economy. The requester pays the full listed price, and the provider receives the amount minus the fee. This fee is removed from circulation and is not retained by Boomerang.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">9. Account Termination</h2>
       <p className="text-sm text-gray-600">You can delete your account at any time from Account Settings. We may suspend or terminate accounts that violate these terms, with or without notice.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">9. Disputes</h2>
-      <p className="text-sm text-gray-600">We encourage users to resolve disputes through the in-app messaging system. Boomerang may mediate disputes but is not obligated to do so. For unresolved disputes, Luxembourg law applies.</p>
+      <h2 className="text-lg font-semibold mt-6 mb-2">10. Disputes</h2>
+      <p className="text-sm text-gray-600">We encourage users to resolve disputes through the in-app messaging system. Boomerang may mediate disputes but is not obligated to do so. Dispute resolution tools are provided as a convenience and do not create any obligation or guarantee of a particular outcome. For unresolved disputes, Luxembourg law applies.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">10. Changes</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">11. Changes</h2>
       <p className="text-sm text-gray-600">We may update these terms. Continued use of Boomerang after changes constitutes acceptance. We will notify users of significant changes.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">11. Governing Law</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">12. Governing Law</h2>
       <p className="text-sm text-gray-600">These terms are governed by the laws of the Grand Duchy of Luxembourg. Any disputes shall be subject to the jurisdiction of Luxembourg courts.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">12. Contact</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">13. Contact</h2>
       <p className="text-sm text-gray-600">Questions about these terms: legal@boomerang.fyi</p>
     </div>
   );

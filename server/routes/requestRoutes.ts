@@ -85,8 +85,11 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
     await db.transaction(async (tx) => {
       const requester = await tx.get('SELECT points FROM users WHERE id = ?', r.requester_id);
       if (requester.points < r.points_cost) throw new Error('Not enough points');
+      // Platform fee: 5% (min 1 boomerang) removed from circulation as inflation sink
+      const fee = Math.max(1, Math.round(r.points_cost * 0.05));
+      const providerReceives = r.points_cost - fee;
       await tx.run('UPDATE users SET points = points - ? WHERE id = ?', r.points_cost, r.requester_id);
-      await tx.run('UPDATE users SET points = points + ? WHERE id = ?', r.points_cost, r.provider_id);
+      await tx.run('UPDATE users SET points = points + ? WHERE id = ?', providerReceives, r.provider_id);
       await tx.run("UPDATE service_requests SET status = 'completed', completed_at = NOW() WHERE id = ?", req.params.id);
     });
   } catch (err: any) {
