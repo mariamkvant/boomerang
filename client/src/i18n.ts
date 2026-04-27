@@ -7,7 +7,7 @@ const en: Record<string, string> = {
   "nav.communities": "Communities",
   "nav.dashboard": "My Dashboard",
   "nav.home": "Home",
-  "nav.browse2": "Browse",
+  "nav.browse2": "Explore",
   "nav.offer2": "Offer",
   "nav.chat": "Chat",
   "nav.me": "Me",
