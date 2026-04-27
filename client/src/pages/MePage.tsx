@@ -29,7 +29,7 @@ export default function MePage() {
   );
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in pb-24">
+    <div className="max-w-lg mx-auto animate-fade-in pb-24 md:pb-8">
       {/* Profile card */}
       <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm mb-3 overflow-hidden">
         <div className="p-5">
