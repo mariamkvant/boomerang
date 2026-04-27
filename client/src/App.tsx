@@ -53,7 +53,7 @@ function Navbar() {
   const isHome = location.pathname === '/';
   const navLink = (to: string, label: string) => (
     <Link to={to} onClick={() => setMobileOpen(false)}
-      className={`text-sm font-medium px-3 py-3 rounded-lg whitespace-nowrap ${isActive(to) ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'}`}>
+      className={`block text-sm font-medium px-3 py-3 rounded-lg ${isActive(to) ? 'text-primary-700 bg-primary-50 dark:bg-primary-900/20' : 'text-gray-600 dark:text-gray-300 hover:text-primary-600 hover:bg-gray-50 dark:hover:bg-[#2a3942]'}`}>
       {label}
     </Link>
   );
@@ -143,8 +143,8 @@ function Navbar() {
         {/* Mobile: balance pill + hamburger */}
         <div className="lg:hidden flex items-center gap-2">
           {user && (
-            <Link to={isIOS ? '/dashboard' : '/buy'}
-              className="flex items-center gap-1.5 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 px-2.5 py-1.5 rounded-full transition-colors min-h-[36px]">
+            <Link to="/buy"
+              className="flex items-center gap-1.5 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 px-3 py-1.5 rounded-full transition-colors min-h-[36px]">
               <span className="text-sm font-semibold text-primary-700">{user.points}</span>
               <span className="text-sm">🪃</span>
             </Link>
@@ -167,14 +167,14 @@ function Navbar() {
               <p className="text-xs text-gray-400">{user.email}</p>
             </div>
           )}
-          <div className="space-y-0.5">
+          <div className="flex flex-col">
+            {user && navLink('/dashboard', '📊 ' + t('nav.dashboard'))}
             {navLink('/browse', t('nav.browse'))}
             {navLink('/help-wanted', t('nav.help'))}
             {navLink('/groups', t('nav.communities'))}
             {navLink('/leaderboard', t('leaderboard.title'))}
             {navLink('/people', 'Find People')}
             {navLink('/community', 'Community Feed')}
-            {user && navLink('/dashboard', t('nav.dashboard'))}
             {user && navLink('/messages', 'Messages')}
             {user && navLink('/settings', 'My Profile')}
             {user && navLink('/account', 'Account Settings')}
@@ -184,7 +184,7 @@ function Navbar() {
             {!user && navLink('/register', 'Sign up free')}
             {user && (
               <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
-                className="w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 min-h-[44px]">Log out</button>
+                className="block w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 min-h-[44px]">Log out</button>
             )}
           </div>
         </div>

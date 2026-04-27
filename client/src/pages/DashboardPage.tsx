@@ -254,14 +254,14 @@ export default function DashboardPage() {
             </div>
           </div>
           {isIOS ? (
-            <div className="shrink-0 text-right">
-              <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
-              <div className="text-xs text-gray-400 mt-0.5">🪃 boomerangs</div>
+            <div className="shrink-0 text-right ml-auto">
+              <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">🪃</div>
             </div>
           ) : (
-            <button onClick={() => setShowTxHistory(!showTxHistory)} className="shrink-0 text-right hover:opacity-80 transition-opacity">
-              <div className="text-xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
-              <div className="text-xs text-gray-400 mt-0.5">🪃 {showTxHistory ? 'hide history' : 'tap to gift'}</div>
+            <button onClick={() => setShowTxHistory(!showTxHistory)} className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
+              <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-[10px] text-gray-400 mt-0.5">🪃 history</div>
             </button>
           )}
         </div>
@@ -375,13 +375,13 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl overflow-x-auto">
+      {/* Tabs — 2x2 grid on mobile for better fit */}
+      <div className="grid grid-cols-2 gap-1 mb-4 bg-gray-100 dark:bg-[#2a3942] p-1 rounded-xl sm:flex">
         {tabs.map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
-            className={`flex-1 min-w-0 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${tab === tb.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            className={`px-3 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-center ${tab === tb.key ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
             {tb.label}
-            {tb.count > 0 && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 text-gray-500'}`}>{tb.count}</span>}
+            {tb.count > 0 && <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>{tb.count}</span>}
           </button>
         ))}
       </div>
