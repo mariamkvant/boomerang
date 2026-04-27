@@ -132,7 +132,7 @@ export default function OnboardingPage() {
           <p className="text-gray-500 text-sm mb-6">Boomerang works locally — we'll connect you with people nearby.</p>
           <button onClick={detectLocation} disabled={locating}
             className="w-full bg-primary-500 text-white py-4 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50 mb-3">
-            {locating ? 'Detecting...' : city ? `📍 ${city}` : '📍 Detect My Location'}
+            {locating ? 'Detecting...' : city ? `${city}` : 'Detect My Location'}
           </button>
           <div className="text-center text-xs text-gray-400 mb-4">or enter manually</div>
           <input value={city} onChange={e => setCity(e.target.value)} placeholder="Your city or neighborhood"

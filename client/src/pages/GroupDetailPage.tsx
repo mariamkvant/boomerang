@@ -407,11 +407,11 @@ export default function GroupDetailPage() {
                 <div className="flex gap-2 mb-3">
                   <button onClick={() => setIsEvent(false)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${!isEvent ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-500 dark:text-gray-400'}`}>
-                    📢 Post
+                    Post
                   </button>
                   <button onClick={() => setIsEvent(true)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${isEvent ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-500 dark:text-gray-400'}`}>
-                    📅 Event
+                    Event
                   </button>
                 </div>
 
@@ -456,7 +456,7 @@ export default function GroupDetailPage() {
                 {attachedService && (
                   <div className="mt-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-3 flex items-center justify-between">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-primary-500 font-medium">📎 Attached service</p>
+                      <p className="text-xs text-primary-500 font-medium">Attached service</p>
                       <p className="text-sm font-medium dark:text-white truncate">{attachedService.title}</p>
                       <p className="text-xs text-gray-400">{attachedService.points_cost} 🪃 · {attachedService.category_name}</p>
                     </div>

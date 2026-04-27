@@ -216,7 +216,7 @@ export default function ServiceDetailPage() {
 
             {/* Date picker */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">📅 Pick a date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Pick a date</label>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {dateOptions.map(d => {
                   const date = new Date(d + 'T12:00:00');
@@ -238,7 +238,7 @@ export default function ServiceDetailPage() {
             {/* Time slots */}
             {selectedDate && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">⏰ Available times</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Available times</label>
                 {loadingSlots ? (
                   <p className="text-xs text-gray-400">Loading slots...</p>
                 ) : availableSlots.length === 0 ? (
@@ -260,7 +260,7 @@ export default function ServiceDetailPage() {
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-3 h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" aria-label="Request message" />
             {service.is_product && (
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">📍 Pickup / delivery details</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Pickup / delivery details</label>
                 <input type="text" value={pickupDetails} onChange={e => setPickupDetails(e.target.value)}
                   placeholder="e.g. I can pick up in Luxembourg City, or prefer delivery to Kirchberg"
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />

@@ -168,7 +168,7 @@ function Navbar() {
             </div>
           )}
           <div className="flex flex-col">
-            {user && navLink('/dashboard', '📊 ' + t('nav.dashboard'))}
+            {user && navLink('/dashboard', t('nav.dashboard'))}
             {navLink('/browse', t('nav.browse'))}
             {navLink('/help-wanted', t('nav.help'))}
             {navLink('/groups', t('nav.communities'))}

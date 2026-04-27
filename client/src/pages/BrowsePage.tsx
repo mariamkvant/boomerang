@@ -192,7 +192,7 @@ export default function BrowsePage() {
                 {(['all', 'services', 'items'] as const).map(t => (
                   <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${typeFilter === t ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300'}`}>
-                    {t === 'all' ? 'All' : t === 'services' ? '🛠 Services' : '📦 Items'}
+                    {t === 'all' ? 'All' : t === 'services' ? 'Services' : 'Items'}
                   </button>
                 ))}
               </div>
@@ -288,13 +288,13 @@ export default function BrowsePage() {
                       </div>
                     )}
                     {s.is_product && (
-                      <span className="absolute top-2 left-2 bg-white/90 dark:bg-[#202c33]/90 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300 shadow-sm">📦 Item</span>
+                      <span className="absolute top-2 left-2 bg-white/90 dark:bg-[#202c33]/90 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300 shadow-sm">Item</span>
                     )}
                   </div>
                 )}
                 {!s.image && !s.is_product && (
                   <div className="px-4 pt-3">
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 dark:bg-[#2a3942] px-2 py-0.5 rounded-full">🛠 Service</span>
+                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 dark:bg-[#2a3942] px-2 py-0.5 rounded-full">Service</span>
                   </div>
                 )}
                 <div className="p-4">
@@ -304,15 +304,15 @@ export default function BrowsePage() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
                       <span className="text-xs text-gray-400">{s.provider_name}</span>
-                      {s.provider_city && <span className="text-[10px] text-gray-300">📍{s.provider_city}</span>}
+                      {s.provider_city && <span className="text-[10px] text-gray-300">{s.provider_city}</span>}
                       {s.avg_response_hours && Number(s.avg_response_hours) > 0 && (
-                        <span className="text-[10px] text-green-500">⚡ {Number(s.avg_response_hours) < 24 ? Math.round(Number(s.avg_response_hours)) + 'h' : Math.round(Number(s.avg_response_hours) / 24) + 'd'}</span>
+                        <span className="text-[10px] text-green-500">~ {Number(s.avg_response_hours) < 24 ? Math.round(Number(s.avg_response_hours)) + 'h' : Math.round(Number(s.avg_response_hours) / 24) + 'd'}</span>
                       )}
                     </div>
                   </div>
                   {user && s.provider_id !== user.id && (
                     <button onClick={(e) => quickRequest(s.id, e)} className="mt-2 w-full bg-primary-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors">
-                      Request · {s.points_cost} 🪃
+                      Request · {s.points_cost} pts
                     </button>
                   )}
                 </div>

@@ -133,6 +133,9 @@ a, button { @apply transition-all duration-200; }
 /* Better focus styles */
 input:focus, textarea:focus, select:focus { @apply ring-2 ring-primary-500/30 border-primary-300; }
 
+/* Card shadow */
+.shadow-card { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04); }
+
 /* Card hover lift */
 .shadow-card-hover { box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -5px rgba(0, 0, 0, 0.04); transform: translateY(-1px); }
 
