@@ -61,7 +61,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-4">

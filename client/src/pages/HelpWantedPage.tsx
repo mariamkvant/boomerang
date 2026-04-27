@@ -45,9 +45,9 @@ export default function HelpWantedPage() {
   };
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-24 md:pb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">{t('help.title')}</h2>
+        <h2 className="text-2xl font-bold dark:text-white">{t('help.title')}</h2>
         <p className="text-gray-500 text-sm mt-1">{t('help.subtitle')}</p>
       </div>
 

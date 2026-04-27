@@ -85,7 +85,7 @@ export default function CreateServicePage() {
   const selectedCat = categories.find((c: any) => String(c.id) === form.category_id);
 
   return (
-    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-2">Offer a Service</h2>
       <p className="text-gray-500 text-sm mb-6">
         {groupId ? '📌 This service will be posted to your community only' : 'Share what you\'re good at with the community'}

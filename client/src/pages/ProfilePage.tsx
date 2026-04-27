@@ -61,7 +61,7 @@ export default function ProfilePage() {
   const isMe = user?.id === Number(id);
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
+    <div className="max-w-3xl mx-auto animate-fade-in pb-24 md:pb-8">
       <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-card mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4 mb-6">

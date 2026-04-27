@@ -132,22 +132,22 @@ export default function BrowsePage() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setNearMe(!nearMe)}
-            className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
+            className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
             Near Me
           </button>
           <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
-            className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
+            className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
             {viewMode === 'map' ? t('browse.list') : t('browse.map')}
           </button>
           <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-            className="flex-1 px-3 py-2 rounded-xl text-sm font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
+            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
             <option value="newest">{t('browse.sort.newest')}</option>
             <option value="price_low">{t('browse.sort.priceLow')}</option>
             <option value="price_high">{t('browse.sort.priceHigh')}</option>
             <option value="rating">{t('browse.sort.rating')}</option>
           </select>
           <button onClick={() => setShowFilters(!showFilters)}
-            className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors border ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#202c33] border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
+            className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#202c33] border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
           </button>
         </div>

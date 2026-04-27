@@ -77,29 +77,29 @@ export default function ServiceDetailPage() {
   const isOwner = user?.id === service.provider_id;
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
+    <div className="max-w-3xl mx-auto animate-fade-in pb-24 md:pb-8">
       {/* Breadcrumb */}
-      <div className="flex items-center justify-between text-sm text-gray-400 mb-6">
-        <div className="flex items-center gap-2">
-          <Link to="/browse" className="hover:text-primary-600 flex items-center gap-1">
+      <div className="flex items-center justify-between text-sm text-gray-400 dark:text-gray-500 mb-6">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Link to="/browse" className="hover:text-primary-600 flex items-center gap-1 shrink-0">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
             Browse
           </Link>
           {service.category_name && (
             <>
               <span>›</span>
-              <Link to={`/browse?category=${service.category_id}`} className="hover:text-primary-600">{service.category_name}</Link>
+              <Link to={`/browse?category=${service.category_id}`} className="hover:text-primary-600 shrink-0">{service.category_name}</Link>
             </>
           )}
           <span>›</span>
-          <span className="text-gray-600 truncate max-w-[160px]">{service.title}</span>
+          <span className="text-gray-600 dark:text-gray-300 truncate">{service.title}</span>
         </div>
         {isOwner && (
           <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">✏️ Edit</Link>
         )}
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-card mb-6">
+      <div className="bg-white dark:bg-[#202c33] p-4 sm:p-8 rounded-2xl shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="bg-gray-50 text-sm px-3 py-1.5 rounded-full text-gray-500">{service.category_icon} {service.category_name}</span>
