@@ -35,7 +35,9 @@ export default function BrowsePage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ service: any; x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ service: any } | null>(null);
+  const longPressRef = useRef<ReturnType<typeof setTimeout>>();
+  const longPressTriggered = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const reloadServices = async () => {
@@ -270,7 +272,12 @@ export default function BrowsePage() {
           <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ service: s, x: e.clientX, y: e.clientY }); }} className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
+              <Link key={s.id} to={`/services/${s.id}`}
+                onTouchStart={() => { longPressTriggered.current = false; longPressRef.current = setTimeout(() => { longPressTriggered.current = true; setContextMenu({ service: s }); }, 500); }}
+                onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
+                onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
+                onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; } }}
+                className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
                 {(s.image || s.is_product) && (
                   <div className="relative">
                     {s.image ? (
@@ -315,11 +322,32 @@ export default function BrowsePage() {
         </>
       )}
       {contextMenu && (
-        <div className="fixed inset-0 z-50" onClick={() => setContextMenu(null)}>
-          <div className="absolute bg-white dark:bg-[#202c33] rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1 w-48" style={{ top: Math.min(contextMenu.y, window.innerHeight - 200), left: Math.min(contextMenu.x, window.innerWidth - 200) }}>
-            <button onClick={() => { navigator.share?.({ title: contextMenu.service.title, url: `${window.location.origin}/services/${contextMenu.service.id}` }); setContextMenu(null); }} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">Share</button>
-            {user && <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)} className="block px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">Message provider</Link>}
-            <Link to={`/services/${contextMenu.service.id}`} onClick={() => setContextMenu(null)} className="block px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">View details</Link>
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setContextMenu(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-600 rounded-full mx-auto mt-3 mb-2" />
+            <div className="px-4 pb-2">
+              <p className="text-sm font-semibold dark:text-white truncate">{contextMenu.service.title}</p>
+              <p className="text-xs text-gray-400">{contextMenu.service.provider_name} · {contextMenu.service.points_cost} 🪃</p>
+            </div>
+            <div className="border-t border-gray-100 dark:border-gray-700">
+              <button onClick={() => { navigator.share?.({ title: contextMenu.service.title, url: `${window.location.origin}/services/${contextMenu.service.id}` }); setContextMenu(null); }}
+                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
+                Share
+              </button>
+              {user && <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)}
+                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
+                Message provider
+              </Link>}
+              <Link to={`/services/${contextMenu.service.id}`} onClick={() => setContextMenu(null)}
+                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
+                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                View details
+              </Link>
+            </div>
+            <button onClick={() => setContextMenu(null)} className="w-full py-4 text-sm font-medium text-gray-400 border-t border-gray-100 dark:border-gray-700">Cancel</button>
           </div>
         </div>
       )}
