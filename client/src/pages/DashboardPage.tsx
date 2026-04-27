@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { isIOS } from '../utils/platform';
+import { isIOS, haptic } from '../utils/platform';
 import { useConfirm } from '../components/ConfirmModal';
 import { t } from '../i18n';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { SkeletonList } from '../components/Skeleton';
 
 function MessageThread({ requestId, userId }: { requestId: number; userId: number }) {
   const [messages, setMessages] = useState<any[]>([]);
@@ -129,8 +131,11 @@ export default function DashboardPage() {
   const [txHistory, setTxHistory] = useState<any[]>([]);
   const [showTxHistory, setShowTxHistory] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { confirm } = useConfirm();
+  usePullToRefresh(async () => { setRefreshing(true); await load(); setRefreshing(false); });
 
   const load = async () => {
     try {
@@ -144,11 +149,13 @@ export default function DashboardPage() {
       api.getUpcomingBookings().then(setUpcomingBookings).catch(() => {});
       api.getTransactionHistory().then(setTxHistory).catch(() => {});
     } catch {}
+    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
   const handleAction = async (action: (id: number) => Promise<any>, id: number) => {
+    haptic('light');
     try {
       await action(id);
       setActionSuccess(id);
@@ -232,6 +239,7 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
+      {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       {/* Compact header */}
       <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
         <div className="flex items-center gap-3">
@@ -389,6 +397,7 @@ export default function DashboardPage() {
       {/* Incoming */}
       {tab === 'incoming' && (
         <div className="space-y-3">
+          {loading ? <SkeletonList count={3} /> : <>
           {incoming.filter(r => !['completed','cancelled'].includes(r.status)).length === 0 && incoming.length === 0 && (
             <>
               {/* Profile completion challenge — shown when no incoming requests */}
@@ -525,14 +534,14 @@ export default function DashboardPage() {
                     <p className="text-xs text-gray-400 mt-1">Accept to unlock messaging with {r.requester_name}</p>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 shrink-0">
+                <div className="flex flex-col gap-2 shrink-0 sm:flex-row">
                   {r.status === 'pending' && (
                     <>
                       <button onClick={() => handleAction(api.acceptRequest, r.id)}
-                        className={`text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-green-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>
+                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-green-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>
                         {actionSuccess === r.id ? '✓ Accepted' : t('dashboard.accept')}
                       </button>
-                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="w-full sm:w-auto text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
@@ -569,6 +578,7 @@ export default function DashboardPage() {
               )}
             </div>
           ))}
+          </>}
         </div>
       )}
 

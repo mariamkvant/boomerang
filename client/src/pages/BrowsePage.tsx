@@ -6,6 +6,7 @@ import MapView from '../components/MapView';
 import { SkeletonGrid } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
 import { t, translateCat } from '../i18n';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -33,7 +34,33 @@ export default function BrowsePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ service: any; x: number; y: number } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const reloadServices = async () => {
+    setRefreshing(true);
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (selectedCat) params.set('category', selectedCat);
+    if (selectedSub) params.set('subcategory', selectedSub);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (debouncedCity) params.set('city', debouncedCity);
+    if (page > 1) params.set('page', String(page));
+    if (sortBy !== 'newest') params.set('sort', sortBy);
+    if (typeFilter === 'items') params.set('is_product', '1');
+    if (typeFilter === 'services') params.set('is_product', '0');
+    if (minPrice) params.set('min_price', minPrice);
+    if (maxPrice) params.set('max_price', maxPrice);
+    try {
+      const res: any = await api.getServices(params.toString());
+      if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
+      else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
+    } catch {}
+    setLoading(false);
+    setRefreshing(false);
+  };
+  usePullToRefresh(reloadServices);
 
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -104,13 +131,15 @@ export default function BrowsePage() {
 
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
+      {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
       </div>
 
       {/* Search bar */}
-      <div className="flex flex-col gap-2 mb-6">
+      <div className="sticky top-16 z-30 bg-gray-50 dark:bg-[#111b21] -mx-4 px-4 pt-2 pb-3">
+      <div className="flex flex-col gap-2">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -182,6 +211,7 @@ export default function BrowsePage() {
           </div>
         )}
       </div>
+      </div>
 
       {/* Category pills */}
       <div className="relative mb-8">
@@ -238,13 +268,13 @@ export default function BrowsePage() {
       ) : (
         <>
           <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
+              <Link key={s.id} to={`/services/${s.id}`} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ service: s, x: e.clientX, y: e.clientY }); }} className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
                 {(s.image || s.is_product) && (
                   <div className="relative">
                     {s.image ? (
-                      <img src={s.image} alt="" className="w-full h-36 object-cover" />
+                      <img src={s.image} alt="" loading="lazy" className="w-full h-36 object-cover" />
                     ) : (
                       <div className="w-full h-28 bg-gray-50 dark:bg-[#2a3942] flex items-center justify-center">
                         <span className="text-3xl opacity-30">📦</span>
@@ -283,6 +313,15 @@ export default function BrowsePage() {
             </div>
           )}
         </>
+      )}
+      {contextMenu && (
+        <div className="fixed inset-0 z-50" onClick={() => setContextMenu(null)}>
+          <div className="absolute bg-white dark:bg-[#202c33] rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1 w-48" style={{ top: Math.min(contextMenu.y, window.innerHeight - 200), left: Math.min(contextMenu.x, window.innerWidth - 200) }}>
+            <button onClick={() => { navigator.share?.({ title: contextMenu.service.title, url: `${window.location.origin}/services/${contextMenu.service.id}` }); setContextMenu(null); }} className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">Share</button>
+            {user && <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)} className="block px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">Message provider</Link>}
+            <Link to={`/services/${contextMenu.service.id}`} onClick={() => setContextMenu(null)} className="block px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942]">View details</Link>
+          </div>
+        </div>
       )}
     </div>
   );

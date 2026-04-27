@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket, sendWsMessage } from '../hooks/useSocket';
 import { t } from '../i18n';
+import { haptic } from '../utils/platform';
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '';
@@ -112,6 +113,7 @@ export default function MessagesPage() {
 
   const send = async () => {
     if ((!newMsg.trim() && !pendingImage) || !activeUser) return;
+    haptic('light');
     setSending(true);
     const msgText = newMsg.trim();
     const imgToSend = pendingImage;

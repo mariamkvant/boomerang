@@ -381,7 +381,7 @@ export default function ServiceDetailPage() {
                   )}
                 </div>
                 {r.comment && <p className="text-sm text-gray-600 dark:text-gray-300 ml-11">{r.comment}</p>}
-                {r.image && <img src={r.image} alt="Review photo" className="ml-11 mt-2 rounded-lg max-h-48 object-cover" />}
+                {r.image && <img src={r.image} alt="Review photo" loading="lazy" className="ml-11 mt-2 rounded-lg max-h-48 object-cover" />}
                 {/* Provider reply */}
                 {r.provider_reply && (
                   <div className="ml-11 mt-2 bg-gray-50 dark:bg-[#2a3942] rounded-lg p-3">

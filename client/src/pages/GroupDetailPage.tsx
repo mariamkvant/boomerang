@@ -245,7 +245,7 @@ export default function GroupDetailPage() {
         {/* Cover photo or gradient */}
         <div className="h-32 sm:h-40 relative overflow-hidden">
           {group.cover_image ? (
-            <img src={group.cover_image} alt="" className="w-full h-full object-cover" />
+            <img src={group.cover_image} alt="" loading="lazy" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-primary-500 to-orange-400" />
           )}
@@ -532,7 +532,7 @@ export default function GroupDetailPage() {
                             <span className="text-[10px] text-gray-400">{new Date(a.created_at).toLocaleDateString()}</span>
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 whitespace-pre-wrap">{a.content}</p>
-                          {a.image && <img src={a.image} alt="" className="mt-2 rounded-lg max-h-64 object-cover" />}
+                          {a.image && <img src={a.image} alt="" loading="lazy" className="mt-2 rounded-lg max-h-64 object-cover" />}
 
                           {/* Event details card */}
                           {a.event_date && (

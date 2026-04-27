@@ -216,7 +216,7 @@ export default function ProfilePage() {
                 className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group transition-all">
                 <div className="flex items-center gap-2 mb-2">
                   {s.provider_avatar ? (
-                    <img src={s.provider_avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={s.provider_avatar} alt="" loading="lazy" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       {s.provider_name?.charAt(0).toUpperCase()}

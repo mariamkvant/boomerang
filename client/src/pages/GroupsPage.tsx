@@ -4,6 +4,9 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 import { useToast } from '../components/Toast';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { haptic } from '../utils/platform';
+import { SkeletonList } from '../components/Skeleton';
 
 export default function GroupsPage() {
   const { user } = useAuth();
@@ -13,15 +16,19 @@ export default function GroupsPage() {
   const [myGroups, setMyGroups] = useState<any[]>([]);
   const [groupSearch, setGroupSearch] = useState('');
   const [form, setForm] = useState({ name: '', description: '', is_public: true });
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = () => {
-    api.getPublicGroups(groupSearch || undefined).then(setPublicGroups).catch(() => {});
+    api.getPublicGroups(groupSearch || undefined).then(g => { setPublicGroups(g); setLoading(false); }).catch(() => setLoading(false));
     if (user) api.getMyGroups().then(setMyGroups).catch(() => {});
   };
   useEffect(load, [user, groupSearch]);
+  usePullToRefresh(async () => { setRefreshing(true); load(); setRefreshing(false); });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    haptic('light');
     try {
       await api.createGroup(form);
       toast('Community created!', 'success');
@@ -31,6 +38,7 @@ export default function GroupsPage() {
   };
 
   const handleJoin = async (id: number) => {
+    haptic('light');
     try { await api.joinGroup(id); toast('Request sent!', 'success'); load(); }
     catch (err: any) { toast(err.message, 'error'); }
   };
@@ -39,6 +47,7 @@ export default function GroupsPage() {
 
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
+      {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       <div className="mb-6">
         <h2 className="text-2xl font-bold dark:text-white">{t('groups.title')}</h2>
       </div>
@@ -89,6 +98,7 @@ export default function GroupsPage() {
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">All communities</h3>
             </div>
           )}
+          {loading ? <SkeletonList count={3} /> : (
           <div className="grid md:grid-cols-2 gap-3">
             {publicGroups.map((g: any) => (
               <div key={g.id} className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
@@ -138,6 +148,7 @@ export default function GroupsPage() {
               </div>
             )}
           </div>
+          )}
         </div>
       )}
 
