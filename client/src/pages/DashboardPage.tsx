@@ -259,10 +259,10 @@ export default function DashboardPage() {
               <div className="text-[10px] text-gray-400 mt-0.5">🪃</div>
             </div>
           ) : (
-            <button onClick={() => setShowTxHistory(!showTxHistory)} className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
+            <Link to="/buy" className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
               <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">🪃 history</div>
-            </button>
+              <div className="text-[10px] text-primary-500 mt-0.5">🪃 gift / top up</div>
+            </Link>
           )}
         </div>
 

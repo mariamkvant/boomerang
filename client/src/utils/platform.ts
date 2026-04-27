@@ -1,5 +1,5 @@
-// Detect if running on iOS (any iOS device — app, PWA, or browser)
-export const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+// Detect if running as native iOS app (Capacitor only, not Safari web)
+export const isIOS = typeof (window as any).Capacitor !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 export const isIPad = /iPad/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && 'ontouchend' in document);
 
 // Native share using Web Share API (works in WKWebView on iOS)
