@@ -21,7 +21,8 @@ export default function BuyBoomerangsPage() {
   // Also hide on any iOS device in standalone mode (installed PWA)
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
   const isStandalone = (window.navigator as any).standalone === true;
-  const hideStripe = isIOSApp || (isIOS && isStandalone) || isIOS;
+  // Only hide Stripe on native Capacitor app or installed PWA (not Safari web)
+  const hideStripe = isIOSApp || (isIOS && isStandalone);
   const [tab, setTab] = useState<'topup' | 'gift' | 'history'>(hideStripe ? 'gift' : 'topup');
   const [giftTo, setGiftTo] = useState('');
   const [giftAmount, setGiftAmount] = useState('10');

@@ -208,7 +208,11 @@ export default function ServiceDetailPage() {
         )}
         {user && !isOwner && status !== 'success' && hasServices && (
           <div className="border-t border-gray-100 pt-6 mt-6">
-            <h3 className="font-semibold mb-3">Request this service</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-sm">Request this service</h3>
+              <button type="button" onClick={() => setMessage(`Hi ${service.provider_name}, I'd like to request "${service.title}". When would work for you?`)}
+                className="text-xs text-primary-500 hover:text-primary-600 font-medium">Use template</button>
+            </div>
 
             {/* Date picker */}
             <div className="mb-4">

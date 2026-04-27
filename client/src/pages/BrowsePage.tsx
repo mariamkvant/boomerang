@@ -304,8 +304,16 @@ export default function BrowsePage() {
                     <div className="flex items-center gap-1.5">
                       {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
                       <span className="text-xs text-gray-400">{s.provider_name}</span>
+                      {s.avg_response_hours && Number(s.avg_response_hours) > 0 && (
+                        <span className="text-[10px] text-green-500">⚡ {Number(s.avg_response_hours) < 24 ? Math.round(Number(s.avg_response_hours)) + 'h' : Math.round(Number(s.avg_response_hours) / 24) + 'd'}</span>
+                      )}
                     </div>
                   </div>
+                  {user && s.provider_id !== user.id && (
+                    <button onClick={(e) => quickRequest(s.id, e)} className="mt-2 w-full bg-primary-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors">
+                      Request · {s.points_cost} 🪃
+                    </button>
+                  )}
                 </div>
               </Link>
             ))}
