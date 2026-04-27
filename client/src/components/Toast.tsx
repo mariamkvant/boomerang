@@ -23,7 +23,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map(t => (
           <div key={t.id} className={`pointer-events-auto animate-slide-up px-4 py-3 rounded-xl shadow-lg text-sm font-medium max-w-xs
             ${t.type === 'success' ? 'bg-green-500 text-white' : t.type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'}`}>
-            {t.type === 'success' ? '✓ ' : t.type === 'error' ? '⚠️ ' : 'ℹ️ '}{t.message}
+            {t.type === 'success' ? '✓ ' : t.type === 'error' ? '' : ''}{t.message}
           </div>
         ))}
       </div>

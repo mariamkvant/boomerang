@@ -103,8 +103,8 @@ export default function OnboardingPage() {
           <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Exchange skills, services, and items — no money needed. Here's how it works:</p>
           <div className="space-y-3 text-left mb-8">
             {[
-              { icon: '🛠', title: 'Offer a skill', desc: 'Post what you can do — cooking, coding, gardening, anything.' },
-              { icon: '🔍', title: 'Browse & request', desc: 'Find someone who has what you need and send a request.' },
+              { icon: '1', title: 'Offer a skill', desc: 'Post what you can do — cooking, coding, gardening, anything.' },
+              { icon: '2', title: 'Browse & request', desc: 'Find someone who has what you need and send a request.' },
               { icon: '🪃', title: 'Exchange with Boomerangs', desc: 'Earn Boomerangs when you help others. Spend them to get help back.' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4">
@@ -128,7 +128,7 @@ export default function OnboardingPage() {
 
       {step === 1 && (
         <div>
-          <h2 className="text-2xl font-bold mb-2">Where are you located? 📍</h2>
+          <h2 className="text-2xl font-bold mb-2">Where are you located?</h2>
           <p className="text-gray-500 text-sm mb-6">Boomerang works locally — we'll connect you with people nearby.</p>
           <button onClick={detectLocation} disabled={locating}
             className="w-full bg-primary-500 text-white py-4 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50 mb-3">
@@ -173,7 +173,7 @@ export default function OnboardingPage() {
               <p className="text-xs text-green-600 dark:text-green-400 mt-2">+ more services waiting for you</p>
             </div>
           )}
-          <h2 className="text-2xl font-bold mb-2">What are you good at? 🎯</h2>
+          <h2 className="text-2xl font-bold mb-2">What are you good at?</h2>
           <p className="text-gray-500 text-sm mb-6">Pick at least one skill. We'll create your first service listings.</p>
           <div className="grid grid-cols-2 gap-3">
             {SKILL_OPTIONS.map(s => (
@@ -194,7 +194,7 @@ export default function OnboardingPage() {
 
       {step === 3 && (
         <div>
-          <h2 className="text-2xl font-bold mb-2">What do you need help with? 🆘</h2>
+          <h2 className="text-2xl font-bold mb-2">What do you need help with?</h2>
           <p className="text-gray-500 text-sm mb-6">This helps us match you with the right people.</p>
           <div className="grid grid-cols-2 gap-3">
             {NEED_OPTIONS.map(s => (
@@ -214,12 +214,12 @@ export default function OnboardingPage() {
 
       {step === 4 && (
         <div>
-          <h2 className="text-2xl font-bold mb-2">Tell people about yourself ✨</h2>
+          <h2 className="text-2xl font-bold mb-2">Tell people about yourself</h2>
           <p className="text-gray-500 text-sm mb-6">A short bio helps build trust.</p>
           <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder="e.g. I'm a guitar teacher who loves gardening. Always happy to help!"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none mb-4" />
           <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-6">
-            <p className="text-sm text-primary-700 font-medium">🎉 You're all set!</p>
+            <p className="text-sm text-primary-700 font-medium">You're all set!</p>
             <p className="text-xs text-primary-600 mt-1">We'll create {selectedSkills.length} service listing{selectedSkills.length !== 1 ? 's' : ''} for you.</p>
           </div>
           <div className="flex gap-3">

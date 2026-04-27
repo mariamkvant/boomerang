@@ -88,11 +88,11 @@ export default function CreateServicePage() {
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-2">Offer a Service</h2>
       <p className="text-gray-500 text-sm mb-6">
-        {groupId ? '📌 This service will be posted to your community only' : 'Share what you\'re good at with the community'}
+        {groupId ? 'This service will be posted to your community only' : 'Share what you\'re good at with the community'}
       </p>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-          <span>⚠️</span> {error}
+          {error}
         </div>
       )}
       <form onSubmit={handleSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
@@ -100,11 +100,11 @@ export default function CreateServicePage() {
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            🛠️ Service
+            Service
           </button>
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            📦 Item / Product
+            Item / Product
           </button>
         </div>
         {form.is_product && (

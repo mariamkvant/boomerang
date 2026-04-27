@@ -56,7 +56,7 @@ export default function MapView({ services, userLat, userLng }: MapViewProps) {
     if (userLat && userLng) {
       L.circleMarker([userLat, userLng], {
         radius: 8, fillColor: '#f97316', color: '#fff', weight: 2, fillOpacity: 0.9,
-      }).addTo(map).bindPopup('📍 You are here');
+      }).addTo(map).bindPopup('You are here');
     }
 
     // Service markers — group by provider location

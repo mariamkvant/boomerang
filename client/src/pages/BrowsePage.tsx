@@ -253,7 +253,6 @@ export default function BrowsePage() {
         <SkeletonGrid count={6} />
       ) : services.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-4xl mb-3">🔍</div>
           <h3 className="text-base font-semibold text-gray-700 dark:text-white mb-1">
             {selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
           </h3>
@@ -284,7 +283,7 @@ export default function BrowsePage() {
                       <img src={s.image} alt="" loading="lazy" className="w-full h-36 object-cover" />
                     ) : (
                       <div className="w-full h-28 bg-gray-50 dark:bg-[#2a3942] flex items-center justify-center">
-                        <span className="text-3xl opacity-30">📦</span>
+                        <span className="text-3xl opacity-30">Item</span>
                       </div>
                     )}
                     {s.is_product && (

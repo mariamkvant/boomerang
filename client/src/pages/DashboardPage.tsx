@@ -28,7 +28,7 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
 
   return (
     <div className="mt-4 border-t border-gray-100 pt-4">
-      <h4 className="text-xs font-semibold text-gray-500 mb-3">💬 {t('messages.title')}</h4>
+      <h4 className="text-xs font-semibold text-gray-500 mb-3">{t('messages.title')}</h4>
       <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
         {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-2">{t('dashboard.noMessages')}</p>}
         {messages.map((m: any) => (
@@ -392,7 +392,7 @@ export default function DashboardPage() {
       {dailyMatch && (
         <div className="bg-white dark:bg-[#202c33] border border-primary-100 dark:border-primary-800/50 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-primary-600 font-medium mb-0.5">🎯 Match for you</p>
+            <p className="text-xs text-primary-600 font-medium mb-0.5">Match for you</p>
             <p className="text-sm font-medium dark:text-white truncate">{dailyMatch.title}</p>
             <p className="text-xs text-gray-400">{dailyMatch.requester_name} · {dailyMatch.points_budget} 🪃</p>
           </div>
@@ -432,7 +432,7 @@ export default function DashboardPage() {
                 return (
                   <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-5 mb-3">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-primary-700">🚀 Get Started Challenge</h3>
+                      <h3 className="font-semibold text-primary-700">Get Started Challenge</h3>
                       <span className="text-sm font-bold text-primary-600">{done}/{total}</span>
                     </div>
                     <div className="w-full bg-primary-200 rounded-full h-2 mb-3">
@@ -610,7 +610,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">{r.service_title}</p>
               </div>
               <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })}
-                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shrink-0">⭐ Review</button>
+                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shrink-0">Review</button>
             </div>
           ))}
           {outgoing.length === 0 && (
@@ -694,7 +694,7 @@ export default function DashboardPage() {
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
-                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review ⭐</button>
+                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review</button>
                   )}
                   {r.status === 'completed' && (
                     <div className="text-xs text-gray-400 mb-1">
@@ -703,7 +703,7 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) > 0 && r.review_id && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: r.review_rating || 5, comment: r.review_comment || '', image: null, reviewId: r.review_id, isEdit: true })}
-                      className="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Edit Review ✏️</button>
+                      className="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Edit Review</button>
                   )}
                   {r.status === 'completed' && (
                     <Link to={`/services/${r.service_id}`} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Request again</Link>
@@ -782,7 +782,7 @@ export default function DashboardPage() {
                     <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
                   )}
                   {['open', 'closed'].includes(h.status) && (
-                    <button onClick={async () => { const ok = await confirm({ title: 'Delete request', message: 'Are you sure you want to delete this help request?', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+                    <button onClick={async () => { const ok = await confirm({ title: 'Delete request', message: 'Are you sure you want to delete this help request?', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteHelpWanted(h.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">Delete</button>
                   )}
                 </div>
               </div>
@@ -829,9 +829,9 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} 🪃</p>
               </Link>
               <div className="flex items-center gap-2 ml-3 shrink-0">
-                <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">✏️</Link>
+                <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">Edit</Link>
                 <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
-                <button onClick={async () => { const ok = await confirm({ title: 'Delete service', message: 'Are you sure you want to delete this service? This cannot be undone.', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">🗑️</button>
+                <button onClick={async () => { const ok = await confirm({ title: 'Delete service', message: 'Are you sure you want to delete this service? This cannot be undone.', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">Delete</button>
               </div>
             </div>
           ))}

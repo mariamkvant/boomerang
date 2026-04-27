@@ -88,7 +88,7 @@ function Navbar() {
           {navLink('/help-wanted', t('nav.help'))}
           {navLink('/groups', t('nav.communities'))}
           {user && navLink('/dashboard', t('nav.dashboard'))}
-          {navLink('/leaderboard', '🏆')}
+          {navLink('/leaderboard', 'Leaderboard')}
         </div>
 
         <div className="hidden lg:flex items-center gap-3">
@@ -107,7 +107,7 @@ function Navbar() {
               )}
               <NotificationBell />
               <button onClick={toggleDark} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="Toggle dark mode">
-                {dark ? '☀️' : '🌙'}
+                {dark ? '☀' : '☽'}
               </button>
               <div className="relative">
                 <button onClick={(e) => { e.stopPropagation(); setProfileOpen(!profileOpen); }}

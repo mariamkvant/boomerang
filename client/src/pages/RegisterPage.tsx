@@ -47,7 +47,7 @@ export default function RegisterPage() {
       </div>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-          <span>⚠️</span> {error}
+          {error}
         </div>
       )}
       {groupInfo && (

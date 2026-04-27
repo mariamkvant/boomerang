@@ -27,7 +27,7 @@ export default function LoginPage() {
       </div>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-          <span>⚠️</span> {error}
+          {error}
         </div>
       )}
       <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">

@@ -95,7 +95,7 @@ export default function ServiceDetailPage() {
           <span className="text-gray-600 dark:text-gray-300 truncate">{service.title}</span>
         </div>
         {isOwner && (
-          <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">✏️ Edit</Link>
+          <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600">Edit</Link>
         )}
       </div>
 
@@ -108,7 +108,7 @@ export default function ServiceDetailPage() {
           </div>
           {service.avg_rating && (
             <div className="flex items-center gap-1 text-sm">
-              <span className="text-accent-500">⭐</span>
+              <span className="text-accent-500">★</span>
               <span className="font-semibold">{Number(service.avg_rating).toFixed(1)}</span>
               <span className="text-gray-400">({service.review_count} review{service.review_count !== 1 ? 's' : ''})</span>
             </div>
@@ -121,7 +121,7 @@ export default function ServiceDetailPage() {
             {user && (
               <button onClick={toggleFavorite} className="text-xl hover:scale-110 transition-transform" aria-label={favorited ? 'Unfavorite' : 'Favorite'}
                 onPointerDown={() => haptic('light')}>
-                {favorited ? '❤️' : <svg className="w-5 h-5 text-gray-300 hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>}
+                {favorited ? <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg> : <svg className="w-5 h-5 text-gray-300 hover:text-red-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>}
               </button>
             )}
             {'share' in navigator && (
@@ -143,7 +143,6 @@ export default function ServiceDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl">
-            <span className="text-lg">⏱️</span>
             <div>
               <div className="text-lg font-bold text-gray-700">{service.is_product ? (service.quantity || 1) : service.duration_minutes}</div>
               <div className="text-xs text-gray-500">{service.is_product ? 'available' : 'minutes'}</div>
@@ -151,7 +150,6 @@ export default function ServiceDetailPage() {
           </div>
           {service.total_requests > 0 && (
             <div className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-xl">
-              <span className="text-lg">📊</span>
               <div>
                 <div className="text-lg font-bold text-gray-700">{service.total_completed}/{service.total_requests}</div>
                 <div className="text-xs text-gray-500">completed</div>
@@ -160,7 +158,6 @@ export default function ServiceDetailPage() {
           )}
           {service.avg_rating && (
             <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2.5 rounded-xl">
-              <span className="text-lg">⭐</span>
               <div>
                 <div className="text-lg font-bold text-yellow-700">{Number(service.avg_rating).toFixed(1)}</div>
                 <div className="text-xs text-yellow-600">{service.review_count} reviews</div>
@@ -416,7 +413,7 @@ export default function ServiceDetailPage() {
                 <h4 className="font-semibold text-sm group-hover:text-primary-600 mb-1">{s.title}</h4>
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>{s.points_cost} boomerangs · {s.duration_minutes}min</span>
-                  {s.avg_rating && <span>⭐ {Number(s.avg_rating).toFixed(1)}</span>}
+                  {s.avg_rating && <span>★ {Number(s.avg_rating).toFixed(1)}</span>}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">by {s.provider_name}</p>
               </Link>

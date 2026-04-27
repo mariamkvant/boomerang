@@ -17,7 +17,7 @@ export default function LeaderboardPage() {
     if (tab === 'communities') api.getTopCommunities().then(setCommunities).catch(() => {});
   }, [tab]);
 
-  const medals = ['🥇', '🥈', '🥉'];
+  const medals = ['1st', '2nd', '3rd'];
 
   const renderUser = (u: any, i: number) => (
     <Link to={`/users/${u.id}`} key={u.id} className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-card hover:shadow-card-hover">
@@ -29,10 +29,10 @@ export default function LeaderboardPage() {
       )}
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm truncate">{u.username}</p>
-        {u.city && <p className="text-xs text-gray-400">📍 {u.city}</p>}
+        {u.city && <p className="text-xs text-gray-400">{u.city}</p>}
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-bold text-primary-600">{u.completed_count} ✅</p>
+        <p className="text-sm font-bold text-primary-600">{u.completed_count} done</p>
         <p className="text-xs text-gray-400">{u.points_earned} 🪃</p>
       </div>
     </Link>
@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
         if (idx === -1) return null;
         return (
           <div className="bg-primary-50 border border-primary-100 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
-            <span className="text-lg">{medals[idx] || '🏅'}</span>
+            <span className="text-lg">{medals[idx] || `#${idx + 1}`}</span>
             <span className="text-sm font-semibold text-primary-700">You're #{idx + 1}</span>
             <span className="text-xs text-primary-500">— {list[idx].completed_count} exchanges completed</span>
           </div>
@@ -58,7 +58,7 @@ export default function LeaderboardPage() {
       })()}
 
       <div className="flex gap-2 mb-6">
-        {([['weekly', '🔥 This Week'], ['alltime', '🏆 All Time'], ['communities', '👥 Communities']] as const).map(([key, label]) => (
+        {([['weekly', 'This Week'], ['alltime', 'All Time'], ['communities', 'Communities']] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === key ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {label}
@@ -93,10 +93,10 @@ export default function LeaderboardPage() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{u.username}</p>
-                {u.avg_rating && <p className="text-xs text-gray-400">⭐ {Number(u.avg_rating).toFixed(1)}</p>}
+                {u.avg_rating && <p className="text-xs text-gray-400">★ {Number(u.avg_rating).toFixed(1)}</p>}
               </div>
               <div className="text-right shrink-0">
-                <p className="text-sm font-bold text-primary-600">{u.completed_count} ✅</p>
+                <p className="text-sm font-bold text-primary-600">{u.completed_count} done</p>
                 <p className="text-xs text-gray-400">{u.points_earned} 🪃</p>
               </div>
             </Link>
@@ -118,7 +118,7 @@ export default function LeaderboardPage() {
                 <p className="text-xs text-gray-400 truncate">{g.description}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-sm font-bold text-primary-600">{g.member_count} 👥</p>
+                <p className="text-sm font-bold text-primary-600">{g.member_count} members</p>
                 <p className="text-xs text-gray-400">{g.service_count} services</p>
               </div>
             </Link>

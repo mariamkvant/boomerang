@@ -164,12 +164,12 @@ export default function AccountPage() {
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-6">{t('account.title')}</h2>
 
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
+      {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>}
 
       {/* Email verification banner */}
       {user && !user.email_verified && (
         <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl mb-6">
-          <h3 className="font-semibold text-amber-700 mb-2">📧 Verify your email</h3>
+          <h3 className="font-semibold text-amber-700 mb-2">Verify your email</h3>
           <p className="text-sm text-amber-600 mb-3">Your email ({user.email}) is not verified yet. Enter the 6-digit code we sent you, or request a new one.</p>
           {verifyError && <p className="text-sm text-red-500 mb-2">{verifyError}</p>}
           <div className="flex gap-2 mb-2">
@@ -206,9 +206,9 @@ export default function AccountPage() {
 
       {pushSupported && (
         <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
-          <h3 className="font-semibold mb-3">🔔 Push Notifications</h3>
+          <h3 className="font-semibold mb-3">Push Notifications</h3>
           <p className="text-sm text-gray-500 mb-4">Get notified about new messages, service requests, and community activity even when the app is closed.</p>
-          {pushError && <p className="text-sm text-red-500 mb-3">⚠️ {pushError}</p>}
+          {pushError && <p className="text-sm text-red-500 mb-3">{pushError}</p>}
           {pushLoading ? (
             <p className="text-sm text-gray-400">Checking...</p>
           ) : pushSubscribed ? (
@@ -248,7 +248,7 @@ export default function AccountPage() {
       </form>
 
       <div className="bg-white p-6 rounded-2xl shadow-card mb-6">
-        <h3 className="font-semibold text-amber-600 mb-3">⚠️ Deactivate Account</h3>
+        <h3 className="font-semibold text-amber-600 mb-3">Deactivate Account</h3>
         <p className="text-sm text-gray-500 mb-3">Your profile will be hidden and services removed. You can reactivate by logging in again.</p>
         {!showDeactivate ? (
           <button onClick={() => setShowDeactivate(true)} className="text-sm text-amber-600 border border-amber-200 px-4 py-2 rounded-xl hover:bg-amber-50">Deactivate Account</button>
@@ -261,7 +261,7 @@ export default function AccountPage() {
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-card border border-red-100">
-        <h3 className="font-semibold text-red-600 mb-3">🗑️ Delete Account</h3>
+        <h3 className="font-semibold text-red-600 mb-3">Delete Account</h3>
         <p className="text-sm text-gray-500 mb-3">This permanently deletes your account, services, and all data. This cannot be undone.</p>
         {!showDelete ? (
           <button onClick={() => setShowDelete(true)} className="text-sm text-red-600 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50">Delete Account</button>

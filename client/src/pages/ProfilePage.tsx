@@ -82,7 +82,7 @@ export default function ProfilePage() {
                 {superhelper?.is_superhelper && <span className="bg-gray-900 text-white text-xs px-2 py-0.5 rounded-full font-medium">Superhelper</span>}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500 mt-1.5">
-                {profile.city && <span>📍 {profile.city}</span>}
+                {profile.city && <span>{profile.city}</span>}
                 {trust && trust.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)} ({trust.review_count})</span>}
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function ProfilePage() {
         )}
         {/* Languages + member since */}
         <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
-          {profile.languages_spoken && <span>🗣 {profile.languages_spoken}</span>}
+          {profile.languages_spoken && <span>{profile.languages_spoken}</span>}
           {profile.created_at && <span>Member since {new Date(profile.created_at).toLocaleDateString('en', { month: 'short', year: 'numeric' })}</span>}
           {trust?.avg_hours && Number(trust.avg_hours) > 0 && (
             <span>⚡ ~{Number(trust.avg_hours) < 24 ? Math.round(Number(trust.avg_hours)) + 'h' : Math.round(Number(trust.avg_hours) / 24) + 'd'} avg response</span>

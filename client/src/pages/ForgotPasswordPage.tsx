@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold">{step === 'done' ? 'Password Reset' : 'Forgot Password'}</h2>
       </div>
-      {error && <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
+      {error && <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>}
 
       {step === 'email' && (
         <form onSubmit={handleSendCode} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
 
       {step === 'done' && (
         <div className="bg-white p-4 sm:p-8 rounded-2xl shadow-card text-center">
-          <div className="text-4xl mb-4">✅</div>
+          <div className="text-4xl mb-4">✓</div>
           <p className="font-semibold text-gray-900 mb-2">Password reset successful</p>
           <p className="text-sm text-gray-500 mb-6">You can now log in with your new password.</p>
           <Link to="/login" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-primary-600">Go to Login</Link>

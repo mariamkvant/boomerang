@@ -67,7 +67,6 @@ export default function PeoplePage() {
 
       {!loading && results.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-3xl mb-3">👥</div>
           <p className="text-gray-400 text-sm">No people found matching your filters</p>
         </div>
       )}
@@ -86,8 +85,8 @@ export default function PeoplePage() {
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm dark:text-white group-hover:text-primary-600 transition-colors">{u.username}</h3>
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-400 mt-0.5">
-                {u.city && <span>📍 {u.city}</span>}
-                {u.languages_spoken && <span>🗣 {u.languages_spoken}</span>}
+                {u.city && <span>{u.city}</span>}
+                {u.languages_spoken && <span>{u.languages_spoken}</span>}
                 <span>🪃 {u.points}</span>
               </div>
               {u.bio && <p className="text-xs text-gray-400 mt-1 line-clamp-1">{u.bio}</p>}

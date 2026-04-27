@@ -45,7 +45,7 @@ export default function ShareCard({ title, description, points, category, catego
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{categoryIcon}</span>
               <span className="text-xs opacity-80">{category}</span>
-              {rating && <span className="text-xs opacity-80 ml-auto">⭐ {Number(rating).toFixed(1)}</span>}
+              {rating && <span className="text-xs opacity-80 ml-auto">★ {Number(rating).toFixed(1)}</span>}
             </div>
             <h4 className="font-semibold text-sm mb-1">{title}</h4>
             <p className="text-xs opacity-80 line-clamp-2">{description}</p>
@@ -56,7 +56,7 @@ export default function ShareCard({ title, description, points, category, catego
           </div>
           <div className="p-3 flex gap-2">
             <button onClick={handleShare} className="flex-1 bg-primary-500 text-white py-2 rounded-xl text-xs font-medium hover:bg-primary-600">
-              {copied ? '✓ Copied!' : '📤 Share'}
+              {copied ? '✓ Copied!' : 'Share'}
             </button>
             <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
               className="px-3 py-2 bg-green-500 text-white rounded-xl text-xs font-medium hover:bg-green-600">WhatsApp</a>

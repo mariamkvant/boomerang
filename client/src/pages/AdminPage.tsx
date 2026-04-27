@@ -41,7 +41,7 @@ function countryFlag(name: string): string {
     'Portugal': '🇵🇹', 'Poland': '🇵🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
     'Denmark': '🇩🇰', 'Finland': '🇫🇮', 'Canada': '🇨🇦', 'Australia': '🇦🇺',
   };
-  return flags[name] || '🌍';
+  return flags[name] || '';
 }
 
 export default function AdminPage() {
