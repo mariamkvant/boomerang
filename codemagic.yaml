@@ -89,6 +89,11 @@ workflows:
           # Set up xcode project profiles
           xcode-project use-profiles
 
+      - name: Increment build number
+        script: |
+          cd client/ios/App
+          agvtool new-version -all $PROJECT_BUILD_NUMBER
+
       - name: Build and export IPA
         script: |
           set -e
