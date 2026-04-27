@@ -301,9 +301,10 @@ export default function BrowsePage() {
                   <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">{s.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-primary-600 font-semibold text-sm">{s.points_cost} 🪃</span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
                       <span className="text-xs text-gray-400">{s.provider_name}</span>
+                      {s.provider_city && <span className="text-[10px] text-gray-300">📍{s.provider_city}</span>}
                       {s.avg_response_hours && Number(s.avg_response_hours) > 0 && (
                         <span className="text-[10px] text-green-500">⚡ {Number(s.avg_response_hours) < 24 ? Math.round(Number(s.avg_response_hours)) + 'h' : Math.round(Number(s.avg_response_hours) / 24) + 'd'}</span>
                       )}
