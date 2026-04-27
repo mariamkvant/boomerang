@@ -62,7 +62,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-24 md:pb-8">
-      <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-card mb-6">
+      <div className="bg-white dark:bg-[#202c33] p-4 sm:p-8 rounded-2xl shadow-card mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">

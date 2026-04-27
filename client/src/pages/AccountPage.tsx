@@ -161,7 +161,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-6">{t('account.title')}</h2>
 
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}

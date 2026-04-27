@@ -140,7 +140,7 @@ export default function HelpWantedPage() {
       )}
 
       {tab === 'post' && user && (
-        <form onSubmit={handlePost} className="bg-white p-8 rounded-2xl shadow-card space-y-5 max-w-lg">
+        <form onSubmit={handlePost} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5 max-w-lg">
           <div>
             <label htmlFor="hw-title" className="block text-sm font-medium text-gray-700 mb-1.5">What do you need help with?</label>
             <input id="hw-title" required value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} placeholder="e.g. Need someone to fix my leaky faucet"

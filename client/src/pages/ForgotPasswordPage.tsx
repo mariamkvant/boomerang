@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 animate-fade-in">
+    <div className="max-w-md mx-auto mt-6 sm:mt-12 animate-fade-in pb-24 md:pb-8">
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold">{step === 'done' ? 'Password Reset' : 'Forgot Password'}</h2>
@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
       {error && <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">⚠️ {error}</div>}
 
       {step === 'email' && (
-        <form onSubmit={handleSendCode} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+        <form onSubmit={handleSendCode} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
           <p className="text-sm text-gray-500">Enter your email and we'll send you a reset code.</p>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
       )}
 
       {step === 'code' && (
-        <form onSubmit={handleReset} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+        <form onSubmit={handleReset} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
           <p className="text-sm text-gray-500">Check your email for the 6-digit code.</p>
           <div>
             <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1.5">Reset Code</label>
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
       )}
 
       {step === 'done' && (
-        <div className="bg-white p-8 rounded-2xl shadow-card text-center">
+        <div className="bg-white p-4 sm:p-8 rounded-2xl shadow-card text-center">
           <div className="text-4xl mb-4">✅</div>
           <p className="font-semibold text-gray-900 mb-2">Password reset successful</p>
           <p className="text-sm text-gray-500 mb-6">You can now log in with your new password.</p>

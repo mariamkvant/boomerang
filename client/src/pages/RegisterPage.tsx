@@ -39,7 +39,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 animate-fade-in">
+    <div className="max-w-md mx-auto mt-6 sm:mt-12 animate-fade-in pb-24 md:pb-8">
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold">{t('register.title')}</h2>
@@ -57,7 +57,7 @@ export default function RegisterPage() {
           {groupInfo.description && <p className="text-xs text-gray-500 mt-1">{groupInfo.description}</p>}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5">{t('register.username')}</label>
           <input id="username" type="text" required value={username} onChange={e => setUsername(e.target.value)}

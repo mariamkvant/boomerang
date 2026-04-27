@@ -93,7 +93,7 @@ export default function HomePage() {
         </div>
         {stats && (
           <div className="border-t border-gray-100 bg-white/60 backdrop-blur">
-            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-16">
+            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-6 sm:gap-16">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}><div className="text-3xl font-bold text-gray-900">{val}+</div><div className="text-sm text-gray-500 mt-0.5">{label}</div></div>
               ))}

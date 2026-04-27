@@ -73,7 +73,7 @@ export default function AdminPage() {
   if (!isAdmin) return <div className="text-center py-20"><p className="text-gray-500">Admin access required</p></div>;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in pb-24 md:pb-8">
       <h2 className="text-xl font-bold mb-5 dark:text-white">Admin Panel</h2>
       <div className="flex gap-2 mb-6 flex-wrap">
         {(['stats','analytics','users','reports','support'] as const).map(tb => (

@@ -85,7 +85,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       {/* Progress — only show after intro */}
       {step > 0 && (
         <div className="flex gap-2 mb-8">

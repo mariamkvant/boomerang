@@ -31,7 +31,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="animate-fade-in max-w-3xl mx-auto">
+    <div className="animate-fade-in max-w-3xl mx-auto pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Community</h2>
         {user && <button onClick={() => setShowForm(!showForm)} className="bg-primary-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary-600">🎉 Give a Shoutout</button>}

@@ -39,7 +39,7 @@ export default function LeaderboardPage() {
   );
 
   return (
-    <div className="animate-fade-in max-w-lg mx-auto">
+    <div className="animate-fade-in max-w-lg mx-auto pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-2">Leaderboard</h2>
       <p className="text-gray-500 text-sm mb-6">Top helpers in the community</p>
 

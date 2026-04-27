@@ -19,7 +19,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 animate-fade-in">
+    <div className="max-w-md mx-auto mt-6 sm:mt-12 animate-fade-in pb-24 md:pb-8">
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold">{t('login.title')}</h2>
@@ -30,7 +30,7 @@ export default function LoginPage() {
           <span>⚠️</span> {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.email')}</label>
           <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)}

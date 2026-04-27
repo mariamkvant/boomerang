@@ -17,7 +17,7 @@ export default function WalletPage() {
   const totalSpent = history.filter(h => h.type === 'spent').reduce((s, h) => s + h.amount, 0);
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in">
+    <div className="max-w-lg mx-auto animate-fade-in pb-24 md:pb-8">
       {/* Balance card */}
       <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-6 mb-6 text-white">
         <p className="text-primary-100 text-sm mb-1">Your balance</p>

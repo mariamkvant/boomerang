@@ -65,7 +65,7 @@ export default function BuyBoomerangsPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto animate-fade-in">
+    <div className="max-w-lg mx-auto animate-fade-in pb-24 md:pb-8">
       <div className="bg-white dark:bg-[#202c33] rounded-2xl p-6 mb-6 border border-gray-100 dark:border-[#2a3942]">
         <div className="flex items-center justify-between">
           <div>

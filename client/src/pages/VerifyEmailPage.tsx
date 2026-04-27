@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 animate-fade-in">
+    <div className="max-w-md mx-auto mt-6 sm:mt-12 animate-fade-in pb-24 md:pb-8">
       <div className="text-center mb-8">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
           <svg className="w-8 h-8 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -43,7 +43,7 @@ export default function VerifyEmailPage() {
           {error}
         </div>
       )}
-      <form onSubmit={handleVerify} className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-sm space-y-5">
+      <form onSubmit={handleVerify} className="bg-white dark:bg-[#202c33] p-4 sm:p-8 rounded-2xl shadow-sm space-y-5">
         <div>
           <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Verification Code</label>
           <input id="code" type="text" required maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))}

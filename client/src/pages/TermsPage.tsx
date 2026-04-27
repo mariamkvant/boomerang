@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function TermsPage() {
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in prose prose-sm">
+    <div className="max-w-3xl mx-auto animate-fade-in prose prose-sm pb-24 md:pb-8">
       <h1 className="text-2xl font-bold mb-2">Terms of Service</h1>
       <p className="text-sm text-gray-500 mb-6">Last updated: March 31, 2026</p>
 

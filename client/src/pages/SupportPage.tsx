@@ -85,7 +85,7 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
+    <div className="max-w-3xl mx-auto animate-fade-in pb-24 md:pb-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">Help & Support</h1>
         <p className="text-gray-500 text-sm">Find answers or get in touch with our team</p>

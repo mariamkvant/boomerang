@@ -44,7 +44,7 @@ export default function AvailabilityPage() {
   if (loading) return <div className="text-center py-12 text-gray-400">Loading...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto mt-8 animate-fade-in">
+    <div className="max-w-2xl mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-2">My Availability</h2>
       <p className="text-gray-500 text-sm mb-6">Set when you're available to provide services. Requesters will book from these time slots.</p>
 

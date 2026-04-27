@@ -42,10 +42,10 @@ export default function EditServicePage() {
   if (loading) return <div className="text-center py-20 text-gray-400">Loading...</div>;
 
   return (
-    <div className="max-w-lg mx-auto mt-8 animate-fade-in">
+    <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-6">Edit Service</h2>
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>}
-      <form onSubmit={handleSave} className="bg-white p-8 rounded-2xl shadow-card space-y-5">
+      <form onSubmit={handleSave} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
           <input id="title" required value={form.title} onChange={set('title')}
