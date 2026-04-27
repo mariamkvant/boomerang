@@ -7,6 +7,7 @@ import InstallPrompt from './components/InstallPrompt';
 import NotificationBell from './components/NotificationBell';
 import BottomNav from './components/BottomNav';
 import OfflineBanner from './components/OfflineBanner';
+import ErrorBoundary from './components/ErrorBoundary';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 import { isIOS } from './utils/platform';
 
@@ -252,6 +253,7 @@ export default function App() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6">
+        <ErrorBoundary>
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -285,6 +287,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
       <BottomNav />

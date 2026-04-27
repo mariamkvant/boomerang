@@ -2,6 +2,27 @@
 const isNativeApp = typeof (window as any).Capacitor !== 'undefined' || window.location.protocol === 'file:' || window.location.hostname === 'localhost' && window.location.port === '';
 const BASE = isNativeApp ? 'https://www.boomerang.fyi/api' : '/api';
 
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30_000; // 30 seconds
+
+function getCached(key: string): any | null {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL) return entry.data;
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+function invalidateCache(pattern?: string) {
+  if (!pattern) { cache.clear(); return; }
+  for (const key of cache.keys()) {
+    if (key.includes(pattern)) cache.delete(key);
+  }
+}
+
 async function request(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem('token');
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -12,6 +33,10 @@ async function request(path: string, options: RequestInit = {}) {
     const res = await fetch(`${BASE}${path}`, { ...options, headers: { ...headers, ...options.headers }, signal: controller.signal });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed');
+    // Invalidate cache on mutations
+    if (options.method && options.method !== 'GET') {
+      invalidateCache();
+    }
     return data;
   } catch (err: any) {
     if (err.name === 'AbortError') throw new Error('Request timed out. Please try again.');
@@ -19,6 +44,15 @@ async function request(path: string, options: RequestInit = {}) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function cachedRequest(path: string, options: RequestInit = {}) {
+  const cacheKey = path;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+  const data = await request(path, options);
+  setCache(cacheKey, data);
+  return data;
 }
 
 export const api = {
@@ -31,14 +65,14 @@ export const api = {
   forgotPassword: (email: string) => request('/users/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (body: any) => request('/users/reset-password', { method: 'POST', body: JSON.stringify(body) }),
   changePassword: (body: any) => request('/users/change-password', { method: 'POST', body: JSON.stringify(body) }),
-  getMe: () => request('/users/me'),
+  getMe: () => cachedRequest('/users/me'),
   updateProfile: (body: any) => request('/users/me', { method: 'PUT', body: JSON.stringify(body) }),
   deleteAccount: () => request('/users/me', { method: 'DELETE' }),
   getUser: (id: number) => request(`/users/${id}`),
   searchPeople: (q: string) => request(`/users/search/people?q=${encodeURIComponent(q)}`),
 
   // Categories & Subcategories
-  getCategories: () => request('/services/categories'),
+  getCategories: () => cachedRequest('/services/categories'),
   getSubcategories: (categoryId: number) => request(`/services/categories/${categoryId}/subcategories`),
   getAllSubcategories: () => request('/services/subcategories'),
   calculateBoomerangs: (categoryId: number, durationMinutes: number) => request(`/services/calculate-points?category_id=${categoryId}&duration_minutes=${durationMinutes}`),
@@ -55,7 +89,7 @@ export const api = {
   isFavorited: (id: number) => request(`/services/${id}/favorited`),
   getPopularServices: () => request('/services/trending/popular'),
   getNearbyServices: (lat: number, lng: number, radius?: number) => request(`/services/nearby?lat=${lat}&lng=${lng}${radius ? `&radius=${radius}` : ''}`),
-  getStats: () => request('/services/stats'),
+  getStats: () => cachedRequest('/services/stats'),
 
   // Requests
   createRequest: (body: any) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),

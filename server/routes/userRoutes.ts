@@ -6,6 +6,7 @@ import { sendEmail, generateCode, verifyEmailHtml, resetPasswordHtml } from '../
 import { uploadAvatar } from '../cloudinary';
 import { checkAchievements, BADGES } from '../achievements';
 import { rateLimit } from '../rateLimit';
+import { validateEmail, validatePassword, validateRequired, sanitizeString } from '../validate';
 
 const router = Router();
 
@@ -14,8 +15,11 @@ const authLimiter = rateLimit(15 * 60 * 1000, 20); // 20 attempts per 15 min
 // Register
 router.post('/register', authLimiter, async (req: AuthRequest, res: Response) => {
   const { username, email, password, referral_code } = req.body;
-  if (!username || !email || !password) return res.status(400).json({ error: 'All fields are required' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const reqErr = validateRequired({ username, email, password });
+  if (reqErr) return res.status(400).json({ error: reqErr });
+  if (!validateEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
+  const pwErr = validatePassword(password);
+  if (pwErr) return res.status(400).json({ error: pwErr });
   try {
     const hash = bcrypt.hashSync(password, 10);
     const code = generateCode();

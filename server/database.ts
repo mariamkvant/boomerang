@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 // Find DATABASE_URL even if it has a leading space in the env var name
 const dbUrl = process.env.DATABASE_URL || process.env[' DATABASE_URL'] || process.env.DATABASE_PRIVATE_URL || Object.entries(process.env).find(([k]) => k.trim() === 'DATABASE_URL')?.[1];
 if (!dbUrl) { console.error('WARNING: No DATABASE_URL found. Env keys:', Object.keys(process.env).join(',')); }
-const pool = new Pool(dbUrl ? { connectionString: dbUrl } : { host: process.env.PGHOST, port: parseInt(process.env.PGPORT || '5432'), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE });
+const pool = new Pool(dbUrl ? { connectionString: dbUrl, max: 20, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000 } : { host: process.env.PGHOST, port: parseInt(process.env.PGPORT || '5432'), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, max: 20, idleTimeoutMillis: 30000, connectionTimeoutMillis: 5000 });
 
 export async function initDatabase() {
   const client = await pool.connect();

@@ -134,6 +134,17 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// Global error handler
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error('[ERROR]', err.message || err);
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS: Origin not allowed' });
+  }
+  res.status(err.status || 500).json({ 
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
+  });
+});
+
 // Catch-all for unknown API routes
 app.all('/api/*', (_req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
