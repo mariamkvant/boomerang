@@ -140,58 +140,58 @@ export default function BrowsePage() {
       </div>
 
       {/* Search bar */}
-      <div className="sticky top-16 z-30 bg-gray-50 dark:bg-[#111b21] -mx-4 px-4 pt-2 pb-3">
-      <div className="flex flex-col gap-2">
-        <div className="flex gap-2">
+      {/* Search bar — single clean row */}
+      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex gap-2 mb-2">
           <div className="relative flex-1">
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input type="text" placeholder={t('browse.search')} value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+            <input type="text" placeholder="Search services, items..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
               aria-label="Search services" />
           </div>
-          <div className="relative w-36 shrink-0">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="relative w-32 shrink-0">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
             </svg>
-            <input type="text" placeholder={t('browse.cityPlaceholder')} value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+            <input type="text" placeholder="City..." value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+              className="w-full pl-8 pr-2 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
               aria-label="Filter by location" />
           </div>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setNearMe(!nearMe)}
-            className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${nearMe ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
-            Near Me
-          </button>
-          <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')}
-            className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${viewMode === 'map' ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
-            {viewMode === 'map' ? t('browse.list') : t('browse.map')}
-          </button>
           <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-medium bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-primary-500">
-            <option value="newest">{t('browse.sort.newest')}</option>
-            <option value="price_low">{t('browse.sort.priceLow')}</option>
-            <option value="price_high">{t('browse.sort.priceHigh')}</option>
-            <option value="rating">{t('browse.sort.rating')}</option>
+            className="px-2 py-2 rounded-lg text-xs font-medium bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 outline-none">
+            <option value="newest">Newest</option>
+            <option value="price_low">Price ↑</option>
+            <option value="price_high">Price ↓</option>
+            <option value="rating">Rating</option>
           </select>
-          <button onClick={() => setShowFilters(!showFilters)}
-            className={`px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#202c33] border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
-          </button>
+          <div className="flex gap-1">
+            <button onClick={() => setNearMe(!nearMe)} title="Near Me"
+              className={`p-2 rounded-lg border text-xs transition-colors ${nearMe ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            </button>
+            <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')} title="Map view"
+              className={`p-2 rounded-lg border text-xs transition-colors ${viewMode === 'map' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
+            </button>
+            <button onClick={() => setShowFilters(!showFilters)} title="Filters"
+              className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+            </button>
+          </div>
         </div>
 
         {/* Expanded filters */}
         {showFilters && (
-          <div className="bg-white dark:bg-[#202c33] border border-gray-200 dark:border-gray-600 rounded-xl p-3 space-y-3">
+          <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mb-2">
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
               <div className="flex gap-2">
                 {(['all', 'services', 'items'] as const).map(t => (
                   <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${typeFilter === t ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#2a3942] text-gray-600 dark:text-gray-300'}`}>
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
                     {t === 'all' ? 'All' : t === 'services' ? 'Services' : 'Items'}
                   </button>
                 ))}
@@ -201,35 +201,33 @@ export default function BrowsePage() {
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Price range (🪃)</p>
               <div className="flex items-center gap-2">
                 <input type="number" min="0" placeholder="Min" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
-                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+                  className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
                 <span className="text-gray-400 text-xs">–</span>
                 <input type="number" min="0" placeholder="Max" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
-                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white" />
+                  className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
                 {(minPrice || maxPrice) && (
-                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="text-xs text-gray-400 hover:text-red-500">✕</button>
+                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
                 )}
               </div>
             </div>
           </div>
         )}
       </div>
-      </div>
 
-      {/* Category pills — single scrollable row */}
-      <div className="relative mb-6 -mx-4 px-4">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {/* Category pills — scrollable, no fade cutoff */}
+      <div className="overflow-x-auto -mx-4 px-4 mb-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex gap-1.5 pb-1 w-max">
           <button onClick={() => handleCatClick('')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
             All
           </button>
           {categories.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
               {translateCat(c.name)}
             </button>
           ))}
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#f8f7f5] dark:from-[#111111] pointer-events-none" />
       </div>
 
       {/* Subcategory pills */}
