@@ -563,7 +563,7 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'accepted' && (
                     <>
-                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 font-medium">Mark delivered</button>
+                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Mark delivered</button>
                       <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
                     </>
                   )}
@@ -578,9 +578,9 @@ export default function DashboardPage() {
               </div>
               {/* Delivery note shown to provider after delivering */}
               {r.status === 'delivered' && r.delivery_note && (
-                <div className="mt-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2">
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">Your delivery note:</p>
-                  <p className="text-xs text-purple-700 dark:text-purple-300">{r.delivery_note}</p>
+                <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-0.5">Your delivery note:</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">{r.delivery_note}</p>
                 </div>
               )}
               {/* Chat toggle for accepted/delivered */}
@@ -635,9 +635,9 @@ export default function DashboardPage() {
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
                   {/* Delivery note from provider */}
                   {r.status === 'delivered' && r.delivery_note && (
-                    <div className="mt-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-3 py-2">
-                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">Provider note:</p>
-                      <p className="text-xs text-purple-700 dark:text-purple-300">{r.delivery_note}</p>
+                    <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-0.5">Provider note:</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-300">{r.delivery_note}</p>
                     </div>
                   )}
                   {/* Auto-confirm countdown */}
@@ -650,11 +650,11 @@ export default function DashboardPage() {
                   )}
                   {/* Reschedule proposal */}
                   {r.reschedule_date && r.reschedule_by !== user?.id && (
-                    <div className="mt-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
-                      <p className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-1">Reschedule proposed: {r.reschedule_date}{r.reschedule_time ? ` at ${r.reschedule_time}` : ''}</p>
-                      {r.reschedule_note && <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">"{r.reschedule_note}"</p>}
+                    <div className="mt-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+                      <p className="text-xs text-gray-700 dark:text-gray-300 font-medium mb-1">Reschedule proposed: {r.reschedule_date}{r.reschedule_time ? ` at ${r.reschedule_time}` : ''}</p>
+                      {r.reschedule_note && <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">"{r.reschedule_note}"</p>}
                       <button onClick={async () => { try { await api.acceptReschedule(r.id); toast('Reschedule accepted!'); load(); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 font-medium">Accept</button>
+                        className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1 rounded-lg font-medium">Accept</button>
                     </div>
                   )}
                 </div>

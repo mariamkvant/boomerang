@@ -141,7 +141,7 @@ export default function BrowsePage() {
 
       {/* Search bar */}
       {/* Search bar — single clean row */}
-      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800" style={{ overflow: 'visible' }}>
         <div className="flex gap-2 mb-2">
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -214,19 +214,21 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — scrollable, no fade cutoff */}
-      <div className="overflow-x-auto -mx-4 px-4 mb-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div className="flex gap-1.5 pb-1 w-max">
-          <button onClick={() => handleCatClick('')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-            All
-          </button>
-          {categories.map((c: any) => (
-            <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-              {translateCat(c.name)}
+      {/* Category pills — scrollable row, sits below sticky bar */}
+      <div className="relative -mx-4 mb-5 mt-3">
+        <div className="overflow-x-auto px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex gap-1.5 pb-1" style={{ width: 'max-content', minWidth: '100%' }}>
+            <button onClick={() => handleCatClick('')}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+              All
             </button>
-          ))}
+            {categories.map((c: any) => (
+              <button key={c.id} onClick={() => handleCatClick(String(c.id))}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                {translateCat(c.name)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
