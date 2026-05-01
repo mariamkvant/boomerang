@@ -214,16 +214,18 @@ export default function DashboardPage() {
           <React.Fragment key={step}>
             <div className="flex flex-col items-center">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                i < currentIdx ? 'bg-gray-400 dark:bg-gray-500 text-white' :
-                i === currentIdx ? 'bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 ring-4 ring-gray-100 dark:ring-gray-800' :
-                'bg-gray-100 dark:bg-gray-800 text-gray-400'
-              }`}>{i < currentIdx ? '✓' : i + 1}</div>
+                i <= currentIdx
+                  ? 'bg-gray-600 dark:bg-gray-300 text-white dark:text-gray-900'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600'
+              }`}>
+                {i <= currentIdx ? '✓' : i + 1}
+              </div>
               <span className={`text-[9px] mt-1 font-medium ${i <= currentIdx ? 'text-gray-600 dark:text-gray-400' : 'text-gray-300 dark:text-gray-600'}`}>{stepLabels[step]}</span>
               {step === 'pending' && createdAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(createdAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
               {step === 'delivered' && deliveredAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(deliveredAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
               {step === 'completed' && completedAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(completedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
             </div>
-            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-200 dark:bg-gray-700'}`} />}
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-gray-400 dark:bg-gray-500' : 'bg-gray-200 dark:bg-gray-700'}`} />}
           </React.Fragment>
         ))}
       </div>

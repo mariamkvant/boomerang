@@ -69,10 +69,13 @@ export default function HomePage() {
                 Now live in Europe
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
-                {t('hero.headline')}<br /><span className="text-primary-500">{t('hero.headline2')}</span>
+                {t('hero.headline')}<br />
+                <span className="relative inline-block">
+                  {t('hero.headline2')}
+                  <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-primary-400 rounded-full opacity-60" />
+                </span>
               </h1>
-              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-4 max-w-lg">{t('hero.subtitle')}</p>
-              <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
+              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-10 max-w-lg">{t('hero.subtitle')}</p>
               {user ? (
                 <div className="flex flex-wrap gap-3">
                   <Link to="/browse" className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all">{t('hero.browseBtn')}</Link>
