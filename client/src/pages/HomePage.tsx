@@ -80,7 +80,7 @@ export default function HomePage() {
               ) : (
                 <div>
                   <div className="flex flex-wrap gap-3 mb-4">
-                    <Link to="/register" className="bg-gray-900 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-800 transition-all">{t('hero.cta')}</Link>
+                    <Link to="/register" className="bg-gray-800 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-700 transition-all">{t('hero.cta')}</Link>
                     <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -137,24 +137,27 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How it works — dark section for contrast */}
-      <section className="bg-gray-900 dark:bg-black">
+      {/* How it works — light seamless section */}
+      <section className="border-t border-gray-100 dark:border-gray-800 bg-[#f8f7f5] dark:bg-[#111111]">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-3">How it works</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-white mb-6">{t('home.howTitle')}</h2>
-              <p className="text-lg text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
+              <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
+              <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
             </div>
-            <div className="space-y-5">
+            <div className="space-y-6">
               {[
-                { n: '1', title: t('home.step1'), desc: t('home.step1Desc'), color: 'bg-gray-800' },
-                { n: '2', title: t('home.step2'), desc: t('home.step2Desc'), color: 'bg-gray-700' },
-                { n: '3', title: t('home.step3'), desc: t('home.step3Desc'), color: 'bg-gray-600' },
+                { n: '1', title: t('home.step1'), desc: t('home.step1Desc') },
+                { n: '2', title: t('home.step2'), desc: t('home.step2Desc') },
+                { n: '3', title: t('home.step3'), desc: t('home.step3Desc') },
               ].map(s => (
                 <div key={s.n} className="flex gap-4 items-start">
-                  <div className={`w-9 h-9 ${s.color} text-white rounded-xl flex items-center justify-center text-sm font-bold shrink-0`}>{s.n}</div>
-                  <div><h3 className="font-semibold text-white mb-1">{s.title}</h3><p className="text-sm text-gray-400 leading-relaxed">{s.desc}</p></div>
+                  <div className="w-8 h-8 rounded-full border-2 border-primary-200 dark:border-primary-800 text-primary-500 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">{s.n}</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{s.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -325,15 +328,15 @@ export default function HomePage() {
       </section>
 
       {!user && (
-        <section className="bg-gray-900 dark:bg-black">
+        <section className="border-t border-gray-100 dark:border-gray-800">
           <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center">
-            <p className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-4">Get started</p>
-            <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">{t('cta.title')}</h2>
-            <p className="text-gray-400 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
+            <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-4">Get started</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">{t('cta.title')}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/register" className="inline-block bg-white text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-gray-100 transition-all shadow-lg">{t('cta.button')}</Link>
+              <Link to="/register" className="inline-block bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-gray-800 transition-all">{t('cta.button')}</Link>
               <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-2xl transition-colors border border-white/20">
+                className="flex items-center gap-3 bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-200 px-6 py-4 rounded-2xl transition-colors border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#242424]">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
                 <div className="text-left">
                   <div className="text-[10px] text-gray-400 leading-none">Download on the</div>
@@ -341,7 +344,7 @@ export default function HomePage() {
                 </div>
               </a>
             </div>
-            <p className="text-gray-600 text-sm mt-4">{t('cta.note')}</p>
+            <p className="text-gray-400 text-sm mt-4">{t('cta.note')}</p>
           </div>
         </section>
       )}
