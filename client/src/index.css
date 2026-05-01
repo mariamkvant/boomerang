@@ -123,6 +123,9 @@ button, a, [role="button"] {
 * { @apply transition-colors duration-150; }
 a, button { @apply transition-all duration-200; }
 
+/* Hide scrollbar on category pill rows */
+.overflow-x-scroll::-webkit-scrollbar { display: none; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { @apply bg-transparent; }

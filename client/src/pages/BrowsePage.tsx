@@ -214,21 +214,25 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — scrollable row, sits below sticky bar */}
-      <div className="relative -mx-4 mb-5 mt-3">
-        <div className="overflow-x-auto px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-          <div className="flex gap-1.5 pb-1" style={{ width: 'max-content', minWidth: '100%' }}>
-            <button onClick={() => handleCatClick('')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-              All
+      {/* Category pills — horizontally scrollable, full bleed */}
+      <div className="mt-3 mb-5 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div
+          className="flex gap-1.5 px-4 sm:px-6 lg:px-8 pb-2 overflow-x-scroll"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          <button
+            onClick={() => handleCatClick('')}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            All
+          </button>
+          {categories.map((c: any) => (
+            <button
+              key={c.id}
+              onClick={() => handleCatClick(String(c.id))}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+              {translateCat(c.name)}
             </button>
-            {categories.map((c: any) => (
-              <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-                {translateCat(c.name)}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 
