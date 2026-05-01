@@ -207,16 +207,16 @@ export default function DashboardPage() {
           <React.Fragment key={step}>
             <div className="flex flex-col items-center">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                i < currentIdx ? 'bg-primary-500 text-white' :
-                i === currentIdx ? 'bg-primary-500 text-white ring-4 ring-primary-100' :
+                i < currentIdx ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' :
+                i === currentIdx ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 ring-4 ring-gray-100 dark:ring-gray-800' :
                 'bg-gray-100 text-gray-400'
               }`}>{i < currentIdx ? '✓' : i + 1}</div>
-              <span className={`text-[9px] mt-1 font-medium ${i <= currentIdx ? 'text-primary-600' : 'text-gray-400'}`}>{stepLabels[step]}</span>
+              <span className={`text-[9px] mt-1 font-medium ${i <= currentIdx ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-400'}`}>{stepLabels[step]}</span>
               {step === 'pending' && createdAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(createdAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
               {step === 'delivered' && deliveredAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(deliveredAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
               {step === 'completed' && completedAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(completedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
             </div>
-            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-primary-500' : 'bg-gray-200'}`} />}
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-gray-900 dark:bg-white' : 'bg-gray-200 dark:bg-gray-700'}`} />}
           </React.Fragment>
         ))}
       </div>
@@ -228,10 +228,10 @@ export default function DashboardPage() {
     if (!deliveredAt) return null;
     const deadline = new Date(deliveredAt).getTime() + 72 * 60 * 60 * 1000;
     const remaining = deadline - Date.now();
-    if (remaining <= 0) return <span className="text-xs text-amber-500">Auto-confirming soon...</span>;
+    if (remaining <= 0) return <span className="text-xs text-gray-400">Auto-confirming soon...</span>;
     const hours = Math.floor(remaining / 3600000);
     const mins = Math.floor((remaining % 3600000) / 60000);
-    return <span className="text-xs text-amber-500">Auto-confirms in {hours > 0 ? `${hours}h` : `${mins}m`}</span>;
+    return <span className="text-xs text-gray-400">Auto-confirms in {hours > 0 ? `${hours}h` : `${mins}m`}</span>;
   };
 
   const tabs = [
@@ -310,14 +310,14 @@ export default function DashboardPage() {
 
       {/* Confirm delivery banner */}
       {outgoing.filter(r => r.status === 'delivered').length > 0 && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
               {outgoing.filter(r => r.status === 'delivered').length} exchange{outgoing.filter(r => r.status === 'delivered').length > 1 ? 's' : ''} waiting for your confirmation
             </p>
-            <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">Confirm to release boomerangs to the provider</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to release boomerangs to the provider</p>
           </div>
-          <button onClick={() => setTab('outgoing')} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium shrink-0">Review</button>
+          <button onClick={() => setTab('outgoing')} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
         </div>
       )}
 
@@ -494,7 +494,7 @@ export default function DashboardPage() {
                           <button onClick={async () => {
                             const ok = await confirm({ title: 'Accept service was completed', message: `This will transfer ${r.points_cost} boomerangs to the provider. Only do this if the issue is resolved.`, confirmText: 'Yes, complete' });
                             if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved — points transferred'); load(); refreshUser(); } catch (err: any) { toast(err.message, 'error'); } }
-                          }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium">
+                          }} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium">
                             Accept as completed
                           </button>
                           <button onClick={async () => {
@@ -544,7 +544,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   {r.message && <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-[#2a3942] p-2.5 rounded-lg italic">"{r.message}"</p>}
-                  {r.pickup_details && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
+                  {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
                   {/* Pending: explain messaging not available yet */}
                   {r.status === 'pending' && (
@@ -571,7 +571,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-purple-500 font-medium">{t('dashboard.waiting')}</span>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-2.5 py-1 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg font-medium">Nudge</button>
                     </div>
                   )}
                 </div>
@@ -604,13 +604,13 @@ export default function DashboardPage() {
         <div className="space-y-3">
           {/* Prominent review prompts */}
           {outgoing.filter(r => r.status === 'completed' && Number(r.has_reviewed) === 0).slice(0, 2).map((r: any) => (
-            <div key={'review-'+r.id} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 flex items-center justify-between gap-3">
+            <div key={'review-'+r.id} className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">How was your exchange with {r.provider_name}?</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">{r.service_title}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">How was your exchange with {r.provider_name}?</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{r.service_title}</p>
               </div>
               <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })}
-                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-600 font-medium shrink-0">Review</button>
+                className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
             </div>
           ))}
           {outgoing.length === 0 && (
@@ -631,7 +631,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
-                  {r.pickup_details && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
+                  {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
                   {/* Delivery note from provider */}
                   {r.status === 'delivered' && r.delivery_note && (
@@ -662,14 +662,14 @@ export default function DashboardPage() {
                   {r.status === 'pending' && (
                     <>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-primary-50 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Nudge</button>
                       <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
                     <>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-primary-50 dark:bg-primary-900/20 text-primary-600 px-3 py-2 rounded-lg hover:bg-primary-100 font-medium">Nudge</button>
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Nudge</button>
                       <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })}
                         className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
                       {r.booked_date && (
@@ -690,11 +690,11 @@ export default function DashboardPage() {
                       <button onClick={async () => {
                         const reason = prompt('What went wrong? (optional)');
                         try { await api.disputeRequest(r.id, reason || undefined); toast('Issue raised — exchange paused'); load(); } catch (err: any) { toast(err.message, 'error'); }
-                      }} className="text-xs bg-red-50 dark:bg-red-900/20 text-red-500 px-3 py-2 rounded-lg hover:bg-red-100 font-medium">Something went wrong</button>
+                      }} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Something went wrong</button>
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
-                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-accent-400 text-white px-4 py-2 rounded-lg hover:bg-accent-500 font-medium">Leave Review</button>
+                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Leave Review</button>
                   )}
                   {r.status === 'completed' && (
                     <div className="text-xs text-gray-400 mb-1">
@@ -776,7 +776,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2">
                   {h.status === 'delivered' && (
-                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600">Confirm ✓</button>
+                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg">Confirm ✓</button>
                   )}
                   {h.status === 'open' && (
                     <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
