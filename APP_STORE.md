@@ -3,7 +3,7 @@
 ## App Store Listing
 
 **App Name:** Boomerang — Skill Exchange
-**Subtitle:** What you give, comes back
+**Subtitle:** Give what you have. Get what you need.
 **Developer:** Boomerang
 **Website:** https://www.boomerang.fyi
 **Privacy Policy:** https://www.boomerang.fyi/privacy
@@ -15,23 +15,32 @@
 
 ### Description
 
-Boomerang is a community platform where people exchange skills and services without money. Share what you can do, earn boomerangs, and use them to get help when you need it.
+Give what you have. Get what you need.
+
+Exchange skills, services, and items with people around you — no money involved.
+
+Offer a skill, a service, or something you own. Get something back. That's it.
 
 How it works:
-1. List your skills — gardening, cooking, tech help, home repair, tutoring, and 20+ categories
+1. List what you can offer — a skill, a service, or an item
 2. Help someone and earn boomerangs automatically
-3. Use your boomerangs to request services from others
+3. Spend your boomerangs to get help from others
+
+What people exchange:
+- Skills: guitar lessons, language tutoring, coding help, cooking classes
+- Services: home repair, dog walking, airport rides, photography
+- Items: homemade food, books, plants, handmade goods
 
 Features:
-- 20+ service categories
+- 20+ categories
 - Direct messaging with photo sharing
 - Communities — create or join local groups
 - Help Wanted board — post what you need
 - Trust scores and verified profiles
-- Multi-language (English, French, Luxembourgish)
-- No money involved — just people helping people
+- Available in English and French
+- No money. No ads. Just people helping people.
 
-"What you give is yours, what you don't is lost" — Shota Rustaveli
+"What you give is yours, what you don't is lost."
 
 ### Keywords
 skill exchange, community, time banking, services, help, volunteer, local, neighborhood, barter, free
