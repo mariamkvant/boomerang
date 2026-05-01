@@ -276,7 +276,7 @@ export default function BrowsePage() {
                 onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; } }}
-                className="block bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 group overflow-hidden transition-all">
+                className="block bg-white dark:bg-[#1e1b18] rounded-2xl border border-gray-100/80 dark:border-gray-800 hover:border-primary-200 dark:hover:border-primary-700 hover:-translate-y-0.5 hover:shadow-md group overflow-hidden transition-all duration-200">
                 {(s.image || s.is_product) && (
                   <div className="relative">
                     {s.image ? (
@@ -296,22 +296,19 @@ export default function BrowsePage() {
                     <span className="text-[10px] font-medium text-gray-400 bg-gray-50 dark:bg-[#2a3942] px-2 py-0.5 rounded-full">Service</span>
                   </div>
                 )}
-                <div className="p-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">{s.title}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-primary-600 font-semibold text-sm">{s.points_cost} 🪃</span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {s.avg_rating && <span className="text-xs text-amber-500">★ {Number(s.avg_rating).toFixed(1)}</span>}
-                      <span className="text-xs text-gray-400">{s.provider_name}</span>
-                      {s.provider_city && <span className="text-[10px] text-gray-300">{s.provider_city}</span>}
-                      {s.avg_response_hours && Number(s.avg_response_hours) > 0 && (
-                        <span className="text-[10px] text-green-500">~ {Number(s.avg_response_hours) < 24 ? Math.round(Number(s.avg_response_hours)) + 'h' : Math.round(Number(s.avg_response_hours) / 24) + 'd'}</span>
-                      )}
+                <div className="p-4 pt-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1.5 group-hover:text-primary-600 transition-colors line-clamp-2 leading-snug">{s.title}</h3>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-primary-600 font-bold text-sm">{s.points_cost} 🪃</span>
+                    <div className="flex items-center gap-1.5">
+                      {s.avg_rating && <span className="text-xs text-amber-500 font-medium">★ {Number(s.avg_rating).toFixed(1)}</span>}
+                      <span className="text-xs text-gray-400 truncate max-w-[80px]">{s.provider_name}</span>
+                      {s.provider_city && <span className="text-[10px] text-gray-300 hidden sm:block">· {s.provider_city}</span>}
                     </div>
                   </div>
                   {user && s.provider_id !== user.id && (
-                    <button onClick={(e) => quickRequest(s.id, e)} className="mt-2 w-full bg-primary-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-primary-600 transition-colors">
-                      Request · {s.points_cost} pts
+                    <button onClick={(e) => quickRequest(s.id, e)} className="mt-3 w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                      Request · {s.points_cost} 🪃
                     </button>
                   )}
                 </div>

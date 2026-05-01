@@ -68,7 +68,7 @@ function Navbar() {
   }, [profileOpen]);
 
   return (
-    <nav className="bg-white/80 dark:bg-[#202c33]/90 backdrop-blur-md shadow-nav border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
+    <nav className="bg-white/95 dark:bg-[#1e1b18]/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800 sticky top-0 z-50" style={{ boxShadow: '0 1px 0 rgba(0,0,0,0.06)' }}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {!isHome && (

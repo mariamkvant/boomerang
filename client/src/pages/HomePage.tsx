@@ -54,49 +54,53 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
-      <section className="relative overflow-hidden hero-gradient">
-        <div className="max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+      <section className="relative overflow-hidden">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#fff8f3] via-white to-[#f0f9ff]" />
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f07028 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        
+        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12">
-            {/* Left: headline + CTA */}
             <div className="max-w-xl flex-1">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+                <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" />
+                Now live in Europe
+              </div>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
                 {t('hero.headline')}<br /><span className="text-primary-500">{t('hero.headline2')}</span>
               </h1>
               <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-4 max-w-lg">{t('hero.subtitle')}</p>
               <p className="text-sm text-gray-400 italic mb-10">{t('hero.quote')}</p>
               {user ? (
                 <div className="flex flex-wrap gap-4">
-                  <Link to="/browse" className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.browseBtn')}</Link>
-                  <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
+                  <Link to="/browse" className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg">{t('hero.browseBtn')}</Link>
+                  <Link to="/services/new" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-8 py-4 rounded-2xl text-base font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
                 </div>
               ) : (
                 <div>
-                  <Link to="/register" className="inline-block bg-primary-500 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-primary-600 hover:shadow-xl transition-all">{t('hero.cta')}</Link>
+                  <Link to="/register" className="inline-block bg-gray-900 text-white px-10 py-4 rounded-2xl text-lg font-bold hover:bg-gray-800 transition-all shadow-lg">{t('hero.cta')}</Link>
                   <p className="text-sm text-gray-400 mt-4">{t('hero.cta.free')} · <Link to="/login" className="text-primary-500 hover:underline">{t('login')}</Link></p>
                 </div>
               )}
             </div>
-
-            {/* Right: browse card — only for non-logged-in users */}
             {!user && (
               <div className="w-full md:w-72 lg:w-80 shrink-0">
-                <Link to="/browse"
-                  className="block bg-white/60 dark:bg-[#202c33]/60 backdrop-blur-lg rounded-2xl px-8 py-10 border border-gray-200/50 dark:border-gray-700/30 hover:shadow-lg hover:border-primary-200 transition-all text-center group">
+                <Link to="/browse" className="block bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl px-8 py-10 border border-gray-200/50 dark:border-gray-700/30 hover:shadow-xl hover:border-primary-200 transition-all text-center group shadow-md">
                   <p className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{t('hero.browseBtn')}</p>
                   <p className="text-sm text-gray-400 mt-1.5">{t('browse.subtitle')}</p>
-                  <svg className="w-5 h-5 mx-auto mt-4 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
+                  <svg className="w-5 h-5 mx-auto mt-4 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
                 </Link>
               </div>
             )}
           </div>
         </div>
         {stats && (
-          <div className="border-t border-gray-100 bg-white/60 backdrop-blur">
-            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-6 sm:gap-16">
+          <div className="relative border-t border-gray-100 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur">
+            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
-                <div key={i}><div className="text-3xl font-bold text-gray-900">{val}+</div><div className="text-sm text-gray-500 mt-0.5">{label}</div></div>
+                <div key={i}><div className="text-3xl font-bold text-gray-900 dark:text-white">{val}+</div><div className="text-sm text-gray-500 mt-0.5">{label}</div></div>
               ))}
             </div>
           </div>

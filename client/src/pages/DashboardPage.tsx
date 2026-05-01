@@ -245,7 +245,7 @@ export default function DashboardPage() {
     <div className="animate-fade-in pb-24 md:pb-8">
       {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       {/* Compact header */}
-      <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
+      <div className="bg-white dark:bg-[#1e1b18] rounded-2xl border border-gray-100/80 dark:border-gray-800 p-4 mb-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)' }}>
         <div className="flex items-center gap-3">
           <Link to="/settings" className="shrink-0">
             {user?.avatar ? (
