@@ -167,16 +167,15 @@ export default function BrowsePage() {
   };
 
   return (
-    <div className="animate-fade-in pb-24 md:pb-8">
+    <div className="animate-fade-in pb-24 md:pb-8" style={{ overflowX: 'clip' }}>
       {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
       </div>
 
-      {/* Search bar */}
       {/* Search bar — single clean row */}
-      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800" style={{ overflow: 'visible' }}>
+      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
         <div className="flex gap-2 mb-2">
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -254,34 +253,31 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — full-width scrollable row */}
-      <div className="mt-3 mb-5" style={{ marginLeft: '-1rem', marginRight: '-1rem' }}>
-        <div
-          className="flex gap-1.5 pb-2"
-          style={{
-            overflowX: 'auto',
-            overflowY: 'visible',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            paddingLeft: '1rem',
-            paddingRight: '1rem',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
+      {/* Category pills — scrollable row */}
+      <div
+        className="flex gap-1.5 mt-3 mb-5 pb-2"
+        style={{
+          overflowX: 'auto',
+          overflowY: 'visible',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+          paddingRight: '1rem', // ensures last pill isn't clipped
+        }}
+      >
+        <button
+          onClick={() => handleCatClick('')}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+          All
+        </button>
+        {categories.map((c: any) => (
           <button
-            onClick={() => handleCatClick('')}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-            All
+            key={c.id}
+            onClick={() => handleCatClick(String(c.id))}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            {translateCat(c.name)}
           </button>
-          {categories.map((c: any) => (
-            <button
-              key={c.id}
-              onClick={() => handleCatClick(String(c.id))}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-              {translateCat(c.name)}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
       {/* Subcategory pills */}
