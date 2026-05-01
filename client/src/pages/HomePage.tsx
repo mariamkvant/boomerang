@@ -65,7 +65,6 @@ export default function HomePage() {
             <div className="max-w-xl flex-1">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-                <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse" />
                 Now live in Europe
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
@@ -106,7 +105,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
-        {stats && (
+        {stats && stats.total_users > 5 && (
           <div className="relative border-t border-gray-200/50 dark:border-gray-800">
             <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
@@ -218,14 +217,22 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[t('home.quote1'), t('home.quote2'), t('home.quote3'), t('home.quote4')].map((text, i) => (
+          {[
+            { text: t('home.quote1'), name: 'Sophie L.', city: 'Luxembourg' },
+            { text: t('home.quote2'), name: 'Marco V.', city: 'Luxembourg' },
+            { text: t('home.quote3'), name: 'Lea M.', city: 'Luxembourg' },
+            { text: t('home.quote4'), name: 'David K.', city: 'Luxembourg' },
+          ].map((q, i) => (
             <div key={i} className="bg-white dark:bg-[#1e1b18] p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col justify-between">
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">"{text}"</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">"{q.text}"</p>
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold">
-                  {['S','M','L','D'][i]}
+                <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs font-bold">
+                  {q.name.charAt(0)}
                 </div>
-                <span className="text-xs font-medium text-gray-500">{['Sophie','Marco','Lea','David'][i]}</span>
+                <div>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{q.name}</span>
+                  <span className="text-xs text-gray-400 ml-1">· {q.city}</span>
+                </div>
               </div>
             </div>
           ))}
