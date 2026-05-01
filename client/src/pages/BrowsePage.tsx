@@ -50,6 +50,7 @@ export default function BrowsePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [showAllCats, setShowAllCats] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ service: any } | null>(null);
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
@@ -167,7 +168,7 @@ export default function BrowsePage() {
   };
 
   return (
-    <div className="animate-fade-in pb-24 md:pb-8" style={{ overflowX: 'clip' }}>
+    <div className="animate-fade-in pb-24 md:pb-8">
       {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
@@ -253,32 +254,45 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — scrollable row */}
-      <div
-        className="flex gap-1.5 mt-3 mb-5 pb-2"
-        style={{
-          overflowX: 'auto',
-          overflowY: 'visible',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-          paddingRight: '1rem', // ensures last pill isn't clipped
-        }}
-      >
-        <button
-          onClick={() => handleCatClick('')}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-          All
-        </button>
-        {categories.map((c: any) => (
-          <button
-            key={c.id}
-            onClick={() => handleCatClick(String(c.id))}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-            {translateCat(c.name)}
-          </button>
-        ))}
-      </div>
+      {/* Category pills — wrap layout, no scroll needed */}
+      {(() => {
+        const VISIBLE = 8;
+        const allShown = showAllCats || selectedCat !== '' || categories.length <= VISIBLE;
+        const visible = allShown ? categories : categories.slice(0, VISIBLE);
+        return (
+          <div className="mt-3 mb-5">
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => { handleCatClick(''); setShowAllCats(false); }}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                All
+              </button>
+              {visible.map((c: any) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleCatClick(String(c.id))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                  {translateCat(c.name)}
+                </button>
+              ))}
+              {!allShown && (
+                <button
+                  onClick={() => setShowAllCats(true)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
+                  +{categories.length - VISIBLE} more
+                </button>
+              )}
+              {allShown && categories.length > VISIBLE && !selectedCat && (
+                <button
+                  onClick={() => setShowAllCats(false)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
+                  Show less
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Subcategory pills */}
       {subcategories.length > 0 && (
