@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,22 @@ import { SkeletonGrid } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
 import { t, translateCat } from '../i18n';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+
+const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
+const MAX_RECENT = 5;
+
+function saveRecentlyViewed(service: any) {
+  try {
+    const existing: any[] = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
+    const filtered = existing.filter((s: any) => s.id !== service.id);
+    const updated = [{ id: service.id, title: service.title, points_cost: service.points_cost, provider_name: service.provider_name }, ...filtered].slice(0, MAX_RECENT);
+    localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(updated));
+  } catch {}
+}
+
+function getRecentlyViewed(): any[] {
+  try { return JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]'); } catch { return []; }
+}
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -36,9 +52,22 @@ export default function BrowsePage() {
   const [maxPrice, setMaxPrice] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ service: any } | null>(null);
+  const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const longPressRef = useRef<ReturnType<typeof setTimeout>>();
   const longPressTriggered = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Back-to-top visibility
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Load recently viewed on mount
+  useEffect(() => { setRecentlyViewed(getRecentlyViewed()); }, []);
 
   const reloadServices = async () => {
     setRefreshing(true);
@@ -67,10 +96,16 @@ export default function BrowsePage() {
   const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     if (!user) return;
+    const svc = services.find(s => s.id === serviceId);
+    if (svc) { setRequestConfirm({ service: svc }); }
+  };
+
+  const confirmRequest = async (serviceId: number) => {
     try {
       await api.createRequest({ service_id: serviceId, message: 'Quick request from browse' });
       toast('Request sent! Check your dashboard.');
-    } catch (err: any) { toast(err.message, 'error'); }
+      setRequestConfirm(null);
+    } catch (err: any) { toast(err.message, 'error'); setRequestConfirm(null); }
   };
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
@@ -148,8 +183,13 @@ export default function BrowsePage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
             <input type="text" placeholder="Search services, items..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
+              className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
               aria-label="Search services" />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5" aria-label="Clear search">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+              </button>
+            )}
           </div>
           <div className="relative w-32 shrink-0">
             <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -260,6 +300,25 @@ export default function BrowsePage() {
         </div>
       )}
 
+      {/* Recently viewed — shown when no search/filter active */}
+      {!search && !selectedCat && !debouncedCity && recentlyViewed.length > 0 && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recently viewed</p>
+            <button onClick={() => { localStorage.removeItem(RECENTLY_VIEWED_KEY); setRecentlyViewed([]); }} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {recentlyViewed.map((s: any) => (
+              <Link key={s.id} to={`/services/${s.id}`}
+                className="flex-shrink-0 bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl px-3 py-2.5 hover:border-gray-300 transition-all min-w-[140px] max-w-[180px]">
+                <p className="text-xs font-medium text-gray-800 dark:text-white line-clamp-2 leading-snug mb-1">{s.title}</p>
+                <p className="text-xs text-gray-400">{s.points_cost} 🪃</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Results */}
       {loading ? (
         <SkeletonGrid count={6} />
@@ -269,7 +328,7 @@ export default function BrowsePage() {
             {selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
           </h3>
           <p className="text-gray-400 text-sm mb-5">Be the first to offer something in this category</p>
-          <Link to="/services/new" className="inline-block bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">
+          <Link to="/services/new" className="inline-block bg-[#374151] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
             + Offer something
           </Link>
         </div>
@@ -287,15 +346,16 @@ export default function BrowsePage() {
                 onTouchStart={() => { longPressTriggered.current = false; longPressRef.current = setTimeout(() => { longPressTriggered.current = true; setContextMenu({ service: s }); }, 500); }}
                 onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
-                onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; } }}
+                onClick={(e) => {
+                  if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; return; }
+                  saveRecentlyViewed(s);
+                }}
                 className="block bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 hover:shadow-sm group overflow-hidden transition-all duration-200">
                 {s.image && (
                   <img src={s.image} alt="" loading="lazy" className="w-full h-40 object-cover" />
                 )}
                 <div className="p-4">
-                  {/* Title */}
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 mb-3">{s.title}</h3>
-                  {/* Provider row */}
                   <div className="flex items-center gap-1.5 mb-3">
                     <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-500 dark:text-gray-400 shrink-0">
                       {s.provider_name?.charAt(0).toUpperCase()}
@@ -304,7 +364,6 @@ export default function BrowsePage() {
                     {s.provider_city && <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">· {s.provider_city}</span>}
                     {s.avg_rating && <span className="text-xs text-gray-400 ml-auto shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
-                  {/* Price + request */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-gray-900 dark:text-white">{s.points_cost} <span className="text-primary-500">🪃</span></span>
                     {user && s.provider_id !== user.id && (
@@ -320,14 +379,41 @@ export default function BrowsePage() {
           </div>
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-8">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+              <button onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={page <= 1}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">←</button>
               <span className="text-sm text-gray-500">{page} / {totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+              <button onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={page >= totalPages}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">→</button>
             </div>
           )}
         </>
+      )}
+
+      {/* Back to top */}
+      {showBackToTop && (
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-[#374151] dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg flex items-center justify-center hover:bg-[#2d3748] transition-all animate-fade-in"
+          aria-label="Back to top">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" /></svg>
+        </button>
+      )}
+
+      {/* Request confirmation modal */}
+      {requestConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setRequestConfirm(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-2xl p-5 w-full max-w-sm animate-slide-up shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-5">
+              Cost: {requestConfirm.service.points_cost} <span className="text-primary-500">🪃</span>
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setRequestConfirm(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">Cancel</button>
+              <button onClick={() => confirmRequest(requestConfirm.service.id)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#374151] text-white">Send Request</button>
+            </div>
+          </div>
+        </div>
       )}
       {contextMenu && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setContextMenu(null)}>

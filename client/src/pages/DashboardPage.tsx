@@ -587,12 +587,18 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-600 dark:text-gray-300">{r.delivery_note}</p>
                 </div>
               )}
-              {/* Chat toggle for accepted/delivered */}
+              {/* Chat toggle for accepted/delivered — with last message preview */}
               {['accepted','delivered','completed','disputed'].includes(r.status) && (
-                <div>
+                <div className="mt-3">
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
-                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-3">
-                    {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                    className="w-full text-left flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-800">
+                    <span className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                    </span>
+                    {r.last_message_body && expandedChat !== r.id && (
+                      <span className="text-xs text-gray-400 italic truncate max-w-[60%] ml-2">"{r.last_message_body}"</span>
+                    )}
+                    <svg className={`w-3.5 h-3.5 text-gray-300 shrink-0 ml-1 transition-transform ${expandedChat === r.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                   </button>
                   {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
                 </div>
@@ -715,10 +721,16 @@ export default function DashboardPage() {
                 </div>
               </div>
               {['accepted','delivered','completed','disputed'].includes(r.status) && (
-                <div>
+                <div className="mt-3">
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
-                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-3">
-                    {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                    className="w-full text-left flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-800">
+                    <span className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                      {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
+                    </span>
+                    {r.last_message_body && expandedChat !== r.id && (
+                      <span className="text-xs text-gray-400 italic truncate max-w-[60%] ml-2">"{r.last_message_body}"</span>
+                    )}
+                    <svg className={`w-3.5 h-3.5 text-gray-300 shrink-0 ml-1 transition-transform ${expandedChat === r.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                   </button>
                   {expandedChat === r.id && user && <MessageThread requestId={r.id} userId={user.id} />}
                 </div>

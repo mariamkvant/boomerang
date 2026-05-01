@@ -8,6 +8,7 @@ import NotificationBell from './components/NotificationBell';
 import BottomNav from './components/BottomNav';
 import OfflineBanner from './components/OfflineBanner';
 import ErrorBoundary from './components/ErrorBoundary';
+import OnboardingTooltip from './components/OnboardingTooltip';
 import { getLang, setLang, LANGUAGES, t } from './i18n';
 import { isIOS } from './utils/platform';
 
@@ -293,6 +294,7 @@ export default function App() {
       <BottomNav />
       <OfflineBanner />
       <InstallPrompt />
+      {user && <OnboardingTooltip />}
     </div>
   );
 }
