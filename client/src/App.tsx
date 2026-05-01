@@ -199,31 +199,48 @@ function Navbar() {
 
       {/* Mobile menu — full vertical list */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#202c33] px-2 py-3 animate-fade-in max-h-[80vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1c1c1c] px-2 py-3 animate-fade-in max-h-[80vh] overflow-y-auto">
           {user && (
-            <div className="px-3 py-2 mb-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="px-3 py-2.5 mb-2 border-b border-gray-100 dark:border-gray-800">
               <p className="text-sm font-semibold dark:text-white">{user.username}</p>
               <p className="text-xs text-gray-400">{user.email}</p>
             </div>
           )}
           <div className="flex flex-col">
+            {/* Primary */}
             {user && navLink('/dashboard', t('nav.dashboard'))}
             {navLink('/browse', t('nav.browse'))}
+            {user && navLink('/services/new', t('nav.offer'))}
+
+            {/* Discover */}
+            <p className="px-3 pt-3 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Discover</p>
             {navLink('/help-wanted', t('nav.help'))}
             {navLink('/groups', t('nav.communities'))}
             {navLink('/leaderboard', t('leaderboard.title'))}
             {navLink('/people', 'Find People')}
-            {navLink('/community', 'Community Feed')}
-            {user && navLink('/messages', 'Messages')}
-            {user && navLink('/settings', 'My Profile')}
-            {user && navLink('/account', 'Account Settings')}
-            {user && navLink('/support', 'Help & Support')}
-            {user?.is_admin && navLink('/admin', 'Admin')}
-            {!user && navLink('/login', 'Log in')}
-            {!user && navLink('/register', 'Sign up free')}
+
+            {/* Account */}
             {user && (
-              <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
-                className="block w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 min-h-[44px]">Log out</button>
+              <>
+                <p className="px-3 pt-3 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 dark:border-gray-800 mt-2">Account</p>
+                {navLink('/messages', 'Messages')}
+                {navLink('/settings', 'My Profile')}
+                {navLink('/account', 'Account Settings')}
+                {navLink('/support', 'Help & Support')}
+                {user?.is_admin && navLink('/admin', 'Admin')}
+                <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}
+                  className="block w-full text-left text-sm text-red-500 px-3 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 min-h-[44px] mt-1">Log out</button>
+              </>
+            )}
+
+            {/* Logged out */}
+            {!user && (
+              <>
+                <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
+                  {navLink('/login', 'Log in')}
+                  {navLink('/register', 'Sign up free')}
+                </div>
+              </>
             )}
           </div>
         </div>

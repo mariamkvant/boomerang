@@ -93,11 +93,29 @@ export default function HomePage() {
             </div>
             {!user && (
               <div className="w-full md:w-72 lg:w-80 shrink-0">
-                <Link to="/browse" className="block bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-3xl px-8 py-10 border border-gray-200/50 dark:border-gray-700/30 hover:shadow-xl hover:border-primary-200 transition-all text-center group shadow-md">
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors">{t('hero.browseBtn')}</p>
-                  <p className="text-sm text-gray-400 mt-1.5">{t('browse.subtitle')}</p>
-                  <svg className="w-5 h-5 mx-auto mt-4 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                </Link>
+                <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">On Boomerang now</p>
+                  <div className="space-y-3">
+                    {[
+                      { emoji: '🎸', title: 'Guitar lessons for beginners', price: '15', city: 'Luxembourg' },
+                      { emoji: '🐕', title: 'Dog walking — weekdays', price: '10', city: 'Esch-sur-Alzette' },
+                      { emoji: '💻', title: 'Help with Excel & spreadsheets', price: '20', city: 'Luxembourg' },
+                    ].map((s, i) => (
+                      <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
+                        <div className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-[#242424] flex items-center justify-center text-lg shrink-0">{s.emoji}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-800 dark:text-white truncate">{s.title}</p>
+                          <p className="text-[11px] text-gray-400">{s.city}</p>
+                        </div>
+                        <span className="text-xs font-semibold text-primary-500 shrink-0">{s.price} 🪃</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Link to="/browse" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors">
+                    Browse all listings
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                  </Link>
+                </div>
               </div>
             )}
           </div>
