@@ -589,6 +589,7 @@ export default function DashboardPage() {
               )}
               {/* Chat toggle for accepted/delivered */}
               {['accepted','delivered','completed','disputed'].includes(r.status) && (
+                <div>
                   <button onClick={() => setExpandedChat(expandedChat === r.id ? null : r.id)}
                     className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mt-3">
                     {expandedChat === r.id ? t('dashboard.hideMessages') : t('dashboard.showMessages')}
