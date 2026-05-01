@@ -84,13 +84,13 @@ export default function GroupsPage() {
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Suggested for you</h3>
               <div className="grid md:grid-cols-2 gap-3">
                 {publicGroups.slice(0, 2).map((g: any) => (
-                  <div key={g.id} className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-2xl p-4 flex items-start justify-between gap-3">
+                  <div key={g.id} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <Link to={`/groups/${g.id}`} className="font-semibold text-sm text-gray-900 dark:text-white hover:text-primary-600 transition-colors">{g.name}</Link>
                       {g.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{g.description}</p>}
                       <p className="text-xs text-gray-400 mt-1">{g.member_count} members</p>
                     </div>
-                    <button onClick={() => handleJoin(g.id)} className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg hover:bg-primary-600 font-medium shrink-0">Join</button>
+                    <button onClick={() => handleJoin(g.id)} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium shrink-0">Join</button>
                   </div>
                 ))}
               </div>
@@ -125,7 +125,7 @@ export default function GroupsPage() {
                     <div className="shrink-0">
                       {user && !isMember(g.id) && (
                         <button onClick={() => handleJoin(g.id)}
-                          className="text-xs bg-primary-500 text-white px-3.5 py-1.5 rounded-lg hover:bg-primary-600 font-medium transition-colors">
+                          className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3.5 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium transition-colors">
                           {t('groups.join')}
                         </button>
                       )}
@@ -178,7 +178,7 @@ export default function GroupsPage() {
               <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">You haven't joined any communities yet</p>
               <p className="text-gray-400 dark:text-gray-500 text-xs mb-4">Communities are where neighbours connect, share skills, and organise events.</p>
               <div className="flex gap-2 justify-center">
-                <button onClick={() => setTab('browse')} className="text-sm bg-primary-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-600 transition-colors">
+                <button onClick={() => setTab('browse')} className="text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
                   Browse communities
                 </button>
                 <button onClick={() => setTab('create')} className="text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors">
@@ -209,7 +209,7 @@ export default function GroupsPage() {
             <input type="checkbox" checked={form.is_public} onChange={e => setForm(f => ({...f, is_public: e.target.checked}))} className="rounded" />
             {t('groups.public')}
           </label>
-          <button type="submit" className="bg-primary-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-primary-600 transition-colors">
+          <button type="submit" className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-2.5 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
             {t('groups.createBtn')}
           </button>
         </form>

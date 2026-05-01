@@ -182,18 +182,18 @@ export default function DashboardPage() {
 
   const badge = (s: string) => {
     const m: Record<string, string> = {
-      pending: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600',
-      accepted: 'bg-primary-50 text-primary-600 border-primary-200 dark:bg-primary-900/20 dark:text-primary-400 dark:border-primary-800',
-      delivered: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600',
-      completed: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-      cancelled: 'bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700',
-      disputed: 'bg-red-50 text-red-500 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+      pending: 'text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
+      accepted: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
+      delivered: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
+      completed: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
+      cancelled: 'text-gray-400 bg-gray-50 dark:bg-gray-900 dark:text-gray-500',
+      disputed: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
     };
     const labels: Record<string, string> = {
-      pending: 'Pending', accepted: 'In progress', delivered: 'Delivered',
-      completed: 'Done', cancelled: 'Cancelled', disputed: 'Disputed',
+      pending: 'Pending', accepted: 'Active', delivered: 'Delivered',
+      completed: 'Done', cancelled: 'Cancelled', disputed: 'Issue',
     };
-    return <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${m[s] || ''}`}>{labels[s] || s}</span>;
+    return <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${m[s] || ''}`}>{labels[s] || s}</span>;
   };
 
   const progressSteps = ['pending', 'accepted', 'delivered', 'completed'];
@@ -257,7 +257,7 @@ export default function DashboardPage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h2 className="text-sm font-bold dark:text-white truncate">{user?.username}</h2>
-              {trust && <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' : trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' : trust.level === 'Silver' ? 'bg-gray-100 text-gray-600' : 'bg-orange-50 text-orange-600'}`}>{trust.level}</span>}
+              {trust && <span className="text-xs font-medium text-gray-500 dark:text-gray-400 shrink-0">{trust.level}</span>}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5 flex-wrap">
               {trust?.avg_rating && <span>★ {Number(trust.avg_rating).toFixed(1)}</span>}
@@ -267,12 +267,12 @@ export default function DashboardPage() {
           </div>
           {isIOS ? (
             <div className="shrink-0 text-right ml-auto">
-              <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
               <div className="text-xs text-gray-400 mt-0.5">🪃</div>
             </div>
           ) : (
             <Link to="/buy" className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
-              <div className="text-lg font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
               <div className="text-xs text-primary-500 mt-0.5">🪃 gift / top up</div>
             </Link>
           )}
@@ -371,13 +371,13 @@ export default function DashboardPage() {
         if (done === steps.length) return null;
         const pct = Math.round((done / steps.length) * 100);
         return (
-          <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4 border border-primary-100 dark:border-primary-800/50">
+          <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold text-gray-800 dark:text-white">Profile {pct}% complete</p>
               <span className="text-xs text-gray-400">{done}/{steps.length}</span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1 mb-3">
-              <div className="bg-primary-500 h-1 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className="bg-gray-900 dark:bg-white h-1 rounded-full transition-all" style={{ width: `${pct}%` }} />
             </div>
             <div className="flex flex-wrap gap-2">
               {steps.filter(s => !s.done).map((s, i) => (
@@ -390,7 +390,7 @@ export default function DashboardPage() {
 
       {/* Daily Match — compact single line */}
       {dailyMatch && (
-        <div className="bg-white dark:bg-[#202c33] border border-primary-100 dark:border-primary-800/50 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
+        <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-primary-600 font-medium mb-0.5">Match for you</p>
             <p className="text-sm font-medium dark:text-white truncate">{dailyMatch.title}</p>
@@ -404,9 +404,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-1 mb-4 bg-gray-100 dark:bg-[#2a3942] p-1 rounded-xl sm:flex">
         {tabs.map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
-            className={`px-3 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-center ${tab === tb.key ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
+            className={`px-3 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-center ${tab === tb.key ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
             {tb.label}
-            {tb.count > 0 && <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-primary-100 text-primary-600' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>{tb.count}</span>}
+            {tb.count > 0 && <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-white/20 dark:bg-gray-900/20 text-white dark:text-gray-900' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>{tb.count}</span>}
           </button>
         ))}
       </div>
@@ -555,7 +555,7 @@ export default function DashboardPage() {
                   {r.status === 'pending' && (
                     <>
                       <button onClick={() => handleAction(api.acceptRequest, r.id)}
-                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-green-500 text-white' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>
+                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-gray-700 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'}`}>
                         {actionSuccess === r.id ? '✓ Accepted' : t('dashboard.accept')}
                       </button>
                       <button onClick={() => handleAction(api.cancelRequest, r.id)} className="w-full sm:w-auto text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
@@ -686,7 +686,7 @@ export default function DashboardPage() {
                         await handleAction(api.confirmRequest, r.id);
                         setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
                         setShoutoutMsg('');
-                      }} className="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-medium">Confirm ✓</button>
+                      }} className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium">Confirm ✓</button>
                       <button onClick={async () => {
                         const reason = prompt('What went wrong? (optional)');
                         try { await api.disputeRequest(r.id, reason || undefined); toast('Issue raised — exchange paused'); load(); } catch (err: any) { toast(err.message, 'error'); }

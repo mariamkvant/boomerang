@@ -219,12 +219,12 @@ export default function BrowsePage() {
       <div className="relative mb-8">
         <div className="flex flex-wrap gap-2">
           <button onClick={() => handleCatClick('')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-gray-900 text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
             {t('browse.all')}
           </button>
           {categories.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
+              className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
               {translateCat(c.name)}
             </button>
           ))}
@@ -236,12 +236,12 @@ export default function BrowsePage() {
       {subcategories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-8">
           <button onClick={() => setSelectedSub('')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!selectedSub ? 'bg-primary-100 text-primary-700 border border-primary-200' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-200'}`}>
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!selectedSub ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
             All in {translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')}
           </button>
           {subcategories.map((s: any) => (
             <button key={s.id} onClick={() => setSelectedSub(selectedSub === String(s.id) ? '' : String(s.id))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedSub === String(s.id) ? 'bg-primary-100 text-primary-700 border border-primary-200' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary-200'}`}>
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedSub === String(s.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
               {s.name}
             </button>
           ))}

@@ -216,3 +216,14 @@ input:focus, textarea:focus, select:focus { @apply ring-2 ring-primary-500/30 bo
 
 /* Refined section headings */
 h1, h2, h3 { font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; }
+
+/* Monochromatic action system */
+.action-primary {
+  @apply bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold rounded-xl px-4 py-2.5 text-sm transition-all;
+}
+.action-secondary {
+  @apply bg-transparent text-gray-600 dark:text-gray-400 font-medium rounded-xl px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-800 transition-all;
+}
+.status-badge {
+  @apply text-xs px-2 py-0.5 rounded-md font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400;
+}

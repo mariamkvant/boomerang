@@ -118,7 +118,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-3 pt-1">
-          <button onClick={handleSave} className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">{t('settings.save')}</button>
+          <button onClick={handleSave} className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100">{t('settings.save')}</button>
           {saved && <span className="text-xs text-green-600">Saved</span>}
         </div>
       </div>
@@ -131,12 +131,12 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-400 mt-0.5">New requests go straight to "In progress" without manual approval</p>
           </div>
           <button onClick={() => setAutoAccept(!autoAccept)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${autoAccept ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-600'}`}>
+            className={`relative w-11 h-6 rounded-full transition-colors ${autoAccept ? 'bg-gray-900' : 'bg-gray-200 dark:bg-gray-600'}`}>
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoAccept ? 'translate-x-5' : ''}`} />
           </button>
         </label>
         <button onClick={async () => { await api.updateProfile({ auto_accept: autoAccept }); await refreshUser(); toast('Saved'); }}
-          className="mt-3 text-xs bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 font-medium">Save preference</button>
+          className="mt-3 text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium">Save preference</button>
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
