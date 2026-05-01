@@ -55,8 +55,8 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
       <section className="relative overflow-hidden">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#fff8f3] via-white to-[#f0f9ff] dark:from-[#1a1410] dark:via-[#141210] dark:to-[#0f1a1f]" />
+        {/* Clean background — no gradient bands */}
+        <div className="absolute inset-0 bg-[#f8f7f5] dark:bg-[#111111]" />
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f07028 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         
@@ -104,7 +104,7 @@ export default function HomePage() {
           </div>
         </div>
         {stats && (
-          <div className="relative border-t border-gray-100 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur">
+          <div className="relative border-t border-gray-200/50 dark:border-gray-800">
             <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}><div className="text-3xl font-bold text-gray-900 dark:text-white">{val}+</div><div className="text-sm text-gray-500 mt-0.5">{label}</div></div>
@@ -231,7 +231,7 @@ export default function HomePage() {
 
       {/* Live activity feed */}
       {activityFeed.length > 0 && (
-        <section className="bg-gray-50 dark:bg-[#0b141a]">
+        <section className="bg-[#f8f7f5] dark:bg-[#111111]">
           <div className="max-w-6xl mx-auto px-6 py-16">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Happening now</h2>
             <div className="space-y-3">
@@ -264,7 +264,7 @@ export default function HomePage() {
       )}
 
       {user && matches.length > 0 && (
-        <section className="bg-primary-50/40 dark:bg-primary-900/10">
+        <section className="bg-[#f8f7f5] dark:bg-[#111111]">
           <div className="max-w-6xl mx-auto px-6 py-16">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('home.needHelp')}</h2>
@@ -310,7 +310,7 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className="bg-white dark:bg-[#141210]">
+      <section className="bg-[#f8f7f5] dark:bg-[#111111]">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28 text-center">
           <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.communityTitle')}</h2>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-10">{t('home.communityDesc')}</p>
