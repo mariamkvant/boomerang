@@ -69,10 +69,7 @@ export default function HomePage() {
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
                 {t('hero.headline')}<br />
-                <span className="relative inline-block">
-                  {t('hero.headline2')}
-                  <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-primary-400 rounded-full opacity-60" />
-                </span>
+                <span className="text-primary-500">{t('hero.headline2')}</span>
               </h1>
               <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-10 max-w-lg">{t('hero.subtitle')}</p>
               {user ? (
