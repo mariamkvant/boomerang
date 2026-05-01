@@ -215,33 +215,33 @@ export default function BrowsePage() {
       </div>
       </div>
 
-      {/* Category pills */}
-      <div className="relative mb-8">
-        <div className="flex flex-wrap gap-2">
+      {/* Category pills — single scrollable row */}
+      <div className="relative mb-6 -mx-4 px-4">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <button onClick={() => handleCatClick('')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${!selectedCat ? 'bg-gray-900 text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
-            {t('browse.all')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            All
           </button>
           {categories.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
               {translateCat(c.name)}
             </button>
           ))}
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 dark:from-[#111b21] pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#f8f7f5] dark:from-[#111111] pointer-events-none" />
       </div>
 
       {/* Subcategory pills */}
       {subcategories.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-5" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => setSelectedSub('')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!selectedSub ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
-            All in {translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${!selectedSub ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            All
           </button>
           {subcategories.map((s: any) => (
             <button key={s.id} onClick={() => setSelectedSub(selectedSub === String(s.id) ? '' : String(s.id))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedSub === String(s.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700' : 'bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 hover:border-gray-300'}`}>
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${selectedSub === String(s.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
               {s.name}
             </button>
           ))}
@@ -276,41 +276,32 @@ export default function BrowsePage() {
                 onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; } }}
-                className="block bg-white dark:bg-[#1e1b18] rounded-2xl border border-gray-100/80 dark:border-gray-800 hover:border-primary-200 dark:hover:border-primary-700 hover:-translate-y-0.5 hover:shadow-md group overflow-hidden transition-all duration-200">
-                {(s.image || s.is_product) && (
-                  <div className="relative">
-                    {s.image ? (
-                      <img src={s.image} alt="" loading="lazy" className="w-full h-36 object-cover" />
-                    ) : (
-                      <div className="w-full h-28 bg-gray-50 dark:bg-[#2a3942] flex items-center justify-center">
-                        <span className="text-3xl opacity-30">Item</span>
-                      </div>
-                    )}
-                    {s.is_product && (
-                      <span className="absolute top-2 left-2 bg-white/90 dark:bg-[#202c33]/90 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300 shadow-sm">Item</span>
-                    )}
-                  </div>
+                className="block bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 hover:shadow-sm group overflow-hidden transition-all duration-200">
+                {s.image && (
+                  <img src={s.image} alt="" loading="lazy" className="w-full h-40 object-cover" />
                 )}
-                {!s.image && !s.is_product && (
-                  <div className="px-4 pt-3">
-                    <span className="text-[10px] font-medium text-gray-400 bg-gray-50 dark:bg-[#2a3942] px-2 py-0.5 rounded-full">Service</span>
-                  </div>
-                )}
-                <div className="p-4 pt-3">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1.5 group-hover:text-primary-600 transition-colors line-clamp-2 leading-snug">{s.title}</h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-primary-600 font-bold text-sm">{s.points_cost} 🪃</span>
-                    <div className="flex items-center gap-1.5">
-                      {s.avg_rating && <span className="text-xs text-amber-500 font-medium">★ {Number(s.avg_rating).toFixed(1)}</span>}
-                      <span className="text-xs text-gray-400 truncate max-w-[80px]">{s.provider_name}</span>
-                      {s.provider_city && <span className="text-[10px] text-gray-300 hidden sm:block">· {s.provider_city}</span>}
+                <div className="p-4">
+                  {/* Title */}
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 mb-3">{s.title}</h3>
+                  {/* Provider row */}
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-500 dark:text-gray-400 shrink-0">
+                      {s.provider_name?.charAt(0).toUpperCase()}
                     </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.provider_name}</span>
+                    {s.provider_city && <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">· {s.provider_city}</span>}
+                    {s.avg_rating && <span className="text-xs text-gray-400 ml-auto shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
-                  {user && s.provider_id !== user.id && (
-                    <button onClick={(e) => quickRequest(s.id, e)} className="mt-3 w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
-                      Request · {s.points_cost} 🪃
-                    </button>
-                  )}
+                  {/* Price + request */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">{s.points_cost} <span className="text-primary-500">🪃</span></span>
+                    {user && s.provider_id !== user.id && (
+                      <button onClick={(e) => quickRequest(s.id, e)}
+                        className="text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 px-3 py-1.5 rounded-lg transition-all">
+                        Request
+                      </button>
+                    )}
+                  </div>
                 </div>
               </Link>
             ))}
