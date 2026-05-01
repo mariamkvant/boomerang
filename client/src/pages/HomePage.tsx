@@ -109,39 +109,46 @@ export default function HomePage() {
 
       <AnimatedExplainer />
 
+      {/* "For you" section — numbered cards with accent colors */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-4">{t('home.forYou')}</h2>
-        <p className="text-lg text-gray-500 mb-12 max-w-lg">{t('home.forYouDesc')}</p>
+        <div className="mb-12">
+          <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
+          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg">{t('home.forYouDesc')}</p>
+        </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { title: t('home.persona1'), desc: t('home.persona1Desc') },
-            { title: t('home.persona2'), desc: t('home.persona2Desc') },
-            { title: t('home.persona3'), desc: t('home.persona3Desc') },
+            { title: t('home.persona1'), desc: t('home.persona1Desc'), n: '01', bg: 'bg-orange-50 dark:bg-orange-900/10', border: 'border-orange-100 dark:border-orange-900/20' },
+            { title: t('home.persona2'), desc: t('home.persona2Desc'), n: '02', bg: 'bg-blue-50 dark:bg-blue-900/10', border: 'border-blue-100 dark:border-blue-900/20' },
+            { title: t('home.persona3'), desc: t('home.persona3Desc'), n: '03', bg: 'bg-green-50 dark:bg-green-900/10', border: 'border-green-100 dark:border-green-900/20' },
           ].map((p, i) => (
-            <div key={i} className="bg-white dark:bg-[#202c33] p-6 rounded-2xl border border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 text-lg mb-2">{p.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{p.desc}</p>
+            <div key={i} className={`${p.bg} border ${p.border} p-6 rounded-2xl`}>
+              <span className="text-xs font-bold text-gray-300 dark:text-gray-600 tracking-widest">{p.n}</span>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg mt-3 mb-2">{p.title}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="bg-gray-50">
+      {/* How it works — dark section for contrast */}
+      <section className="bg-gray-900 dark:bg-black">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">{t('home.howTitle')}</h2>
-              <p className="text-lg text-gray-500 leading-relaxed">{t('home.howDesc')}</p>
+              <p className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-3">How it works</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-white mb-6">{t('home.howTitle')}</h2>
+              <p className="text-lg text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-5">
               {[
-                { n: '1', title: t('home.step1'), desc: t('home.step1Desc'), color: 'from-orange-400 to-amber-400' },
-                { n: '2', title: t('home.step2'), desc: t('home.step2Desc'), color: 'from-primary-400 to-primary-500' },
-                { n: '3', title: t('home.step3'), desc: t('home.step3Desc'), color: 'from-green-400 to-emerald-400' },
+                { n: '1', title: t('home.step1'), desc: t('home.step1Desc'), color: 'bg-orange-500' },
+                { n: '2', title: t('home.step2'), desc: t('home.step2Desc'), color: 'bg-primary-500' },
+                { n: '3', title: t('home.step3'), desc: t('home.step3Desc'), color: 'bg-emerald-500' },
               ].map(s => (
                 <div key={s.n} className="flex gap-4 items-start">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${s.color} text-white rounded-xl flex items-center justify-center text-sm font-bold shrink-0`}>{s.n}</div>
-                  <div><h3 className="font-semibold text-gray-900 mb-1">{s.title}</h3><p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p></div>
+                  <div className={`w-9 h-9 ${s.color} text-white rounded-xl flex items-center justify-center text-sm font-bold shrink-0`}>{s.n}</div>
+                  <div><h3 className="font-semibold text-white mb-1">{s.title}</h3><p className="text-sm text-gray-400 leading-relaxed">{s.desc}</p></div>
                 </div>
               ))}
             </div>
@@ -152,47 +159,64 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">{t('home.catTitle')}</h2>
-            <p className="text-lg text-gray-500 leading-relaxed mb-8">{t('home.catDesc')}</p>
-            <Link to="/browse" className="text-primary-600 font-semibold hover:underline text-lg">{t('home.browseAll')}</Link>
+            <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Categories</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.catTitle')}</h2>
+            <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.catDesc')}</p>
+            <Link to="/browse" className="inline-flex items-center gap-2 text-gray-900 dark:text-white font-semibold hover:text-primary-600 transition-colors">
+              {t('home.browseAll')}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+            </Link>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {categories.slice(0, 8).map((c: any) => (
               <Link key={c.id} to={`/browse?category=${c.id}`}
-                className="bg-white dark:bg-[#202c33] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-300 hover:shadow-md group transition-all">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-primary-600">{tc(c.name)}</span>
+                className="bg-white dark:bg-[#1e1b18] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-primary-300 hover:bg-primary-50/30 dark:hover:bg-primary-900/10 group transition-all">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">{tc(c.name)}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-gray-50">
+      {/* Trust section — clean, minimal */}
+      <section className="border-t border-gray-100 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {[t('home.trust1'), t('home.trust2'), t('home.trust3'), t('home.trust4')].map((label, i) => (
-                <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 mb-1">{label}</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed">{t(`home.trust${i+1}Desc`)}</p>
+                <div key={i} className="bg-white dark:bg-[#1e1b18] p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-3">
+                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{label}</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{t(`home.trust${i+1}Desc`)}</p>
                 </div>
               ))}
             </div>
             <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-6">{t('home.trustTitle')}</h2>
-              <p className="text-lg text-gray-500 leading-relaxed">{t('home.trustDesc')}</p>
+              <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Trust & Safety</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.trustTitle')}</h2>
+              <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.trustDesc')}</p>
             </div>
           </div>
         </div>
       </section>
 
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 mb-12 text-center">{t('home.proofTitle')}</h2>
+        <div className="text-center mb-12">
+          <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Community</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[t('home.quote1'), t('home.quote2'), t('home.quote3'), t('home.quote4')].map((text, i) => (
-            <div key={i} className="bg-white dark:bg-[#202c33] p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">"{text}"</p>
-              <span className="text-xs text-gray-400">{['Sophie','Marco','Lea','David'][i]}</span>
+            <div key={i} className="bg-white dark:bg-[#1e1b18] p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col justify-between">
+              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">"{text}"</p>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold">
+                  {['S','M','L','D'][i]}
+                </div>
+                <span className="text-xs font-medium text-gray-500">{['Sophie','Marco','Lea','David'][i]}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -310,12 +334,13 @@ export default function HomePage() {
       </section>
 
       {!user && (
-        <section className="bg-gradient-to-br from-primary-500 to-primary-600">
+        <section className="bg-gray-900 dark:bg-black">
           <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center">
+            <p className="text-xs font-semibold text-primary-400 uppercase tracking-widest mb-4">Get started</p>
             <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-6">{t('cta.title')}</h2>
-            <p className="text-primary-100 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
-            <Link to="/register" className="inline-block bg-white text-primary-600 px-10 py-4 rounded-full text-lg font-bold hover:shadow-xl transition-all">{t('cta.button')}</Link>
-            <p className="text-primary-200 text-sm mt-4">{t('cta.note')}</p>
+            <p className="text-gray-400 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
+            <Link to="/register" className="inline-block bg-white text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-gray-100 transition-all shadow-lg">{t('cta.button')}</Link>
+            <p className="text-gray-600 text-sm mt-4">{t('cta.note')}</p>
           </div>
         </section>
       )}
