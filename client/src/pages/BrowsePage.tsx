@@ -214,22 +214,30 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — horizontally scrollable, full bleed */}
-      <div className="mt-3 mb-5 -mx-4 sm:-mx-6 lg:-mx-8">
+      {/* Category pills — full-width scrollable row */}
+      <div className="mt-3 mb-5" style={{ marginLeft: '-1rem', marginRight: '-1rem' }}>
         <div
-          className="flex gap-1.5 px-4 sm:px-6 lg:px-8 pb-2 overflow-x-scroll"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+          className="flex gap-1.5 pb-2"
+          style={{
+            overflowX: 'auto',
+            overflowY: 'visible',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            paddingLeft: '1rem',
+            paddingRight: '1rem',
+            WebkitOverflowScrolling: 'touch',
+          }}
         >
           <button
             onClick={() => handleCatClick('')}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
             All
           </button>
           {categories.map((c: any) => (
             <button
               key={c.id}
               onClick={() => handleCatClick(String(c.id))}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
               {translateCat(c.name)}
             </button>
           ))}
