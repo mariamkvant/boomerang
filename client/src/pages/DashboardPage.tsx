@@ -644,7 +644,9 @@ export default function DashboardPage() {
                     {badge(r.status)}
                     {r.is_product && <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">Item</span>}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃
+                    {r.status === 'completed' && <span className="text-gray-400"> · Exchanged ✓</span>}
+                  </p>
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
@@ -708,11 +710,6 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Leave Review</button>
-                  )}
-                  {r.status === 'completed' && (
-                    <div className="text-xs text-gray-400 mb-1">
-                      Exchanged with {r.provider_name} for {r.points_cost} 🪃
-                    </div>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) > 0 && r.review_id && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: r.review_rating || 5, comment: r.review_comment || '', image: null, reviewId: r.review_id, isEdit: true })}
