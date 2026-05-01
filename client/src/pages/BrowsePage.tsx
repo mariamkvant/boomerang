@@ -362,7 +362,7 @@ export default function BrowsePage() {
                 }}
                 className="block bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 hover:shadow-sm group overflow-hidden transition-all duration-200">
                 {s.image && (
-                  <img src={s.image} alt="" loading="lazy" className="w-full h-40 object-cover" />
+                  <img src={s.image} alt={s.title} loading="lazy" className="w-full h-40 object-cover" />
                 )}
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 mb-3">{s.title}</h3>

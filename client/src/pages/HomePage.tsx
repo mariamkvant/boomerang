@@ -236,12 +236,8 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Happening now</h2>
             <div className="space-y-3">
               {activityFeed.slice(0, window.innerWidth < 768 ? 3 : 5).map((item: any, i: number) => (
-                <div key={i} className="bg-white dark:bg-[#202c33] rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0 ${
-                    item.type === 'exchange' ? 'bg-green-500' :
-                    item.type === 'new_service' ? 'bg-primary-500' :
-                    'bg-purple-500'
-                  }`}>
+                <div key={item.id || item.created_at || i} className="bg-white dark:bg-[#1c1c1c] rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0 bg-gray-400 dark:bg-gray-600`}>
                     {item.type === 'exchange' ? '✓' : item.type === 'new_service' ? '+' : '♥'}
                   </div>
                   <div className="flex-1 min-w-0">

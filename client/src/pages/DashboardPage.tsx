@@ -44,7 +44,7 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
         <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
           placeholder={t('dashboard.typeMessage')} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
         <button onClick={send} disabled={sending || !newMsg.trim()}
-          className="bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-600 disabled:opacity-50">{t('messages.send')}</button>
+          className="bg-[#374151] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2d3748] disabled:opacity-50">{t('messages.send')}</button>
       </div>
     </div>
   );
@@ -131,6 +131,7 @@ export default function DashboardPage() {
   const [rescheduleForm, setRescheduleForm] = useState<{ id: number; title: string; date: string; time: string; note: string } | null>(null);
   const [txHistory, setTxHistory] = useState<any[]>([]);
   const [showTxHistory, setShowTxHistory] = useState(false);
+  const [disputeForm, setDisputeForm] = useState<{ id: number; reason: string } | null>(null);
   const [actionSuccess, setActionSuccess] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -699,10 +700,8 @@ export default function DashboardPage() {
                         setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
                         setShoutoutMsg('');
                       }} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Confirm ✓</button>
-                      <button onClick={async () => {
-                        const reason = prompt('What went wrong? (optional)');
-                        try { await api.disputeRequest(r.id, reason || undefined); toast('Issue raised — exchange paused'); load(); } catch (err: any) { toast(err.message, 'error'); }
-                      }} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Something went wrong</button>
+                      <button onClick={() => setDisputeForm({ id: r.id, reason: '' })}
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Something went wrong</button>
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
@@ -953,7 +952,34 @@ export default function DashboardPage() {
                   await api.rescheduleRequest(rescheduleForm.id, { new_date: rescheduleForm.date, new_time: rescheduleForm.time, note: rescheduleForm.note });
                   toast('Reschedule proposed!'); setRescheduleForm(null); load();
                 } catch (err: any) { toast(err.message, 'error'); }
-              }} className="flex-1 bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600">Send proposal</button>
+              }} className="flex-1 bg-[#374151] text-white py-3 rounded-xl text-sm font-semibold">Send proposal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dispute modal — replaces window.prompt() */}
+      {disputeForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setDisputeForm(null)}>
+          <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl p-5 w-full max-w-sm shadow-xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">What went wrong?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This will pause the exchange and hold the boomerangs until resolved.</p>
+            <textarea
+              value={disputeForm.reason}
+              onChange={e => setDisputeForm(f => f ? { ...f, reason: e.target.value } : f)}
+              placeholder="Describe the issue (optional)..."
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm resize-none h-20 bg-white dark:bg-[#242424] dark:text-white outline-none focus:ring-1 focus:ring-gray-400 mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setDisputeForm(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">Cancel</button>
+              <button onClick={async () => {
+                try {
+                  await api.disputeRequest(disputeForm.id, disputeForm.reason || undefined);
+                  toast('Issue raised — exchange paused');
+                  setDisputeForm(null);
+                  load();
+                } catch (err: any) { toast(err.message, 'error'); }
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#374151] text-white">Raise issue</button>
             </div>
           </div>
         </div>
@@ -979,7 +1005,7 @@ export default function DashboardPage() {
                   try { await api.postShoutout({ to_user_id: shoutoutPrompt.userId, message: shoutoutMsg }); toast('Shoutout posted!'); } catch {}
                 }
                 setShoutoutPrompt(null);
-              }} className="flex-1 bg-primary-500 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 transition-colors">
+              }} className="flex-1 bg-[#374151] text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
                 {shoutoutMsg.trim() ? 'Send thanks' : 'Skip'}
               </button>
             </div>
