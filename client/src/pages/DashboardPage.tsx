@@ -183,6 +183,8 @@ export default function DashboardPage() {
   // Softer dark gray for primary actions — not pure black
   const btnPrimary = 'bg-[#374151] dark:bg-white text-white dark:text-gray-900 hover:bg-[#2d3748] dark:hover:bg-gray-100';
   const btnSecondary = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700';
+  // Ghost bordered — for secondary actions on completed cards
+  const btnGhost = 'border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800';
 
   const badge = (s: string) => {
     const m: Record<string, string> = {
@@ -211,8 +213,8 @@ export default function DashboardPage() {
           <React.Fragment key={step}>
             <div className="flex flex-col items-center">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                i < currentIdx ? 'bg-[#374151] dark:bg-gray-300 text-white dark:text-gray-900' :
-                i === currentIdx ? 'bg-[#374151] dark:bg-gray-300 text-white dark:text-gray-900 ring-4 ring-gray-100 dark:ring-gray-800' :
+                i < currentIdx ? 'bg-gray-400 dark:bg-gray-500 text-white' :
+                i === currentIdx ? 'bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 ring-4 ring-gray-100 dark:ring-gray-800' :
                 'bg-gray-100 dark:bg-gray-800 text-gray-400'
               }`}>{i < currentIdx ? '✓' : i + 1}</div>
               <span className={`text-[9px] mt-1 font-medium ${i <= currentIdx ? 'text-gray-600 dark:text-gray-400' : 'text-gray-300 dark:text-gray-600'}`}>{stepLabels[step]}</span>
@@ -220,7 +222,7 @@ export default function DashboardPage() {
               {step === 'delivered' && deliveredAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(deliveredAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
               {step === 'completed' && completedAt && i <= currentIdx && <span className="text-[8px] text-gray-400">{new Date(completedAt).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>}
             </div>
-            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-[#374151] dark:bg-gray-400' : 'bg-gray-200 dark:bg-gray-700'}`} />}
+            {i < progressSteps.length - 1 && <div className={`flex-1 h-0.5 mx-1 mb-3 ${i < currentIdx ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-200 dark:bg-gray-700'}`} />}
           </React.Fragment>
         ))}
       </div>
@@ -620,7 +622,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{r.service_title}</p>
               </div>
               <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })}
-                className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium shrink-0 ${btnGhost}`}>Review</button>
             </div>
           ))}
           {outgoing.length === 0 && (
@@ -704,7 +706,7 @@ export default function DashboardPage() {
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
-                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Leave Review</button>
+                    <button onClick={() => setReviewForm({ id: r.id, rating: 5, comment: '', image: null })} className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Leave Review</button>
                   )}
                   {r.status === 'completed' && (
                     <div className="text-xs text-gray-400 mb-1">
@@ -713,10 +715,10 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) > 0 && r.review_id && (
                     <button onClick={() => setReviewForm({ id: r.id, rating: r.review_rating || 5, comment: r.review_comment || '', image: null, reviewId: r.review_id, isEdit: true })}
-                      className="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Edit Review</button>
+                      className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Edit Review</button>
                   )}
                   {r.status === 'completed' && (
-                    <Link to={`/services/${r.service_id}`} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium">Request again</Link>
+                    <Link to={`/services/${r.service_id}`} className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Request again</Link>
                   )}
                 </div>
               </div>
