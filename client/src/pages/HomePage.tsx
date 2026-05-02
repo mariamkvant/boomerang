@@ -71,10 +71,27 @@ export default function HomePage() {
                 {t('hero.headline')}<br />
                 <span className="text-primary-500">{t('hero.headline2')}</span>
               </h1>
-              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-10 max-w-lg">{t('hero.subtitle')}</p>
+              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-lg">{t('hero.subtitle')}</p>
+
+              {/* Sample listings — inline, no box */}
+              <div className="flex flex-wrap gap-2 mb-8">
+                {[
+                  { emoji: '🎸', label: 'Guitar lessons' },
+                  { emoji: '🐕', label: 'Dog walking' },
+                  { emoji: '💻', label: 'Excel help' },
+                  { emoji: '🌱', label: 'Gardening' },
+                  { emoji: '🚗', label: 'Airport rides' },
+                  { emoji: '🍳', label: 'Cooking classes' },
+                ].map((s, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 text-xs px-3 py-1.5 rounded-full">
+                    {s.emoji} {s.label}
+                  </span>
+                ))}
+              </div>
+
               {user ? (
                 <div className="flex flex-wrap gap-3">
-                  <Link to="/browse" className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all">{t('hero.browseBtn')}</Link>
+                  <Link to="/browse" className="bg-gray-800 dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-700 transition-all">{t('hero.browseBtn')}</Link>
                   <Link to="/services/new" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
                 </div>
               ) : (
@@ -91,33 +108,7 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-            {!user && (
-              <div className="w-full md:w-72 lg:w-80 shrink-0">
-                <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">On Boomerang now</p>
-                  <div className="space-y-3">
-                    {[
-                      { emoji: '🎸', title: 'Guitar lessons for beginners', price: '15', city: 'Luxembourg' },
-                      { emoji: '🐕', title: 'Dog walking — weekdays', price: '10', city: 'Esch-sur-Alzette' },
-                      { emoji: '💻', title: 'Help with Excel & spreadsheets', price: '20', city: 'Luxembourg' },
-                    ].map((s, i) => (
-                      <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
-                        <div className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-[#242424] flex items-center justify-center text-lg shrink-0">{s.emoji}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-800 dark:text-white truncate">{s.title}</p>
-                          <p className="text-[11px] text-gray-400">{s.city}</p>
-                        </div>
-                        <span className="text-xs font-semibold text-primary-500 shrink-0">{s.price} 🪃</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Link to="/browse" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-primary-500 transition-colors">
-                    Browse all listings
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
-                  </Link>
-                </div>
-              </div>
-            )}
+            {/* Remove the floating card entirely */}
           </div>
         </div>
         {stats && stats.total_users > 5 && (
