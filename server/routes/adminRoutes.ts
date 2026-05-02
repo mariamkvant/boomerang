@@ -283,6 +283,29 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
     )
     GROUP BY day, country ORDER BY day, views DESC`);
 
+  // New vs returning visitors per day (14 days)
+  // "New" = IP seen for the first time ever on that day
+  // "Returning" = IP that had visited before that day
+  const newVsReturning = await db.all(`
+    WITH first_visits AS (
+      SELECT ip, MIN(DATE(created_at)) as first_day
+      FROM page_views
+      GROUP BY ip
+    ),
+    daily_ips AS (
+      SELECT DATE(pv.created_at) as day, pv.ip,
+        CASE WHEN fv.first_day = DATE(pv.created_at) THEN 'new' ELSE 'returning' END as visitor_type
+      FROM page_views pv
+      JOIN first_visits fv ON pv.ip = fv.ip
+      WHERE pv.created_at > NOW() - INTERVAL '14 days'
+      GROUP BY DATE(pv.created_at), pv.ip, fv.first_day
+    )
+    SELECT day, visitor_type, COUNT(*) as visitors
+    FROM daily_ips
+    GROUP BY day, visitor_type
+    ORDER BY day, visitor_type
+  `);
+
   res.json({
     total_views: parseInt(totalViews?.c || '0'),
     today_views: parseInt(todayViews?.c || '0'),
@@ -303,6 +326,7 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
     daily_by_source: dailyBySource,
     top_countries: topCountries,
     daily_by_country: dailyByCountry,
+    new_vs_returning: newVsReturning,
   });
 });
 

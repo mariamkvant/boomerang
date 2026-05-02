@@ -125,43 +125,61 @@ export default function AdminPage() {
             </div>
           </Section>
 
-          {/* Combined: Daily views by traffic source */}
-          {analytics.daily_by_source?.length > 0 && (
-            <Section title="Daily Views by Traffic Source (14 days)" defaultOpen={true}>
+          {/* Combined: Daily views by traffic source + country */}
+          {(analytics.daily_by_source?.length > 0 || analytics.daily_by_country?.length > 0) && (
+            <Section title="Daily Breakdown (14 days)" defaultOpen={true}>
               {(() => {
+                const [breakdownTab, setBreakdownTab] = React.useState<'source'|'country'>('source');
+
                 const sourceColors: Record<string, string> = {
-                  'Direct': 'bg-gray-400',
-                  'Google': 'bg-blue-500',
-                  'LinkedIn': 'bg-blue-700',
-                  'Facebook': 'bg-indigo-500',
-                  'Instagram': 'bg-pink-500',
-                  'Twitter/X': 'bg-sky-400',
-                  'Reddit': 'bg-orange-500',
-                  'Other': 'bg-gray-300',
-                  'Internal': 'bg-gray-200',
+                  'Direct': 'bg-gray-400', 'Google': 'bg-blue-500', 'LinkedIn': 'bg-blue-700',
+                  'Facebook': 'bg-indigo-500', 'Instagram': 'bg-pink-500', 'Twitter/X': 'bg-sky-400',
+                  'Reddit': 'bg-orange-500', 'Other': 'bg-gray-300', 'Internal': 'bg-gray-200',
                 };
-                const allSources = [...new Set((analytics.daily_by_source || []).map((r: any) => r.source))]
-                  .filter(s => s !== 'Internal') as string[];
-                const days = [...new Set((analytics.daily_by_source || []).map((r: any) => r.day))].sort() as string[];
+                const countryColors = ['bg-primary-500','bg-blue-500','bg-green-500','bg-purple-500','bg-amber-500','bg-pink-500','bg-sky-400','bg-indigo-400'];
+
+                const sourceData = (analytics.daily_by_source || []).filter((r: any) => r.source !== 'Internal');
+                const countryData = analytics.daily_by_country || [];
+
+                const allSources = [...new Set(sourceData.map((r: any) => r.source))] as string[];
+                const allCountries = [...new Set(countryData.map((r: any) => r.country))].slice(0, 8) as string[];
+                const days = [...new Set([...sourceData, ...countryData].map((r: any) => r.day))].sort() as string[];
+
+                const activeGroups = breakdownTab === 'source' ? allSources : allCountries;
+                const activeData = breakdownTab === 'source' ? sourceData : countryData;
+                const activeKey = breakdownTab === 'source' ? 'source' : 'country';
+                const activeColors = breakdownTab === 'source' ? sourceColors : Object.fromEntries(allCountries.map((c, i) => [c, countryColors[i % countryColors.length]]));
+
                 const maxTotal = Math.max(...days.map(d =>
-                  (analytics.daily_by_source || []).filter((r: any) => r.day === d && r.source !== 'Internal')
-                    .reduce((s: number, r: any) => s + parseInt(r.views), 0)
+                  activeData.filter((r: any) => r.day === d).reduce((s: number, r: any) => s + parseInt(r.views), 0)
                 ), 1);
+
                 return (
                   <div className="pt-2">
+                    {/* Sub-tabs */}
+                    <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-[#242424] p-1 rounded-lg w-fit">
+                      {(['source', 'country'] as const).map(t => (
+                        <button key={t} onClick={() => setBreakdownTab(t)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${breakdownTab === t ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {t === 'source' ? 'Traffic Source' : 'Country'}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Legend */}
                     <div className="flex gap-3 flex-wrap mb-4">
-                      {allSources.map((src, i) => (
+                      {activeGroups.map((g, i) => (
                         <div key={i} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                          <div className={`w-2.5 h-2.5 rounded-sm ${sourceColors[src] || 'bg-gray-400'}`} />
-                          {src}
+                          <div className={`w-2.5 h-2.5 rounded-sm ${activeColors[g] || 'bg-gray-400'}`} />
+                          {breakdownTab === 'country' ? `${countryFlag(g)} ` : ''}{g}
                         </div>
                       ))}
                     </div>
+
                     {/* Stacked bar chart */}
-                    <div className="flex items-end gap-1 h-48">
+                    <div className="flex items-end gap-1 h-48 mb-4">
                       {days.map((day, di) => {
-                        const dayData = (analytics.daily_by_source || []).filter((r: any) => r.day === day && r.source !== 'Internal');
+                        const dayData = activeData.filter((r: any) => r.day === day);
                         const total = dayData.reduce((s: number, r: any) => s + parseInt(r.views), 0);
                         const heightPct = (total / maxTotal) * 100;
                         return (
@@ -171,13 +189,13 @@ export default function AdminPage() {
                             </div>
                             <div className="w-full flex flex-col-reverse rounded-t overflow-hidden"
                               style={{ height: `${Math.max(heightPct, 2)}%`, minHeight: '3px' }}>
-                              {allSources.map((src, si) => {
-                                const entry = dayData.find((r: any) => r.source === src);
+                              {activeGroups.map((g, gi) => {
+                                const entry = dayData.find((r: any) => r[activeKey] === g);
                                 const v = entry ? parseInt(entry.views) : 0;
                                 const pct = total > 0 ? (v / total) * 100 : 0;
                                 return pct > 0 ? (
-                                  <div key={si} className={`w-full ${sourceColors[src] || 'bg-gray-400'}`}
-                                    style={{ height: `${pct}%` }} title={`${src}: ${v}`} />
+                                  <div key={gi} className={`w-full ${activeColors[g] || 'bg-gray-400'}`}
+                                    style={{ height: `${pct}%` }} title={`${g}: ${v}`} />
                                 ) : null;
                               })}
                             </div>
@@ -188,30 +206,33 @@ export default function AdminPage() {
                         );
                       })}
                     </div>
-                    {/* Daily breakdown table */}
-                    <div className="mt-4 overflow-x-auto">
+
+                    {/* 7-day breakdown table */}
+                    <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-gray-100 dark:border-gray-700">
                             <th className="text-left py-1.5 text-gray-400 font-medium">Date</th>
-                            {allSources.map(src => (
-                              <th key={src} className="text-right py-1.5 text-gray-400 font-medium px-2">{src}</th>
+                            {activeGroups.map(g => (
+                              <th key={g} className="text-right py-1.5 text-gray-400 font-medium px-2 whitespace-nowrap">
+                                {breakdownTab === 'country' ? `${countryFlag(g)} ${g}` : g}
+                              </th>
                             ))}
                             <th className="text-right py-1.5 text-gray-400 font-medium px-2">Total</th>
                           </tr>
                         </thead>
                         <tbody>
                           {days.slice(-7).map((day, di) => {
-                            const dayData = (analytics.daily_by_source || []).filter((r: any) => r.day === day && r.source !== 'Internal');
+                            const dayData = activeData.filter((r: any) => r.day === day);
                             const total = dayData.reduce((s: number, r: any) => s + parseInt(r.views), 0);
                             return (
                               <tr key={di} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#242424]">
-                                <td className="py-1.5 text-gray-600 dark:text-gray-300">
+                                <td className="py-1.5 text-gray-600 dark:text-gray-300 whitespace-nowrap">
                                   {new Date(String(day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' })}
                                 </td>
-                                {allSources.map(src => {
-                                  const entry = dayData.find((r: any) => r.source === src);
-                                  return <td key={src} className="text-right py-1.5 px-2 text-gray-500">{entry ? entry.views : '—'}</td>;
+                                {activeGroups.map(g => {
+                                  const entry = dayData.find((r: any) => r[activeKey] === g);
+                                  return <td key={g} className="text-right py-1.5 px-2 text-gray-500">{entry ? entry.views : '—'}</td>;
                                 })}
                                 <td className="text-right py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">{total}</td>
                               </tr>
@@ -231,6 +252,106 @@ export default function AdminPage() {
               <BarChart data={(analytics.daily_signups || []).map((d: any) => ({ ...d, label: new Date(String(d.day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' }) }))} valueKey="signups" labelKey="label" color="bg-green-500" height="h-40" />
             </div>
           </Section>
+
+          {/* New vs Returning visitors */}
+          {analytics.new_vs_returning?.length > 0 && (
+            <Section title="New vs Returning Visitors (14 days)" defaultOpen={true}>
+              {(() => {
+                const data = analytics.new_vs_returning || [];
+                const days = [...new Set(data.map((r: any) => r.day))].sort() as string[];
+                const maxTotal = Math.max(...days.map(d =>
+                  data.filter((r: any) => r.day === d).reduce((s: number, r: any) => s + parseInt(r.visitors), 0)
+                ), 1);
+
+                // Summary totals
+                const totalNew = data.filter((r: any) => r.visitor_type === 'new').reduce((s: number, r: any) => s + parseInt(r.visitors), 0);
+                const totalReturning = data.filter((r: any) => r.visitor_type === 'returning').reduce((s: number, r: any) => s + parseInt(r.visitors), 0);
+                const grandTotal = totalNew + totalReturning;
+                const newPct = grandTotal > 0 ? Math.round((totalNew / grandTotal) * 100) : 0;
+
+                return (
+                  <div className="pt-2">
+                    {/* Summary pills */}
+                    <div className="flex gap-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-primary-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">New: <span className="font-semibold text-gray-900 dark:text-white">{totalNew}</span></span>
+                        <span className="text-xs text-gray-400">({newPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-400" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Returning: <span className="font-semibold text-gray-900 dark:text-white">{totalReturning}</span></span>
+                        <span className="text-xs text-gray-400">({100 - newPct}%)</span>
+                      </div>
+                    </div>
+
+                    {/* Stacked bar chart */}
+                    <div className="flex items-end gap-1 h-40 mb-4">
+                      {days.map((day, di) => {
+                        const dayData = data.filter((r: any) => r.day === day);
+                        const newV = parseInt(dayData.find((r: any) => r.visitor_type === 'new')?.visitors || '0');
+                        const retV = parseInt(dayData.find((r: any) => r.visitor_type === 'returning')?.visitors || '0');
+                        const total = newV + retV;
+                        const heightPct = (total / maxTotal) * 100;
+                        const newPctBar = total > 0 ? (newV / total) * 100 : 0;
+                        const retPctBar = total > 0 ? (retV / total) * 100 : 0;
+                        return (
+                          <div key={di} className="flex-1 flex flex-col items-center gap-1 group relative">
+                            <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                              {newV} new · {retV} returning
+                            </div>
+                            <div className="w-full flex flex-col-reverse rounded-t overflow-hidden"
+                              style={{ height: `${Math.max(heightPct, 2)}%`, minHeight: '3px' }}>
+                              {retPctBar > 0 && <div className="w-full bg-blue-400" style={{ height: `${retPctBar}%` }} />}
+                              {newPctBar > 0 && <div className="w-full bg-primary-500" style={{ height: `${newPctBar}%` }} />}
+                            </div>
+                            <span className="text-[8px] text-gray-400 truncate w-full text-center">
+                              {new Date(String(day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-100 dark:border-gray-700">
+                            <th className="text-left py-1.5 text-gray-400 font-medium">Date</th>
+                            <th className="text-right py-1.5 px-2 text-gray-400 font-medium">🟠 New</th>
+                            <th className="text-right py-1.5 px-2 text-gray-400 font-medium">🔵 Returning</th>
+                            <th className="text-right py-1.5 px-2 text-gray-400 font-medium">Total</th>
+                            <th className="text-right py-1.5 px-2 text-gray-400 font-medium">% New</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {days.slice(-7).map((day, di) => {
+                            const dayData = data.filter((r: any) => r.day === day);
+                            const newV = parseInt(dayData.find((r: any) => r.visitor_type === 'new')?.visitors || '0');
+                            const retV = parseInt(dayData.find((r: any) => r.visitor_type === 'returning')?.visitors || '0');
+                            const total = newV + retV;
+                            const pct = total > 0 ? Math.round((newV / total) * 100) : 0;
+                            return (
+                              <tr key={di} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#242424]">
+                                <td className="py-1.5 text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                                  {new Date(String(day).substring(0, 10) + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                </td>
+                                <td className="text-right py-1.5 px-2 text-primary-600 font-medium">{newV}</td>
+                                <td className="text-right py-1.5 px-2 text-blue-500 font-medium">{retV}</td>
+                                <td className="text-right py-1.5 px-2 font-semibold text-gray-700 dark:text-gray-300">{total}</td>
+                                <td className="text-right py-1.5 px-2 text-gray-400">{pct}%</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
+            </Section>
+          )}
 
           <Section title="Traffic Sources (30 days)">
             {(() => {
