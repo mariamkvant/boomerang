@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Single dark action color — used for all primary buttons */
+:root { --color-action: #1f2937; --color-action-hover: #111827; }
+
+/* Unified action button class */
+.btn-action { background: var(--color-action); color: white; }
+.btn-action:hover { background: var(--color-action-hover); }
+
 body {
   @apply bg-[#f8f7f5] text-gray-900 min-h-screen antialiased;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;

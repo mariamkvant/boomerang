@@ -91,13 +91,13 @@ export default function HomePage() {
 
               {user ? (
                 <div className="flex flex-wrap gap-3">
-                  <Link to="/browse" className="bg-gray-800 dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-700 transition-all">{t('hero.browseBtn')}</Link>
+                  <Link to="/browse" className="bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#111827] dark:hover:bg-gray-100 transition-all">{t('hero.browseBtn')}</Link>
                   <Link to="/services/new" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
                 </div>
               ) : (
                 <div>
                   <div className="flex flex-wrap gap-3 mb-4">
-                    <Link to="/register" className="bg-gray-800 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-gray-700 transition-all">{t('hero.cta')}</Link>
+                    <Link to="/register" className="bg-[#1f2937] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#111827] transition-all">{t('hero.cta')}</Link>
                     <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -330,7 +330,7 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.communityTitle')}</h2>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-10">{t('home.communityDesc')}</p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/groups" className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all">{t('home.exploreCommunities')}</Link>
+            <Link to="/groups" className="bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-[#111827] dark:hover:bg-gray-100 transition-all">{t('home.exploreCommunities')}</Link>
             <Link to="/people" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">{t('home.findPeople')}</Link>
           </div>
         </div>
@@ -343,7 +343,7 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">{t('cta.title')}</h2>
             <p className="text-gray-500 dark:text-gray-400 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/register" className="inline-block bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-gray-800 transition-all">{t('cta.button')}</Link>
+              <Link to="/register" className="inline-block bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-[#111827] transition-all">{t('cta.button')}</Link>
               <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-200 px-6 py-4 rounded-2xl transition-colors border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#242424]">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>

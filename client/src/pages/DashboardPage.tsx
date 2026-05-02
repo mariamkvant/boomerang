@@ -44,7 +44,7 @@ function MessageThread({ requestId, userId }: { requestId: number; userId: numbe
         <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
           placeholder={t('dashboard.typeMessage')} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
         <button onClick={send} disabled={sending || !newMsg.trim()}
-          className="bg-[#374151] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2d3748] disabled:opacity-50">{t('messages.send')}</button>
+          className="bg-[#1f2937] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#111827] disabled:opacity-50">{t('messages.send')}</button>
       </div>
     </div>
   );
@@ -181,8 +181,8 @@ export default function DashboardPage() {
     catch (err: any) { toast(err.message, 'error'); }
   };
 
-  // Softer dark gray for primary actions — not pure black
-  const btnPrimary = 'bg-[#374151] dark:bg-white text-white dark:text-gray-900 hover:bg-[#2d3748] dark:hover:bg-gray-100';
+  // Unified dark action color
+  const btnPrimary = 'bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 hover:bg-[#111827] dark:hover:bg-gray-100';
   const btnSecondary = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700';
   // Ghost bordered — for secondary actions on completed cards
   const btnGhost = 'border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800';
@@ -326,7 +326,7 @@ export default function DashboardPage() {
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to release boomerangs to the provider</p>
           </div>
-          <button onClick={() => setTab('outgoing')} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
+          <button onClick={() => setTab('outgoing')} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
         </div>
       )}
 
@@ -413,7 +413,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-1 mb-4 bg-gray-100 dark:bg-[#2a3942] p-1 rounded-xl sm:flex">
         {tabs.map(tb => (
           <button onClick={() => setTab(tb.key)}
-            className={`px-3 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-center ${tab === tb.key ? 'bg-[#374151] dark:bg-white text-white dark:text-gray-900 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
+            className={`px-3 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-center ${tab === tb.key ? 'bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}>
             {tb.label}
             {tb.count > 0 && <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? 'bg-white/20 dark:bg-gray-900/20 text-white dark:text-gray-900' : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>{tb.count}</span>}
           </button>
@@ -503,7 +503,7 @@ export default function DashboardPage() {
                           <button onClick={async () => {
                             const ok = await confirm({ title: 'Accept service was completed', message: `This will transfer ${r.points_cost} boomerangs to the provider. Only do this if the issue is resolved.`, confirmText: 'Yes, complete' });
                             if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved — points transferred'); load(); refreshUser(); } catch (err: any) { toast(err.message, 'error'); } }
-                          }} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium">
+                          }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium">
                             Accept as completed
                           </button>
                           <button onClick={async () => {
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                   {r.status === 'pending' && (
                     <>
                       <button onClick={() => handleAction(api.acceptRequest, r.id)}
-                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-gray-500 text-white' : 'bg-[#374151] dark:bg-white text-white dark:text-gray-900'}`}>
+                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-gray-500 text-white' : 'bg-[#1f2937] dark:bg-white text-white dark:text-gray-900'}`}>
                         {actionSuccess === r.id ? '✓ Accepted' : t('dashboard.accept')}
                       </button>
                       <button onClick={() => handleAction(api.cancelRequest, r.id)} className="w-full sm:w-auto text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
@@ -572,7 +572,7 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'accepted' && (
                     <>
-                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Mark delivered</button>
+                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Mark delivered</button>
                       <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
                     </>
                   )}
@@ -671,7 +671,7 @@ export default function DashboardPage() {
                       <p className="text-xs text-gray-700 dark:text-gray-300 font-medium mb-1">Reschedule proposed: {r.reschedule_date}{r.reschedule_time ? ` at ${r.reschedule_time}` : ''}</p>
                       {r.reschedule_note && <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">"{r.reschedule_note}"</p>}
                       <button onClick={async () => { try { await api.acceptReschedule(r.id); toast('Reschedule accepted!'); load(); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-3 py-1 rounded-lg font-medium">Accept</button>
+                        className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1 rounded-lg font-medium">Accept</button>
                     </div>
                   )}
                 </div>
@@ -703,7 +703,7 @@ export default function DashboardPage() {
                         await handleAction(api.confirmRequest, r.id);
                         setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
                         setShoutoutMsg('');
-                      }} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Confirm ✓</button>
+                      }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Confirm ✓</button>
                       <button onClick={() => setDisputeForm({ id: r.id, reason: '' })}
                         className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Something went wrong</button>
                     </>
@@ -791,7 +791,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2">
                   {h.status === 'delivered' && (
-                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-[#374151] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg">Confirm ✓</button>
+                    <button onClick={() => handleAction(api.confirmHelp, h.id)} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg">Confirm ✓</button>
                   )}
                   {h.status === 'open' && (
                     <button onClick={() => handleAction(api.closeHelpWanted, h.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1">Close</button>
@@ -951,7 +951,7 @@ export default function DashboardPage() {
                   await api.rescheduleRequest(rescheduleForm.id, { new_date: rescheduleForm.date, new_time: rescheduleForm.time, note: rescheduleForm.note });
                   toast('Reschedule proposed!'); setRescheduleForm(null); load();
                 } catch (err: any) { toast(err.message, 'error'); }
-              }} className="flex-1 bg-[#374151] text-white py-3 rounded-xl text-sm font-semibold">Send proposal</button>
+              }} className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl text-sm font-semibold">Send proposal</button>
             </div>
           </div>
         </div>
@@ -978,7 +978,7 @@ export default function DashboardPage() {
                   setDisputeForm(null);
                   load();
                 } catch (err: any) { toast(err.message, 'error'); }
-              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#374151] text-white">Raise issue</button>
+              }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Raise issue</button>
             </div>
           </div>
         </div>
@@ -1004,7 +1004,7 @@ export default function DashboardPage() {
                   try { await api.postShoutout({ to_user_id: shoutoutPrompt.userId, message: shoutoutMsg }); toast('Shoutout posted!'); } catch {}
                 }
                 setShoutoutPrompt(null);
-              }} className="flex-1 bg-[#374151] text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+              }} className="flex-1 bg-[#1f2937] text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
                 {shoutoutMsg.trim() ? 'Send thanks' : 'Skip'}
               </button>
             </div>

@@ -264,14 +264,14 @@ export default function BrowsePage() {
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => { handleCatClick(''); setShowAllCats(false); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
                 All
               </button>
               {visible.map((c: any) => (
                 <button
                   key={c.id}
                   onClick={() => handleCatClick(String(c.id))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#374151] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
                   {translateCat(c.name)}
                 </button>
               ))}
@@ -338,7 +338,7 @@ export default function BrowsePage() {
             {selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
           </h3>
           <p className="text-gray-400 text-sm mb-5">Be the first to offer something in this category</p>
-          <Link to="/services/new" className="inline-block bg-[#374151] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
+          <Link to="/services/new" className="inline-block bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
             + Offer something
           </Link>
         </div>
@@ -402,7 +402,7 @@ export default function BrowsePage() {
       {/* Back to top */}
       {showBackToTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-[#374151] dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg flex items-center justify-center hover:bg-[#2d3748] transition-all animate-fade-in"
+          className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg flex items-center justify-center hover:bg-[#111827] transition-all animate-fade-in"
           aria-label="Back to top">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" /></svg>
         </button>
@@ -420,7 +420,7 @@ export default function BrowsePage() {
             </p>
             <div className="flex gap-2">
               <button onClick={() => setRequestConfirm(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">Cancel</button>
-              <button onClick={() => confirmRequest(requestConfirm.service.id)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#374151] text-white">Send Request</button>
+              <button onClick={() => confirmRequest(requestConfirm.service.id)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Send Request</button>
             </div>
           </div>
         </div>

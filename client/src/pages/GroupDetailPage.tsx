@@ -468,7 +468,7 @@ export default function GroupDetailPage() {
                       <p className="text-xs text-gray-400 p-3 text-center">No services yet. <Link to="/services/new" className="text-primary-500">Create one →</Link></p>
                     ) : myServices.map((s: any) => (
                       <button key={s.id} onClick={() => { setAttachedService(s); setShowServicePicker(false); }}
-                        className="w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-[#374151] border-b border-gray-50 dark:border-gray-700 last:border-0">
+                        className="w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-[#1f2937] border-b border-gray-50 dark:border-gray-700 last:border-0">
                         <p className="text-sm font-medium dark:text-white truncate">{s.title}</p>
                         <p className="text-xs text-gray-400">{s.points_cost} 🪃 · {s.category_name}</p>
                       </button>

@@ -60,7 +60,7 @@ export default function OnboardingTooltip() {
         {/* Step dots */}
         <div className="flex gap-1.5 mb-4">
           {STEPS.map((_, i) => (
-            <div key={i} className={`h-1 rounded-full transition-all ${i === step ? 'w-6 bg-[#374151]' : 'w-2 bg-gray-200 dark:bg-gray-700'}`} />
+            <div key={i} className={`h-1 rounded-full transition-all ${i === step ? 'w-6 bg-[#1f2937]' : 'w-2 bg-gray-200 dark:bg-gray-700'}`} />
           ))}
         </div>
 
@@ -71,11 +71,11 @@ export default function OnboardingTooltip() {
           <button onClick={dismiss} className="text-xs text-gray-400 hover:text-gray-600">Skip</button>
           {current.link ? (
             <Link to={current.link} onClick={dismiss}
-              className="bg-[#374151] text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
+              className="bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
               {current.cta}
             </Link>
           ) : (
-            <button onClick={next} className="bg-[#374151] text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
+            <button onClick={next} className="bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
               {current.cta}
             </button>
           )}
