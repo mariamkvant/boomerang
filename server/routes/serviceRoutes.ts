@@ -49,7 +49,7 @@ router.get('/calculate-points', async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, subcategory, search, provider, page = '1', sort, city, lat, lng, radius } = req.query;
+  const { category, subcategory, search, provider, page = '1', sort, city, lat, lng, radius, is_product, min_price, max_price } = req.query;
   const limit = 20;
   const offset = (parseInt(page as string) - 1) * limit;
   const baseFrom = `FROM services s JOIN categories c ON s.category_id = c.id JOIN users u ON s.provider_id = u.id
@@ -61,6 +61,10 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (subcategory) { where += ' AND s.subcategory_id = ?'; filterParams.push(subcategory); }
   if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
   if (city) { where += ' AND u.city ILIKE ?'; filterParams.push(`%${city}%`); }
+  if (is_product === '1') { where += ' AND s.is_product = true'; }
+  else if (is_product === '0') { where += ' AND (s.is_product = false OR s.is_product IS NULL)'; }
+  if (min_price) { where += ' AND s.points_cost >= ?'; filterParams.push(parseInt(min_price as string)); }
+  if (max_price) { where += ' AND s.points_cost <= ?'; filterParams.push(parseInt(max_price as string)); }
 
   const countRes = await db.get('SELECT COUNT(*) as total ' + baseFrom + where, ...filterParams);
   const total = parseInt(countRes?.total || '0');

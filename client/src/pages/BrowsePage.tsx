@@ -365,7 +365,12 @@ export default function BrowsePage() {
                   <img src={s.image} alt={s.title} loading="lazy" className="w-full h-40 object-cover" />
                 )}
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 mb-3">{s.title}</h3>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2">{s.title}</h3>
+                    {s.is_product && (
+                      <span className="shrink-0 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">Item</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5 mb-3">
                     <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-500 dark:text-gray-400 shrink-0">
                       {s.provider_name?.charAt(0).toUpperCase()}

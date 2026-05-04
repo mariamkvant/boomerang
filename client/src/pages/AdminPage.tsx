@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [breakdownTab, setBreakdownTab] = useState<'source'|'country'>('source');
 
   useEffect(() => { api.checkAdmin().then(r => setIsAdmin(r.is_admin)).catch(() => setIsAdmin(false)); }, []);
 
@@ -129,8 +130,6 @@ export default function AdminPage() {
           {(analytics.daily_by_source?.length > 0 || analytics.daily_by_country?.length > 0) && (
             <Section title="Daily Breakdown (14 days)" defaultOpen={true}>
               {(() => {
-                const [breakdownTab, setBreakdownTab] = React.useState<'source'|'country'>('source');
-
                 const sourceColors: Record<string, string> = {
                   'Direct': 'bg-gray-400', 'Google': 'bg-blue-500', 'LinkedIn': 'bg-blue-700',
                   'Facebook': 'bg-indigo-500', 'Instagram': 'bg-pink-500', 'Twitter/X': 'bg-sky-400',
