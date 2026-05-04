@@ -61,7 +61,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (subcategory) { where += ' AND s.subcategory_id = ?'; filterParams.push(subcategory); }
   if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
   if (city) { where += ' AND u.city ILIKE ?'; filterParams.push(`%${city}%`); }
-  if (is_product === '1') { where += ' AND s.is_product = true'; }
+  if (is_product === '1') { where += " AND s.is_product IS NOT NULL AND s.is_product != false AND s.is_product::text != '0'"; }
   else if (is_product === '0') { where += ' AND (s.is_product IS NULL OR s.is_product = false)'; }
   if (min_price) { where += ' AND s.points_cost >= ?'; filterParams.push(parseInt(min_price as string)); }
   if (max_price) { where += ' AND s.points_cost <= ?'; filterParams.push(parseInt(max_price as string)); }
@@ -129,8 +129,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
     finalPoints = Math.round(finalPoints * req.body.sessions_count * (1 - req.body.bundle_discount / 100));
   }
-  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image, city, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl, serviceCity, req.body.country || 'Luxembourg');
+  const result = await db.run('INSERT INTO services (provider_id, category_id, subcategory_id, title, description, points_cost, duration_minutes, is_bundle, sessions_count, bundle_discount, group_id, image, city, country, is_product, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, subcategory_id || null, title, description, finalPoints, duration_minutes || 60, req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0, req.body.group_id || null, imageUrl, serviceCity, req.body.country || 'Luxembourg', req.body.is_product || false, req.body.quantity || 1);
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
 });
 
