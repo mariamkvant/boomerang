@@ -231,6 +231,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE page_views ADD COLUMN IF NOT EXISTS country TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS is_product BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 1'); } catch(e) {}
+    // Backfill: ensure no NULLs in is_product (treat NULL as false)
+    try { await client.query("UPDATE services SET is_product = false WHERE is_product IS NULL"); } catch(e) {}
 
     // New columns for delivery flow enhancements
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS pickup_details TEXT'); } catch(e) {}

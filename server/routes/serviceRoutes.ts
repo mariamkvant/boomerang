@@ -62,7 +62,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
   if (city) { where += ' AND u.city ILIKE ?'; filterParams.push(`%${city}%`); }
   if (is_product === '1') { where += ' AND s.is_product = true'; }
-  else if (is_product === '0') { where += ' AND (s.is_product = false OR s.is_product IS NULL)'; }
+  else if (is_product === '0') { where += ' AND (s.is_product IS NULL OR s.is_product = false)'; }
   if (min_price) { where += ' AND s.points_cost >= ?'; filterParams.push(parseInt(min_price as string)); }
   if (max_price) { where += ' AND s.points_cost <= ?'; filterParams.push(parseInt(max_price as string)); }
 

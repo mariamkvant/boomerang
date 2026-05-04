@@ -367,8 +367,8 @@ export default function BrowsePage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2">{s.title}</h3>
-                    {s.is_product && (
-                      <span className="shrink-0 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded">Item</span>
+                    {(s.is_product === true || s.is_product === 1 || s.is_product === 'true') && (
+                      <span className="shrink-0 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded whitespace-nowrap">Item</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 mb-3">
