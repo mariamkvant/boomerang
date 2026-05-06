@@ -61,8 +61,8 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (subcategory) { where += ' AND s.subcategory_id = ?'; filterParams.push(subcategory); }
   if (search) { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`); }
   if (city) { where += ' AND u.city ILIKE ?'; filterParams.push(`%${city}%`); }
-  if (is_product === '1') { where += " AND s.is_product IS NOT NULL AND s.is_product != false AND s.is_product::text != '0'"; }
-  else if (is_product === '0') { where += ' AND (s.is_product IS NULL OR s.is_product = false)'; }
+  if (is_product === '1') { where += ' AND COALESCE(s.is_product, false) = true'; }
+  else if (is_product === '0') { where += ' AND COALESCE(s.is_product, false) = false'; }
   if (min_price) { where += ' AND s.points_cost >= ?'; filterParams.push(parseInt(min_price as string)); }
   if (max_price) { where += ' AND s.points_cost <= ?'; filterParams.push(parseInt(max_price as string)); }
 
@@ -76,6 +76,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 
   const selectCols = `SELECT s.*, c.name as category_name, c.icon as category_icon, c.multiplier,
     u.username as provider_name, u.city as provider_city, u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude, u.avatar as provider_avatar, sc.name as subcategory_name,
+    COALESCE(s.is_product, false) as is_product,
     (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating `;
   const services = await db.all(selectCols + baseFrom + where + orderBy + ' LIMIT ? OFFSET ?', ...filterParams, limit, offset);
   res.json({ services, total, page: parseInt(page as string), totalPages: Math.ceil(total / limit) });
