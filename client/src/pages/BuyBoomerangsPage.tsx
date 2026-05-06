@@ -100,7 +100,7 @@ export default function BuyBoomerangsPage() {
               <span className="font-medium text-gray-900 dark:text-gray-100">{pkg.priceLabel}</span>
             </button>
           ))}
-          {!enabled && <p className="text-center text-xs text-gray-400 mt-3">Payments coming soon</p>}
+          {!enabled && <p className="text-center text-xs text-gray-400 mt-3">Top-up available on web at boomerang.fyi</p>}
           {!hideStripe && <p className="text-[10px] text-gray-400 text-center mt-4">No cash value. Cannot be withdrawn. Powered by Stripe.</p>}
         </div>
       )}
