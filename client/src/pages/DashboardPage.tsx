@@ -212,6 +212,8 @@ export default function DashboardPage() {
       </div>
     );
   };
+
+  const badge = (s: string) => {
     const m: Record<string, string> = {
       pending: 'text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
       accepted: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
