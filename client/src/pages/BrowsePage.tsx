@@ -177,12 +177,13 @@ export default function BrowsePage() {
 
       {/* Search bar — single clean row */}
       <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
+        {/* Row 1: search + city */}
         <div className="flex gap-2 mb-2">
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input type="text" placeholder="Search services, items..." value={search} onChange={e => setSearch(e.target.value)}
+            <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
               aria-label="Search services" />
             {search && (
@@ -191,7 +192,7 @@ export default function BrowsePage() {
               </button>
             )}
           </div>
-          <div className="relative w-32 shrink-0">
+          <div className="relative w-28 shrink-0">
             <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
@@ -200,27 +201,28 @@ export default function BrowsePage() {
               className="w-full pl-8 pr-2 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
               aria-label="Filter by location" />
           </div>
+        </div>
+        {/* Row 2: sort + action buttons */}
+        <div className="flex gap-1.5">
           <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-            className="px-2 py-2 rounded-lg text-xs font-medium bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 outline-none">
+            className="flex-1 px-2 py-2 rounded-lg text-xs font-medium bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 outline-none">
             <option value="newest">Newest</option>
             <option value="price_low">Price ↑</option>
             <option value="price_high">Price ↓</option>
             <option value="rating">Rating</option>
           </select>
-          <div className="flex gap-1">
-            <button onClick={() => setNearMe(!nearMe)} title="Near Me"
-              className={`p-2 rounded-lg border text-xs transition-colors ${nearMe ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
-            </button>
-            <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')} title="Map view"
-              className={`p-2 rounded-lg border text-xs transition-colors ${viewMode === 'map' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
-            </button>
-            <button onClick={() => setShowFilters(!showFilters)} title="Filters"
-              className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-gray-900 text-white border-gray-900' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
-            </button>
-          </div>
+          <button onClick={() => setNearMe(!nearMe)} title="Near Me"
+            className={`p-2 rounded-lg border text-xs transition-colors ${nearMe ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+          </button>
+          <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')} title="Map view"
+            className={`p-2 rounded-lg border text-xs transition-colors ${viewMode === 'map' ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
+          </button>
+          <button onClick={() => setShowFilters(!showFilters)} title="Filters"
+            className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
+          </button>
         </div>
 
         {/* Expanded filters */}
