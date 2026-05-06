@@ -138,7 +138,7 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   const service = await db.get('SELECT * FROM services WHERE id = ? AND provider_id = ?', req.params.id, req.userId);
   if (!service) return res.status(404).json({ error: 'Service not found or not yours' });
-  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, is_active, is_product } = req.body;
+  const { title, description, category_id, subcategory_id, points_cost, duration_minutes, is_active, is_product, image } = req.body;
   if (image !== undefined) {
     if (image && image.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
     const imageUrl = image ? await uploadImage(image, 'boomerang/services') : null;
