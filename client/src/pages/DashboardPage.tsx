@@ -187,7 +187,31 @@ export default function DashboardPage() {
   // Ghost bordered — for secondary actions on completed cards
   const btnGhost = 'border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800';
 
-  const badge = (s: string) => {
+  // Next step hint — shown below progress tracker
+  const NextStep = ({ status, role }: { status: string; role: 'provider' | 'requester' }) => {
+    const hints: Record<string, Record<string, { icon: string; text: string; color: string }>> = {
+      pending: {
+        provider: { icon: '👋', text: 'Accept to get started, or decline if you can\'t help right now.', color: 'text-primary-600 dark:text-primary-400' },
+        requester: { icon: '⏳', text: 'Waiting for the provider to accept your request.', color: 'text-gray-500' },
+      },
+      accepted: {
+        provider: { icon: '💬', text: 'Message to agree on time and details, then mark as delivered when done.', color: 'text-blue-600 dark:text-blue-400' },
+        requester: { icon: '💬', text: 'Request accepted! Message the provider to agree on time and details.', color: 'text-blue-600 dark:text-blue-400' },
+      },
+      delivered: {
+        provider: { icon: '⏳', text: 'Waiting for confirmation. Nudge the requester if needed.', color: 'text-gray-500' },
+        requester: { icon: '✅', text: 'Confirm if the exchange went well — this releases boomerangs to the provider.', color: 'text-green-600 dark:text-green-400' },
+      },
+    };
+    const hint = hints[status]?.[role];
+    if (!hint) return null;
+    return (
+      <div className={`flex items-start gap-1.5 mt-2 text-xs ${hint.color}`}>
+        <span className="shrink-0">{hint.icon}</span>
+        <span>{hint.text}</span>
+      </div>
+    );
+  };
     const m: Record<string, string> = {
       pending: 'text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
       accepted: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
@@ -555,10 +579,7 @@ export default function DashboardPage() {
                   {r.message && <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-[#2a3942] p-2.5 rounded-lg italic">"{r.message}"</p>}
                   {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
-                  {/* Pending: explain messaging not available yet */}
-                  {r.status === 'pending' && (
-                    <p className="text-xs text-gray-400 mt-1">Accept to unlock messaging with {r.requester_name}</p>
-                  )}
+                  <NextStep status={r.status} role="provider" />
                 </div>
                 <div className="flex flex-col gap-2 shrink-0 sm:flex-row">
                   {r.status === 'pending' && (
@@ -650,6 +671,7 @@ export default function DashboardPage() {
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
+                  <NextStep status={r.status} role="requester" />
                   {/* Delivery note from provider */}
                   {r.status === 'delivered' && r.delivery_note && (
                     <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
