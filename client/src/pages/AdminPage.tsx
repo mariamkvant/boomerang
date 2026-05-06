@@ -45,10 +45,11 @@ function countryFlag(name: string): string {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'reports'|'support'>('stats');
+  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'services'|'reports'|'support'>('stats');
   const [stats, setStats] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
+  const [adminServices, setAdminServices] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
@@ -62,6 +63,7 @@ export default function AdminPage() {
     if (tab === 'stats') api.getAdminStats().then(setStats).catch(() => {});
     if (tab === 'analytics') api.getAdminAnalytics().then(setAnalytics).catch(() => {});
     if (tab === 'users') api.getAdminUsers(userSearch ? `search=${encodeURIComponent(userSearch)}` : '').then(r => setUsers(r.users)).catch(() => {});
+    if (tab === 'services') api.getAdminServices().then(setAdminServices).catch(() => {});
     if (tab === 'reports') api.getAdminReports().then(setReports).catch(() => {});
     if (tab === 'support') api.getSupportTickets().then(setTickets).catch(() => {});
   }, [tab, isAdmin]);
@@ -77,10 +79,10 @@ export default function AdminPage() {
     <div className="animate-fade-in pb-24 md:pb-8">
       <h2 className="text-xl font-bold mb-5 dark:text-white">Admin Panel</h2>
       <div className="flex gap-2 mb-6 flex-wrap">
-        {(['stats','analytics','users','reports','support'] as const).map(tb => (
+        {(['stats','analytics','users','services','reports','support'] as const).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
             className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === tb ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#202c33] text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
-            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : tb === 'reports' ? 'Reports' : 'Support'}
+            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : tb === 'services' ? 'Services' : tb === 'reports' ? 'Reports' : 'Support'}
           </button>
         ))}
       </div>
@@ -541,8 +543,46 @@ export default function AdminPage() {
         </div>
       )}
 
-      {tab === 'reports' && (
-        <div className="space-y-3">
+      {tab === 'services' && (
+        <div>
+          <p className="text-xs text-gray-400 mb-4">Toggle each listing between Service and Item. Changes take effect immediately.</p>
+          <div className="bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-[#242424]">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Title</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Provider</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500">Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {adminServices.map((s: any) => (
+                  <tr key={s.id} className="border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#242424]">
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300 max-w-[200px] truncate">{s.title}</td>
+                    <td className="px-4 py-3 text-gray-400 hidden md:table-cell">{s.provider_name}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          onClick={async () => { await api.tagService(s.id, false); api.getAdminServices().then(setAdminServices); }}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${!s.is_product ? 'bg-[#1f2937] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                          Service
+                        </button>
+                        <button
+                          onClick={async () => { await api.tagService(s.id, true); api.getAdminServices().then(setAdminServices); }}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${s.is_product ? 'bg-[#1f2937] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                          Item
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'reports' && (        <div className="space-y-3">
           {reports.length === 0 && <p className="text-center text-gray-400 py-8">No reports</p>}
           {reports.map((r: any) => (
             <div key={r.id} className={`bg-white dark:bg-[#202c33] p-4 rounded-xl border border-gray-100 dark:border-gray-700 ${r.status === 'pending' ? 'border-l-4 border-amber-400' : ''}`}>

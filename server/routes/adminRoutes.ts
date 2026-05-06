@@ -88,6 +88,21 @@ router.put('/reports/:id', authMiddleware, adminMiddleware, async (req: AuthRequ
   res.json({ message: 'Report updated' });
 });
 
+// Tag service as item or service (admin only)
+router.put('/services/:id/tag', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const { is_product } = req.body;
+  await db.run('UPDATE services SET is_product = ? WHERE id = ?', !!is_product, req.params.id);
+  res.json({ message: 'Service tagged' });
+});
+
+// Get all services (admin) — for tagging
+router.get('/services', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  const services = await db.all(`SELECT s.id, s.title, s.is_product, u.username as provider_name 
+    FROM services s JOIN users u ON s.provider_id = u.id 
+    WHERE s.is_active = 1 ORDER BY s.created_at DESC LIMIT 100`);
+  res.json(services);
+});
+
 // Delete any service
 router.delete('/services/:id', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
   await db.run('UPDATE services SET is_active = 0 WHERE id = ?', req.params.id);
