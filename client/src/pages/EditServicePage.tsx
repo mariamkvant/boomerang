@@ -7,7 +7,10 @@ export default function EditServicePage() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', subcategory_id: '', points_cost: '', duration_minutes: '' });
+  const [form, setForm] = useState({
+    title: '', description: '', category_id: '', subcategory_id: '',
+    points_cost: '', duration_minutes: '', is_product: false,
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -15,7 +18,15 @@ export default function EditServicePage() {
   useEffect(() => {
     Promise.all([api.getService(Number(id)), api.getCategories()]).then(([svc, cats]) => {
       setCategories(cats);
-      setForm({ title: svc.title, description: svc.description, category_id: String(svc.category_id), subcategory_id: svc.subcategory_id ? String(svc.subcategory_id) : '', points_cost: String(svc.points_cost), duration_minutes: String(svc.duration_minutes) });
+      setForm({
+        title: svc.title,
+        description: svc.description,
+        category_id: String(svc.category_id),
+        subcategory_id: svc.subcategory_id ? String(svc.subcategory_id) : '',
+        points_cost: String(svc.points_cost),
+        duration_minutes: String(svc.duration_minutes),
+        is_product: !!svc.is_product,
+      });
       if (svc.category_id) api.getSubcategories(svc.category_id).then(setSubcategories).catch(() => {});
       setLoading(false);
     }).catch(() => { setError('Service not found'); setLoading(false); });
@@ -29,68 +40,100 @@ export default function EditServicePage() {
     e.preventDefault(); setError(''); setSaving(true);
     try {
       await api.updateService(Number(id), {
-        title: form.title, description: form.description,
-        category_id: Number(form.category_id), subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
-        points_cost: Number(form.points_cost), duration_minutes: Number(form.duration_minutes),
+        title: form.title,
+        description: form.description,
+        category_id: Number(form.category_id),
+        subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
+        points_cost: Number(form.points_cost),
+        duration_minutes: Number(form.duration_minutes),
+        is_product: form.is_product,
       });
       navigate(`/services/${id}`);
     } catch (err: any) { setError(err.message); setSaving(false); }
   };
 
-  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm(f => ({ ...f, [field]: e.target.value }));
+  const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [field]: e.target.value }));
 
   if (loading) return <div className="text-center py-20 text-gray-400">Loading...</div>;
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
-      <h2 className="text-2xl font-bold mb-6">Edit Service</h2>
+      <h2 className="text-2xl font-bold mb-6 dark:text-white">Edit Listing</h2>
       {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>}
-      <form onSubmit={handleSave} className="bg-white p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
+      <form onSubmit={handleSave} className="bg-white dark:bg-[#1c1c1c] p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
+
+        {/* Service / Item toggle */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
-          <input id="title" required value={form.title} onChange={set('title')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
+          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#242424] rounded-xl">
+            <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+              Service
+            </button>
+            <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+              Item / Product
+            </button>
+          </div>
         </div>
+
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
+          <input id="title" required value={form.title} onChange={set('title')}
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+        </div>
+
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
           <select id="category" required value={form.category_id} onChange={set('category_id')}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none">
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#242424] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
             <option value="">Select</option>
             {categories.map((c: any) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
         </div>
+
         {subcategories.length > 0 && (
           <div>
-            <label htmlFor="sub" className="block text-sm font-medium text-gray-700 mb-1.5">Subcategory</label>
+            <label htmlFor="sub" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subcategory</label>
             <select id="sub" value={form.subcategory_id} onChange={set('subcategory_id')}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none">
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#242424] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
               <option value="">None</option>
               {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
         )}
+
         <div>
-          <label htmlFor="desc" className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+          <label htmlFor="desc" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
           <textarea id="desc" required value={form.description} onChange={set('description')} rows={4}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
         </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="pts" className="block text-sm font-medium text-gray-700 mb-1.5">Boomerangs</label>
+            <label htmlFor="pts" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Boomerangs</label>
             <input id="pts" type="number" min="1" required value={form.points_cost} onChange={set('points_cost')}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
           </div>
-          <div>
-            <label htmlFor="dur" className="block text-sm font-medium text-gray-700 mb-1.5">Duration (min)</label>
-            <input id="dur" type="number" min="15" required value={form.duration_minutes} onChange={set('duration_minutes')}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
-          </div>
+          {!form.is_product && (
+            <div>
+              <label htmlFor="dur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duration (min)</label>
+              <input id="dur" type="number" min="15" value={form.duration_minutes} onChange={set('duration_minutes')}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+            </div>
+          )}
         </div>
-        <div className="flex gap-3">
-          <button type="submit" disabled={saving} className="flex-1 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50">
+
+        <div className="flex gap-3 pt-1">
+          <button type="submit" disabled={saving}
+            className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl font-semibold hover:bg-[#111827] disabled:opacity-50 transition-colors">
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          <button type="button" onClick={() => navigate(-1)} className="px-6 py-3 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50">Cancel</button>
+          <button type="button" onClick={() => navigate(-1)}
+            className="px-6 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-[#242424]">
+            Cancel
+          </button>
         </div>
       </form>
     </div>
