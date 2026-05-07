@@ -69,7 +69,7 @@ function Navbar() {
   }, [profileOpen]);
 
   return (
-    <nav className="bg-white/95 dark:bg-[#1e1b18]/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800 sticky top-0 z-50" style={{ boxShadow: '0 1px 0 rgba(0,0,0,0.06)', position: '-webkit-sticky' as any }}>
+    <nav className="bg-white/95 dark:bg-[#1e1b18]/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800 fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0" style={{ boxShadow: '0 1px 0 rgba(0,0,0,0.06)' }}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {!isHome && (
@@ -304,9 +304,9 @@ export default function App() {
   const needsOnboarding = user && user.email_verified && !user.city && localStorage.getItem('onboarding_done') !== 'true';
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ overflowX: 'clip' }}>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6 pt-[4.5rem] lg:pt-6">
         <ErrorBoundary>
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
