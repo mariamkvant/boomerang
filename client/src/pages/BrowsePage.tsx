@@ -424,10 +424,10 @@ export default function BrowsePage() {
             <div className="px-5 pb-2">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-5">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
                 Cost: {requestConfirm.service.points_cost} <span className="text-primary-500">🪃</span>
               </p>
-              <div className="flex gap-2 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+              <div className="flex gap-2 pt-2 pb-10" style={{ paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 5rem))' }}>
                 <button
                   onClick={() => setRequestConfirm(null)}
                   className="flex-1 py-3 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
