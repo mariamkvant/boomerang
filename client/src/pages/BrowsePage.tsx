@@ -417,17 +417,28 @@ export default function BrowsePage() {
 
       {/* Request confirmation modal */}
       {requestConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setRequestConfirm(null)}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRequestConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-2xl p-5 w-full max-w-sm animate-slide-up shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-5">
-              Cost: {requestConfirm.service.points_cost} <span className="text-primary-500">🪃</span>
-            </p>
-            <div className="flex gap-2">
-              <button onClick={() => setRequestConfirm(null)} className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">Cancel</button>
-              <button onClick={() => confirmRequest(requestConfirm.service.id)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Send Request</button>
+          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-4" />
+            <div className="px-5 pb-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-5">
+                Cost: {requestConfirm.service.points_cost} <span className="text-primary-500">🪃</span>
+              </p>
+              <div className="flex gap-2 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+                <button
+                  onClick={() => setRequestConfirm(null)}
+                  className="flex-1 py-3 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => confirmRequest(requestConfirm.service.id)}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">
+                  Send Request
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -311,7 +311,7 @@ export default function ServiceDetailPage() {
                 <button onClick={() => setShowConfirm(false)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50">Cancel</button>
                 <button onClick={async () => { setShowConfirm(false); await handleRequest(); }}
                   disabled={requesting || (user ? user.points < service.points_cost : false)}
-                  className="flex-1 bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600 disabled:opacity-50">
+                  className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50">
                   {requesting ? 'Sending...' : 'Confirm'}
                 </button>
               </div>
