@@ -196,7 +196,7 @@ export default function AccountPage() {
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Username: {user?.username}</p>
-          <p>Member since: {user?.created_at ? new Date(user.created_at).toLocaleDateString('en', { month: 'long', year: 'numeric' }) : '—'}</p>
+          <p>Member since: {(user as any)?.created_at ? new Date((user as any).created_at).toLocaleDateString('en', { month: 'long', year: 'numeric' }) : '—'}</p>
         </div>
         <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
           <Link to="/privacy" className="text-xs text-gray-400 hover:text-primary-600">Privacy Policy</Link>
