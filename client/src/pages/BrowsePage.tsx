@@ -71,6 +71,7 @@ export default function BrowsePage() {
   const [cityFilter, setCityFilter] = useState('');
   const [debouncedCity, setDebouncedCity] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const [districtFilter, setDistrictFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'services' | 'items'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState('');
@@ -99,7 +100,9 @@ export default function BrowsePage() {
     if (selectedCat) params.set('category', selectedCat);
     if (selectedSub) params.set('subcategory', selectedSub);
     if (debouncedSearch) params.set('search', debouncedSearch);
-    if (debouncedCity) params.set('city', debouncedCity);
+    // District takes priority over city text filter (district is stored in city field)
+    if (districtFilter) params.set('city', districtFilter);
+    else if (debouncedCity) params.set('city', debouncedCity);
     if (page > 1) params.set('page', String(page));
     if (sortBy !== 'newest') params.set('sort', sortBy);
     if (typeFilter === 'items') params.set('is_product', '1');
@@ -197,7 +200,7 @@ export default function BrowsePage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice, countryFilter]);
+  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice, countryFilter, districtFilter]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -303,7 +306,7 @@ export default function BrowsePage() {
           <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mt-2">
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Country</p>
-              <select value={countryFilter} onChange={e => { setCountryFilter(e.target.value); setPage(1); }}
+              <select value={countryFilter} onChange={e => { setCountryFilter(e.target.value); setDistrictFilter(''); setPage(1); }}
                 className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-[#1c1c1c] dark:text-white outline-none">
                 <option value="">All countries</option>
                 {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
@@ -311,6 +314,20 @@ export default function BrowsePage() {
                 ))}
               </select>
             </div>
+
+            {/* Tbilisi district filter — shown when Georgia is selected */}
+            {countryFilter === 'Georgia' && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Tbilisi district</p>
+                <select value={districtFilter} onChange={e => { setDistrictFilter(e.target.value); setPage(1); }}
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-[#1c1c1c] dark:text-white outline-none">
+                  <option value="">All areas</option>
+                  {['Old Tbilisi (Dzveli Tbilisi)','Vake','Saburtalo','Didube','Gldani','Isani','Samgori','Nadzaladevi','Mtatsminda','Chugureti','Avlabari','Ortachala','Varketili','Dighomi','Temqa','Ponichala','Lilo','Shindisi','Other'].map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
               <div className="flex gap-2">
