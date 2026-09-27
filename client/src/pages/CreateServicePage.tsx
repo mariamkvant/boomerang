@@ -167,7 +167,7 @@ export default function CreateServicePage() {
           <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
           <select id="country" required value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
             className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-            {['Luxembourg','Georgia','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
+            {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -261,25 +261,34 @@ export default function CreateServicePage() {
           </div>
         )}
 
-        {/* ── EUR Price ── */}
-        <div>
-          <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Your price</label>
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 mb-3 text-xs text-blue-700 dark:text-blue-300">
-            You keep <span className="font-semibold">90%</span> — Boomerang takes a 10% platform fee when payment is released.
-          </div>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">€</span>
-            <input id="price_eur" type="number" min="1" max="9999" step="0.01" required
-              value={form.price_eur} onChange={set('price_eur')}
-              placeholder="0.00"
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
-          </div>
-          {form.price_eur && parseFloat(form.price_eur) > 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-              You'll receive <span className="font-semibold text-green-600">€{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after the 10% platform fee
-            </p>
-          )}
-        </div>
+        {/* ── Price (EUR or GEL depending on country) ── */}
+        {(() => {
+          const isGel = form.country === 'Georgia';
+          const currencySymbol = isGel ? '₾' : '€';
+          const currencyName = isGel ? 'Georgian Lari (₾)' : 'Euro (€)';
+          return (
+            <div>
+              <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Your price <span className="text-gray-400 font-normal">({currencyName})</span>
+              </label>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 mb-3 text-xs text-blue-700 dark:text-blue-300">
+                You keep <span className="font-semibold">90%</span> — Boomerang takes a 10% platform fee when payment is released.
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">{currencySymbol}</span>
+                <input id="price_eur" type="number" min="1" max="99999" step="0.01" required
+                  value={form.price_eur} onChange={set('price_eur')}
+                  placeholder="0.00"
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
+              </div>
+              {form.price_eur && parseFloat(form.price_eur) > 0 && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+                  You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after the 10% platform fee
+                </p>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Quantity — products only */}
         {form.is_product && (

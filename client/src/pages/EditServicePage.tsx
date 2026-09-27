@@ -140,7 +140,7 @@ export default function EditServicePage() {
           <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
           <select id="country" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
             className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#242424] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
-            {['Luxembourg','Georgia','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
+            {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -183,21 +183,29 @@ export default function EditServicePage() {
           </div>
         )}
 
-        {/* Price */}
-        <div>
-          <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Price</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">€</span>
-            <input id="price_eur" type="number" min="1" max="9999" step="0.01" required
-              value={form.price_eur} onChange={set('price_eur')}
-              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
-          </div>
-          {form.price_eur && parseFloat(form.price_eur) > 0 && (
-            <p className="text-xs text-gray-400 mt-1.5">
-              You receive <span className="font-semibold text-green-600">€{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after 10% platform fee
-            </p>
-          )}
-        </div>
+        {/* Price — symbol changes based on country */}
+        {(() => {
+          const isGel = form.country === 'Georgia';
+          const sym = isGel ? '₾' : '€';
+          return (
+            <div>
+              <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                Price {isGel ? '(Georgian Lari ₾)' : '(Euro €)'}
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">{sym}</span>
+                <input id="price_eur" type="number" min="1" max="99999" step="0.01" required
+                  value={form.price_eur} onChange={set('price_eur')}
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+              </div>
+              {form.price_eur && parseFloat(form.price_eur) > 0 && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  You receive <span className="font-semibold text-green-600">{sym}{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after 10% platform fee
+                </p>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Duration */}
         {!form.is_product && (
