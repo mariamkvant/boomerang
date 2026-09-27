@@ -341,6 +341,17 @@ export default function DashboardPage() {
         })()}
       </div>
 
+      {/* Location GPS nudge — shown to users with city text but no GPS coordinates */}
+      {user?.city && !(user as any)?.latitude && myServices.filter(s => s.is_active !== 0).length > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-blue-800 dark:text-blue-300">📍 Enable radius search for your services</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Share your GPS location so buyers can find you in 500m / 1km searches. Your exact location stays private.</p>
+          </div>
+          <Link to="/settings" className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 shrink-0 ml-3">Set GPS →</Link>
+        </div>
+      )}
+
       {/* Stripe Connect warning — shown to providers with services but no active payout account */}
       {myServices.filter(s => s.is_active !== 0).length > 0 && (user as any)?.stripe_account_status !== 'active' && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
