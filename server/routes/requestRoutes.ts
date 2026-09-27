@@ -202,6 +202,16 @@ router.put('/:id/dispute', authMiddleware, async (req: AuthRequest, res: Respons
   await db.run("UPDATE service_requests SET status = 'disputed', dispute_reason = ? WHERE id = ?", reason || null, req.params.id);
   const requester = await db.get('SELECT username FROM users WHERE id = ?', req.userId);
   await notify({ userId: r.provider_id, type: 'dispute', title: 'Dispute opened', body: `${requester?.username} disputed "${r.title}". Please respond.`, link: '/dashboard' });
+  // Notify all admins so they can mediate if needed
+  const admins = await db.all('SELECT id FROM users WHERE is_admin = true');
+  for (const admin of admins) {
+    await notify({
+      userId: admin.id, type: 'dispute',
+      title: '⚠️ New dispute opened',
+      body: `${requester?.username} disputed "${r.title}". Request #${req.params.id}. Parties may need mediation.`,
+      link: '/admin',
+    });
+  }
   res.json({ message: 'Dispute opened' });
 });
 

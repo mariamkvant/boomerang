@@ -200,7 +200,7 @@ export default function DashboardPage() {
       },
       delivered: {
         provider: { icon: '⏳', text: 'Waiting for confirmation. Nudge the requester if needed.', color: 'text-gray-500' },
-        requester: { icon: '✅', text: 'Confirm if the exchange went well — this releases boomerangs to the provider.', color: 'text-green-600 dark:text-green-400' },
+        requester: { icon: '✅', text: 'Confirm if the exchange went well — this releases payment to the provider.', color: 'text-green-600 dark:text-green-400' },
       },
     };
     const hint = hints[status]?.[role];
@@ -341,6 +341,17 @@ export default function DashboardPage() {
         })()}
       </div>
 
+      {/* Stripe Connect warning — shown to providers with services but no active payout account */}
+      {myServices.filter(s => s.is_active !== 0).length > 0 && (user as any)?.stripe_account_status !== 'active' && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">⚠️ Set up payouts to get paid</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Your services are live, but buyers can't pay until you connect your bank account.</p>
+          </div>
+          <Link to="/settings" className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 shrink-0 ml-3">Set up →</Link>
+        </div>
+      )}
+
       {/* Confirm delivery banner */}
       {outgoing.filter(r => r.status === 'delivered').length > 0 && (
         <div className="bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
@@ -348,7 +359,7 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-gray-900 dark:text-white">
               {outgoing.filter(r => r.status === 'delivered').length} exchange{outgoing.filter(r => r.status === 'delivered').length > 1 ? 's' : ''} waiting for your confirmation
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to release boomerangs to the provider</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to release payment to the provider</p>
           </div>
           <button onClick={() => setTab('outgoing')} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
         </div>
@@ -984,7 +995,7 @@ export default function DashboardPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setDisputeForm(null)}>
           <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl p-5 w-full max-w-sm shadow-xl animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="font-semibold text-gray-900 dark:text-white mb-1">What went wrong?</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This will pause the exchange and hold the boomerangs until resolved.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This will pause the exchange and hold the payment until resolved.</p>
             <textarea
               value={disputeForm.reason}
               onChange={e => setDisputeForm(f => f ? { ...f, reason: e.target.value } : f)}

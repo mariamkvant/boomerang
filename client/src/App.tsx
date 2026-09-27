@@ -177,10 +177,10 @@ function Navbar() {
           )}
         </div>
 
-        {/* Mobile: balance pill + hamburger */}
+        {/* Mobile: profile pill + hamburger */}
         <div className="lg:hidden flex items-center gap-2">
           {user && (
-            <Link to="/buy"
+            <Link to="/me"
               className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-[#1c1c1c] dark:hover:bg-[#242424] px-3 py-1.5 rounded-full transition-colors min-h-[36px]">
               <span className="text-sm font-semibold text-gray-700 dark:text-white">{user.username}</span>
             </Link>
@@ -322,6 +322,7 @@ export default function App() {
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
+          <Route path="/help-wanted/:id" element={<HelpWantedPage />} />
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/onboarding" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <OnboardingPage />) : <Navigate to="/login" />} />
@@ -333,7 +334,9 @@ export default function App() {
           <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/support" element={<SupportPage />} />
-          <Route path="/buy" element={user ? (isIOS ? <Navigate to="/dashboard" /> : <BuyBoomerangsPage />) : <Navigate to="/login" />} />
+          <Route path="/buy" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />
+          <Route path="/earnings" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />
+          <Route path="/wallet" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />
           <Route path="/users/:id" element={<ProfilePage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

@@ -15,8 +15,8 @@ const steps = [
     color: 'from-blue-400 to-primary-400',
   },
   {
-    title: 'Exchange with Boomerangs',
-    desc: 'Help someone, earn Boomerangs. Need help? Spend them. No money changes hands.',
+    title: 'Pay securely, get paid fast',
+    desc: 'Stripe holds payment when a service is requested — released to the provider after delivery is confirmed.',
     visual: 'exchange',
     color: 'from-green-400 to-emerald-400',
   },

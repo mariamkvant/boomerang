@@ -11,15 +11,15 @@ const FAQS = [
   },
   {
     q: 'How do boomerangs work?',
-    a: 'You start with 50 free boomerangs. When you provide a service, you earn boomerangs from the requester. When you request a service, you pay boomerangs to the provider. Points transfer only after both parties confirm the exchange is complete.',
+    a: 'Providers set their own price in EUR or GEL. Buyers pay via card — Stripe holds the payment in escrow. After the requester confirms delivery, 90% is released to the provider. Boomerang keeps 10% as a platform fee.',
   },
   {
-    q: 'Is Boomerang free?',
-    a: 'Yes, completely free. No credit card, no subscription, no hidden fees. Boomerangs have no monetary value.',
+    q: 'Is Boomerang free to join?',
+    a: 'Yes, free to join and list services. You only pay when you request a service — at the price the provider set. The platform fee (10%) is deducted automatically.',
   },
   {
     q: 'How do I offer a service?',
-    a: 'Go to "Offer Service" from the navigation, choose a category, add a title and description, set the duration and boomerang cost, and publish. Your service will appear in Browse for others to find.',
+    a: 'Go to "Offer Service" from the navigation, choose a category, add a title and description, set the duration and price, and publish. Your service will appear in Browse for others to find.',
   },
   {
     q: 'How do I request a service?',
@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: 'What happens after a service is completed?',
-    a: 'The provider marks the service as "Delivered." Then you (the requester) confirm it was completed. Once confirmed, boomerangs transfer automatically. You can then leave a review.',
+    a: 'The provider marks the service as "Delivered." Then you (the requester) confirm it was completed. Once confirmed, Stripe releases payment to the provider automatically. You can then leave a review.',
   },
   {
     q: 'What if there\'s a problem with a service?',
@@ -143,7 +143,7 @@ export default function SupportPage() {
                   <option value="account">Account issue</option>
                   <option value="service">Service or exchange problem</option>
                   <option value="dispute">Dispute resolution</option>
-                  <option value="payment">Boomerangs / points issue</option>
+                  <option value="payment">Payment or payout issue</option>
                   <option value="bug">Bug report</option>
                   <option value="feature">Feature request</option>
                   <option value="other">Other</option>

@@ -212,6 +212,7 @@ export const api = {
   resolveReport: (id: number, status: string) => request(`/admin/reports/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
   adminDeleteService: (id: number) => request(`/admin/services/${id}`, { method: 'DELETE' }),
   triggerDigest: () => request('/admin/trigger-digest', { method: 'POST' }),
+  getAdminDisputes: () => request('/admin/disputes'),
 
   // Leaderboard
   getWeeklyLeaders: () => request('/leaderboard/weekly'),

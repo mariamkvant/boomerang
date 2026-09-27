@@ -131,10 +131,6 @@ export default function ProfilePage() {
         {trust && (
           <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{profile.points}</div>
-              <div className="text-xs text-gray-400">Boomerangs</div>
-            </div>
-            <div>
               <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{trust.completed}</div>
               <div className="text-xs text-gray-400">Exchanges</div>
             </div>
@@ -199,7 +195,9 @@ export default function ProfilePage() {
             {profile.services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 group transition-all">
                 <h4 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white">{s.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} boomerangs</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {s.category_name} · {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : s.points_cost + ' pts'}
+                </p>
               </Link>
             ))}
           </div>
@@ -225,7 +223,9 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium dark:text-white group-hover:text-primary-600 transition-colors">{s.provider_name}</span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{s.title}</p>
-                <p className="text-xs text-primary-600 font-medium mt-1">{s.points_cost} 🪃</p>
+                <p className="text-xs text-primary-600 font-medium mt-1">
+                  {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : s.points_cost + ' pts'}
+                </p>
               </Link>
             ))}
           </div>

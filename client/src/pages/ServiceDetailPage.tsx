@@ -40,6 +40,7 @@ export default function ServiceDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [favorited, setFavorited] = useState(false);
+  const [providerConnectStatus, setProviderConnectStatus] = useState<'unknown' | 'ok' | 'not_connected' | 'not_active'>('unknown');
   const [hasServices, setHasServices] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pickupDetails, setPickupDetails] = useState('');
@@ -63,6 +64,20 @@ export default function ServiceDetailPage() {
     api.getService(Number(id)).then(setService).catch(() => {});
     api.trackView('service', Number(id));
   }, [id]);
+
+  useEffect(() => {
+    // Check if provider can receive payments (has active Stripe Connect account)
+    // Only relevant for paid services — fetch provider's public profile which includes stripe_account_status
+    if (service && service.price_eur && user && user.id !== service.provider_id) {
+      api.getUser(service.provider_id).then((p: any) => {
+        if (!p.stripe_account_id) setProviderConnectStatus('not_connected');
+        else if (p.stripe_account_status !== 'active') setProviderConnectStatus('not_active');
+        else setProviderConnectStatus('ok');
+      }).catch(() => setProviderConnectStatus('unknown'));
+    } else {
+      setProviderConnectStatus('ok');
+    }
+  }, [service, user]);
 
   useEffect(() => {
     if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {});
@@ -317,6 +332,38 @@ export default function ServiceDetailPage() {
           </div>
         </div>
 
+        {/* ── No price set — old service ── */}
+        {user && !isOwner && status !== 'success' && priceEur == null && service.points_cost > 0 && (
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">Price not set yet</p>
+              <p className="text-sm text-blue-700 dark:text-blue-400">This service hasn't been updated with a price. Message the provider directly to arrange payment.</p>
+              <Link to={`/messages?to=${service.provider_id}`} className="inline-block mt-3 text-sm font-medium bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Message {service.provider_name}</Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Provider not on Stripe Connect — can't take payment ── */}
+        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_connected' && (
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Provider hasn't set up payouts yet</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400">This provider hasn't connected their bank account yet so can't accept payments. You can message them to let them know.</p>
+              <Link to={`/messages?to=${service.provider_id}`} className="inline-block mt-3 text-sm font-medium bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600">Message {service.provider_name}</Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Provider Connect pending verification ── */}
+        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_active' && (
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Payout account pending verification</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400">The provider's payment account is being verified by Stripe. Payment will be available once approved — check back shortly.</p>
+            </div>
+          </div>
+        )}
+
         {/* ── Request gate: no services ── */}
         {user && !isOwner && status !== 'success' && !hasServices && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
@@ -330,7 +377,7 @@ export default function ServiceDetailPage() {
         )}
 
         {/* ── Request form ── */}
-        {user && !isOwner && status !== 'success' && hasServices && (
+        {user && !isOwner && status !== 'success' && hasServices && priceEur != null && providerConnectStatus === 'ok' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-sm dark:text-white">Request this service</h3>
@@ -526,7 +573,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* ── Sticky mobile request bar ── */}
-      {user && !isOwner && status !== 'success' && hasServices && (
+      {user && !isOwner && status !== 'success' && hasServices && priceEur != null && providerConnectStatus === 'ok' && (
         <div className="fixed left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-40 md:hidden shadow-lg"
           style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
           <div>

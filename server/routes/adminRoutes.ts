@@ -345,6 +345,22 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
   });
 });
 
+// Get all open disputes for admin mediation
+router.get('/disputes', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  const disputes = await db.all(`
+    SELECT sr.id, sr.dispute_reason, sr.created_at, sr.amount_eur, sr.stripe_payment_intent_id,
+      s.title as service_title,
+      p.username as provider_name, p.id as provider_id,
+      r.username as requester_name, r.id as requester_id
+    FROM service_requests sr
+    JOIN services s ON sr.service_id = s.id
+    JOIN users p ON s.provider_id = p.id
+    JOIN users r ON sr.requester_id = r.id
+    WHERE sr.status = 'disputed'
+    ORDER BY sr.created_at ASC`);
+  res.json(disputes);
+});
+
 // Manually trigger weekly digest (admin only)
 router.post('/trigger-digest', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
   const DIGEST_SECRET = process.env.DIGEST_SECRET || 'boomerang-digest-secret';

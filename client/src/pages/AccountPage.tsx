@@ -50,7 +50,7 @@ function NotificationPreferences() {
     { key: 'new_request', label: 'New service requests', desc: 'When someone requests your service' },
     { key: 'request_accepted', label: 'Request accepted', desc: 'When a provider accepts your request' },
     { key: 'service_delivered', label: 'Service delivered', desc: 'When a service is marked as delivered' },
-    { key: 'delivery_confirmed', label: 'Delivery confirmed', desc: 'When points are transferred' },
+    { key: 'delivery_confirmed', label: 'Exchange completed', desc: 'When payment is released after delivery' },
     { key: 'new_message', label: 'New messages', desc: 'Direct messages and request messages' },
     { key: 'group_invite', label: 'Group invites', desc: 'When you\'re added to a community' },
     { key: 'join_request', label: 'Join requests', desc: 'When someone wants to join your group' },
@@ -196,7 +196,7 @@ export default function AccountPage() {
         <div className="text-sm text-gray-500 space-y-1">
           <p>Email: {user?.email} {user?.email_verified ? <span className="text-green-500">✓ Verified</span> : <span className="text-amber-500">Not verified</span>}</p>
           <p>Username: {user?.username}</p>
-          <p>Boomerangs: {user?.points}</p>
+          <p>Member since: {user?.created_at ? new Date(user.created_at).toLocaleDateString('en', { month: 'long', year: 'numeric' }) : '—'}</p>
         </div>
         <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
           <Link to="/privacy" className="text-xs text-gray-400 hover:text-primary-600">Privacy Policy</Link>

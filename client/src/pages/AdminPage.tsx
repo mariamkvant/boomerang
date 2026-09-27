@@ -74,7 +74,7 @@ function DigestTrigger() {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'services'|'reports'|'support'>('stats');
+  const [tab, setTab] = useState<'stats'|'analytics'|'users'|'services'|'reports'|'support'|'disputes'>('stats');
   const [stats, setStats] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
@@ -82,6 +82,7 @@ export default function AdminPage() {
   const [userSearch, setUserSearch] = useState('');
   const [reports, setReports] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [breakdownTab, setBreakdownTab] = useState<'source'|'country'>('source');
 
@@ -95,6 +96,7 @@ export default function AdminPage() {
     if (tab === 'services') api.getAdminServices().then(setAdminServices).catch(() => {});
     if (tab === 'reports') api.getAdminReports().then(setReports).catch(() => {});
     if (tab === 'support') api.getSupportTickets().then(setTickets).catch(() => {});
+    if (tab === 'disputes') api.getAdminDisputes().then(setDisputes).catch(() => {});
   }, [tab, isAdmin]);
 
   const searchUsers = () => {
@@ -108,10 +110,10 @@ export default function AdminPage() {
     <div className="animate-fade-in pb-24 md:pb-8">
       <h2 className="text-xl font-bold mb-5 dark:text-white">Admin Panel</h2>
       <div className="flex gap-2 mb-6 flex-wrap">
-        {(['stats','analytics','users','services','reports','support'] as const).map(tb => (
+        {(['stats','analytics','users','services','reports','support','disputes'] as const).map(tb => (
           <button key={tb} onClick={() => setTab(tb)}
             className={`px-4 py-2 rounded-xl text-sm font-medium ${tab === tb ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-[#202c33] text-gray-600 dark:text-gray-300 hover:bg-gray-200'}`}>
-            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : tb === 'services' ? 'Services' : tb === 'reports' ? 'Reports' : 'Support'}
+            {tb === 'stats' ? 'Dashboard' : tb === 'analytics' ? 'Analytics' : tb === 'users' ? 'Users' : tb === 'services' ? 'Services' : tb === 'reports' ? 'Reports' : tb === 'support' ? 'Support' : '⚠️ Disputes'}
           </button>
         ))}
       </div>
@@ -673,6 +675,44 @@ export default function AdminPage() {
                       className="text-xs bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-200">Close</button>
                   </div>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'disputes' && (
+        <div className="space-y-3">
+          <p className="text-xs text-gray-400 mb-2">{disputes.length} open dispute{disputes.length !== 1 ? 's' : ''} — both parties must agree to resolve, or admin can force-resolve.</p>
+          {disputes.length === 0 && <p className="text-center text-gray-400 py-8">No open disputes 🎉</p>}
+          {disputes.map((r: any) => (
+            <div key={r.id} className="bg-white dark:bg-[#202c33] p-4 rounded-xl border border-red-200 dark:border-red-800 border-l-4 border-l-red-500">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm dark:text-white">{r.service_title}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Provider: {r.provider_name} · Requester: {r.requester_name}
+                    {r.amount_eur && <> · <span className="font-medium text-red-500">€{parseFloat(r.amount_eur).toFixed(2)} held</span></>}
+                  </p>
+                  {r.dispute_reason && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">"{r.dispute_reason}"</p>}
+                  <p className="text-xs text-gray-400 mt-1">Opened: {new Date(r.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <button onClick={async () => {
+                    if (!confirm('Force complete? Payment released to provider.')) return;
+                    await api.adminResolveDispute(r.id, 'complete').catch(() => {});
+                    api.getAdminDisputes().then(setDisputes).catch(() => {});
+                  }} className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-medium">
+                    ✓ Complete
+                  </button>
+                  <button onClick={async () => {
+                    if (!confirm('Force cancel? Payment refunded to requester.')) return;
+                    await api.adminResolveDispute(r.id, 'cancel').catch(() => {});
+                    api.getAdminDisputes().then(setDisputes).catch(() => {});
+                  }} className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-medium">
+                    ✗ Cancel & Refund
+                  </button>
+                </div>
               </div>
             </div>
           ))}
