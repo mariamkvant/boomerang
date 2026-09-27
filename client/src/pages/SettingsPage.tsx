@@ -127,6 +127,13 @@ export default function SettingsPage() {
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-1">{t('settings.locationHelp')}</p>
+          {!(user as any)?.latitude && (
+            <div className="mt-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                📍 <span className="font-medium">Tip:</span> Tap the locate button to set your exact location. This lets people find your services in the "Near Me" radius search (500m, 1km, etc.).
+              </p>
+            </div>
+          )}
         </div>
 
         <div>

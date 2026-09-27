@@ -70,6 +70,7 @@ export default function BrowsePage() {
   const [sortBy, setSortBy] = useState('newest');
   const [cityFilter, setCityFilter] = useState('');
   const [debouncedCity, setDebouncedCity] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'services' | 'items'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState('');
@@ -105,6 +106,7 @@ export default function BrowsePage() {
     if (typeFilter === 'services') params.set('is_product', '0');
     if (minPrice) params.set('min_price', minPrice);
     if (maxPrice) params.set('max_price', maxPrice);
+    if (countryFilter) params.set('country', countryFilter);
     // Wire radius into the main filter when the user has coords (even without nearMe toggle,
     // if they previously granted location we pass it to improve relevance)
     if (userCoords && nearMe) {
@@ -195,7 +197,7 @@ export default function BrowsePage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice]);
+  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice, countryFilter]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -276,7 +278,7 @@ export default function BrowsePage() {
 
           {/* Filters toggle */}
           <button onClick={() => setShowFilters(!showFilters)} title="Filters"
-            className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
+            className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice || countryFilter ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
           </button>
         </div>
@@ -299,6 +301,16 @@ export default function BrowsePage() {
         {/* ── Expanded filters ── */}
         {showFilters && (
           <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mt-2">
+            <div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Country</p>
+              <select value={countryFilter} onChange={e => { setCountryFilter(e.target.value); setPage(1); }}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-[#1c1c1c] dark:text-white outline-none">
+                <option value="">All countries</option>
+                {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
               <div className="flex gap-2">
