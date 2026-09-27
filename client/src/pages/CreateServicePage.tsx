@@ -15,6 +15,7 @@ export default function CreateServicePage() {
     price_eur: '', duration_minutes: '60',
     is_bundle: false, sessions_count: '1', bundle_discount: '10',
     city: '', country: 'Luxembourg', is_product: false, quantity: '1',
+    district: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -81,6 +82,8 @@ export default function CreateServicePage() {
         image,
         is_product: form.is_product,
         quantity: Number(form.quantity),
+        // Include district in city field if Tbilisi
+        city: form.district ? `${form.city} — ${form.district}` : form.city,
       });
       navigate(`/services/${res.id}`);
     } catch (err: any) { setError(err.message); setLoading(false); }
@@ -164,7 +167,7 @@ export default function CreateServicePage() {
           <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
           <select id="country" required value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
             className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-            {['Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
+            {['Luxembourg','Georgia','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -179,12 +182,34 @@ export default function CreateServicePage() {
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+          ) : form.country === 'Georgia' ? (
+            <select id="city" required value={form.city} onChange={set('city')}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
+              <option value="">Select your city</option>
+              {['Tbilisi','Batumi','Kutaisi','Rustavi','Gori','Zugdidi','Poti','Khashuri','Samtredia','Senaki','Zugdidi','Marneuli','Telavi','Akhaltsikhe','Ozurgeti','Kaspi','Chiatura','Tskaltubo','Borjomi','Akhalkalaki','Other'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           ) : (
             <input id="city" required value={form.city} onChange={set('city')}
               placeholder={form.country === 'United Kingdom' ? 'e.g. London, Bristol...' : form.country === 'Germany' ? 'e.g. Berlin, Munich...' : form.country === 'France' ? 'e.g. Paris, Lyon...' : 'Your city or area'}
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
           )}
         </div>
+
+        {/* Tbilisi district selector */}
+        {form.country === 'Georgia' && form.city === 'Tbilisi' && (
+          <div>
+            <label htmlFor="district" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">District / Area in Tbilisi</label>
+            <select id="district" value={form.district || ''} onChange={e => setForm(f => ({ ...f, district: e.target.value }))}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
+              <option value="">Select district (optional)</option>
+              {['Old Tbilisi (Dzveli Tbilisi)','Vake','Saburtalo','Didube','Gldani','Isani','Samgori','Nadzaladevi','Mtatsminda','Chugureti','Avlabari','Ortachala','Varketili','Dighomi','Temqa','Ponichala','Lilo','Shindisi','Other'].map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Description */}
         <div>
