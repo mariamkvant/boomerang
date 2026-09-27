@@ -11,11 +11,34 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
 const MAX_RECENT = 5;
 
+const RADIUS_OPTIONS = [
+  { label: '500 m', value: 0.5 },
+  { label: '1 km',  value: 1   },
+  { label: '5 km',  value: 5   },
+  { label: '10 km', value: 10  },
+  { label: '25 km', value: 25  },
+  { label: 'Any',   value: 0   }, // 0 = no distance cap (use 200km)
+];
+
+function fmtPrice(s: any): string {
+  const p = s.price_eur != null ? parseFloat(s.price_eur) : null;
+  if (p != null && p > 0) return `€${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}`;
+  return `${s.points_cost ?? '?'} 🪃`;
+}
+
+function fmtDist(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toFixed(1)} km`;
+}
+
 function saveRecentlyViewed(service: any) {
   try {
     const existing: any[] = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
     const filtered = existing.filter((s: any) => s.id !== service.id);
-    const updated = [{ id: service.id, title: service.title, points_cost: service.points_cost, provider_name: service.provider_name }, ...filtered].slice(0, MAX_RECENT);
+    const updated = [
+      { id: service.id, title: service.title, price_eur: service.price_eur, points_cost: service.points_cost, provider_name: service.provider_name },
+      ...filtered,
+    ].slice(0, MAX_RECENT);
     localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(updated));
   } catch {}
 }
@@ -40,6 +63,7 @@ export default function BrowsePage() {
   const [locating, setLocating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [radiusKm, setRadiusKm] = useState<number>(5); // default 5 km
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -60,19 +84,16 @@ export default function BrowsePage() {
   const longPressTriggered = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Back-to-top visibility
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 400);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Load recently viewed on mount
   useEffect(() => { setRecentlyViewed(getRecentlyViewed()); }, []);
 
-  const reloadServices = async () => {
-    setRefreshing(true);
-    setLoading(true);
+  // Build URLSearchParams for the standard (non-nearMe) fetch
+  const buildParams = () => {
     const params = new URLSearchParams();
     if (selectedCat) params.set('category', selectedCat);
     if (selectedSub) params.set('subcategory', selectedSub);
@@ -84,13 +105,24 @@ export default function BrowsePage() {
     if (typeFilter === 'services') params.set('is_product', '0');
     if (minPrice) params.set('min_price', minPrice);
     if (maxPrice) params.set('max_price', maxPrice);
+    // Wire radius into the main filter when the user has coords (even without nearMe toggle,
+    // if they previously granted location we pass it to improve relevance)
+    if (userCoords && nearMe) {
+      params.set('lat', String(userCoords.lat));
+      params.set('lng', String(userCoords.lng));
+      params.set('radius', String(radiusKm > 0 ? radiusKm : 200));
+    }
+    return params;
+  };
+
+  const reloadServices = async () => {
+    setRefreshing(true); setLoading(true);
     try {
-      const res: any = await api.getServices(params.toString());
+      const res: any = await api.getServices(buildParams().toString());
       if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
       else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
     } catch {}
-    setLoading(false);
-    setRefreshing(false);
+    setLoading(false); setRefreshing(false);
   };
   usePullToRefresh(reloadServices);
 
@@ -98,7 +130,7 @@ export default function BrowsePage() {
     e.preventDefault(); e.stopPropagation();
     if (!user) return;
     const svc = services.find(s => s.id === serviceId);
-    if (svc) { setRequestConfirm({ service: svc }); }
+    if (svc) setRequestConfirm({ service: svc });
   };
 
   const confirmRequest = async (serviceId: number) => {
@@ -111,55 +143,59 @@ export default function BrowsePage() {
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
-  // Debounce search and city inputs
+  // Debounce search + city
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { setDebouncedSearch(search); setDebouncedCity(cityFilter); setPage(1); }, 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [search, cityFilter]);
 
-  // Load subcategories when category changes
+  // Subcategories
   useEffect(() => {
-    if (selectedCat) {
-      api.getSubcategories(Number(selectedCat)).then(setSubcategories).catch(() => setSubcategories([]));
-    } else {
-      setSubcategories([]); setSelectedSub('');
-    }
+    if (selectedCat) { api.getSubcategories(Number(selectedCat)).then(setSubcategories).catch(() => setSubcategories([])); }
+    else { setSubcategories([]); setSelectedSub(''); }
   }, [selectedCat]);
 
+  // Main data fetch
   useEffect(() => {
     setLoading(true);
+
+    // Near Me mode: use the dedicated nearby endpoint with the chosen radius
     if (nearMe) {
-      if (!navigator.geolocation) { setNearMe(false); setLoading(false); toast('Geolocation not supported', 'error'); return; }
+      if (!navigator.geolocation) {
+        setNearMe(false); setLoading(false); toast('Geolocation not supported', 'error'); return;
+      }
+      if (userCoords) {
+        // Already have coords — just refetch with new radius
+        const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
+        api.getNearbyServices(userCoords.lat, userCoords.lng, effectiveRadius)
+          .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); })
+          .catch(() => setLoading(false));
+        return;
+      }
       setLocating(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          api.getNearbyServices(pos.coords.latitude, pos.coords.longitude).then(s => { setServices(s); setLoading(false); setLocating(false); }).catch(() => { setLoading(false); setLocating(false); });
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserCoords(coords);
+          const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
+          api.getNearbyServices(coords.lat, coords.lng, effectiveRadius)
+            .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); setLocating(false); })
+            .catch(() => { setLoading(false); setLocating(false); });
         },
         () => { setNearMe(false); setLoading(false); setLocating(false); toast('Location access denied. Enable it in settings.', 'error'); },
-        { enableHighAccuracy: false, timeout: 10000 }
+        { enableHighAccuracy: false, timeout: 10000 },
       );
       return;
     }
-    const params = new URLSearchParams();
-    if (selectedCat) params.set('category', selectedCat);
-    if (selectedSub) params.set('subcategory', selectedSub);
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    if (debouncedCity) params.set('city', debouncedCity);
-    if (page > 1) params.set('page', String(page));
-    if (sortBy !== 'newest') params.set('sort', sortBy);
-    if (typeFilter === 'items') params.set('is_product', '1');
-    if (typeFilter === 'services') params.set('is_product', '0');
-    if (minPrice) params.set('min_price', minPrice);
-    if (maxPrice) params.set('max_price', maxPrice);
-    api.getServices(params.toString()).then((res: any) => {
-      // Handle both old array format and new paginated format
+
+    api.getServices(buildParams().toString()).then((res: any) => {
       if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
       else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, page, sortBy, typeFilter, minPrice, maxPrice]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice]);
 
   const handleCatClick = (id: string) => {
     const val = selectedCat === id ? '' : id;
@@ -167,15 +203,24 @@ export default function BrowsePage() {
     if (val) setSearchParams({ category: val }); else setSearchParams({});
   };
 
+  const toggleNearMe = () => {
+    if (nearMe) { setNearMe(false); return; }
+    setNearMe(true);
+  };
+
   return (
     <div className="animate-fade-in pb-24 md:pb-8">
-      {refreshing && <div className="flex justify-center py-2"><div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>}
+      {refreshing && (
+        <div className="flex justify-center py-2">
+          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
       <div className="mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
       </div>
 
-      {/* Search bar — single clean row */}
+      {/* ── Sticky search + controls ── */}
       <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
         {/* Row 1: search + city */}
         <div className="flex gap-2 mb-2">
@@ -192,16 +237,18 @@ export default function BrowsePage() {
               </button>
             )}
           </div>
-          <div className="relative w-28 shrink-0">
-            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-            </svg>
-            <input type="text" placeholder="City..." value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-              className="w-full pl-8 pr-2 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
-              aria-label="Filter by location" />
-          </div>
+          {!nearMe && (
+            <div className="relative w-28 shrink-0">
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+              <input type="text" placeholder="City..." value={cityFilter} onChange={e => setCityFilter(e.target.value)}
+                className="w-full pl-8 pr-2 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
+                aria-label="Filter by city" />
+            </div>
+          )}
         </div>
+
         {/* Row 2: sort + action buttons */}
         <div className="flex gap-1.5">
           <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
@@ -211,41 +258,65 @@ export default function BrowsePage() {
             <option value="price_high">Price ↓</option>
             <option value="rating">Rating</option>
           </select>
-          <button onClick={() => setNearMe(!nearMe)} title="Near Me"
+
+          {/* Near Me toggle */}
+          <button onClick={toggleNearMe} title={nearMe ? 'Disable Near Me' : 'Near Me'}
             className={`p-2 rounded-lg border text-xs transition-colors ${nearMe ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            {locating
+              ? <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            }
           </button>
+
+          {/* Map toggle */}
           <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')} title="Map view"
             className={`p-2 rounded-lg border text-xs transition-colors ${viewMode === 'map' ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
           </button>
+
+          {/* Filters toggle */}
           <button onClick={() => setShowFilters(!showFilters)} title="Filters"
             className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
           </button>
         </div>
 
-        {/* Expanded filters */}
+        {/* ── Radius picker — shown when Near Me is active ── */}
+        {nearMe && (
+          <div className="mt-2">
+            <p className="text-[11px] text-gray-400 mb-1.5">Distance</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {RADIUS_OPTIONS.map(opt => (
+                <button key={opt.value} onClick={() => { setRadiusKm(opt.value); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${radiusKm === opt.value ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400'}`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Expanded filters ── */}
         {showFilters && (
-          <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mb-2">
+          <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mt-2">
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
               <div className="flex gap-2">
-                {(['all', 'services', 'items'] as const).map(t => (
-                  <button key={t} onClick={() => { setTypeFilter(t); setPage(1); }}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
-                    {t === 'all' ? 'All' : t === 'services' ? 'Services' : 'Items'}
+                {(['all', 'services', 'items'] as const).map(tf => (
+                  <button key={tf} onClick={() => { setTypeFilter(tf); setPage(1); }}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${typeFilter === tf ? 'bg-gray-900 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
+                    {tf === 'all' ? 'All' : tf === 'services' ? 'Services' : 'Items'}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Price range (🪃)</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Price range (€)</p>
               <div className="flex items-center gap-2">
-                <input type="number" min="0" placeholder="Min" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
+                <input type="number" min="0" step="0.01" placeholder="Min" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
                   className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
                 <span className="text-gray-400 text-xs">–</span>
-                <input type="number" min="0" placeholder="Max" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
+                <input type="number" min="0" step="0.01" placeholder="Max" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
                   className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
                 {(minPrice || maxPrice) && (
                   <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
@@ -256,7 +327,7 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* Category pills — wrap layout, no scroll needed */}
+      {/* ── Category pills ── */}
       {(() => {
         const VISIBLE = 8;
         const allShown = showAllCats || selectedCat !== '' || categories.length <= VISIBLE;
@@ -264,29 +335,24 @@ export default function BrowsePage() {
         return (
           <div className="mt-3 mb-5">
             <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => { handleCatClick(''); setShowAllCats(false); }}
+              <button onClick={() => { handleCatClick(''); setShowAllCats(false); }}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
                 All
               </button>
               {visible.map((c: any) => (
-                <button
-                  key={c.id}
-                  onClick={() => handleCatClick(String(c.id))}
+                <button key={c.id} onClick={() => handleCatClick(String(c.id))}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
                   {translateCat(c.name)}
                 </button>
               ))}
               {!allShown && (
-                <button
-                  onClick={() => setShowAllCats(true)}
+                <button onClick={() => setShowAllCats(true)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
                   +{categories.length - VISIBLE} more
                 </button>
               )}
               {allShown && categories.length > VISIBLE && !selectedCat && (
-                <button
-                  onClick={() => setShowAllCats(false)}
+                <button onClick={() => setShowAllCats(false)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
                   Show less
                 </button>
@@ -296,7 +362,7 @@ export default function BrowsePage() {
         );
       })()}
 
-      {/* Subcategory pills */}
+      {/* ── Subcategory pills ── */}
       {subcategories.length > 0 && (
         <div className="flex gap-1.5 overflow-x-auto pb-1 mb-5" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => setSelectedSub('')}
@@ -312,7 +378,7 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {/* Recently viewed — shown when no search/filter active */}
+      {/* ── Recently viewed ── */}
       {!search && !selectedCat && !debouncedCity && recentlyViewed.length > 0 && (
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
@@ -324,23 +390,32 @@ export default function BrowsePage() {
               <Link key={s.id} to={`/services/${s.id}`}
                 className="flex-shrink-0 bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl px-3 py-2.5 hover:border-gray-300 transition-all min-w-[140px] max-w-[180px]">
                 <p className="text-xs font-medium text-gray-800 dark:text-white line-clamp-2 leading-snug mb-1">{s.title}</p>
-                <p className="text-xs text-gray-400">{s.points_cost} 🪃</p>
+                <p className="text-xs text-gray-400">{fmtPrice(s)}</p>
               </Link>
             ))}
           </div>
         </div>
       )}
 
-      {/* Results */}
+      {/* ── Results ── */}
       {loading ? (
         <SkeletonGrid count={6} />
       ) : services.length === 0 ? (
         <div className="text-center py-16">
           <h3 className="text-base font-semibold text-gray-700 dark:text-white mb-1">
-            {selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
+            {nearMe ? `Nothing within ${radiusKm > 0 ? (radiusKm < 1 ? `${radiusKm * 1000} m` : `${radiusKm} km`) : 'this area'}` :
+              selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
           </h3>
-          <p className="text-gray-400 text-sm mb-5">Be the first to offer something in this category</p>
-          <Link to="/services/new" className="inline-block bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
+          <p className="text-gray-400 text-sm mb-5">
+            {nearMe ? 'Try a larger radius or browse all services' : 'Be the first to offer something in this category'}
+          </p>
+          {nearMe ? (
+            <button onClick={() => setRadiusKm(25)}
+              className="inline-block bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-medium mr-2">
+              Expand to 25 km
+            </button>
+          ) : null}
+          <Link to="/services/new" className="inline-block bg-gray-100 dark:bg-[#242424] text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-xl text-sm font-medium">
             + Offer something
           </Link>
         </div>
@@ -351,21 +426,18 @@ export default function BrowsePage() {
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-400 mb-4">{total} {t('browse.servicesFound')}</p>
+          <p className="text-sm text-gray-400 mb-4">
+            {nearMe ? `${services.length} within ${radiusKm > 0 ? (radiusKm < 1 ? `${radiusKm * 1000} m` : `${radiusKm} km`) : 'any distance'}` : `${total} ${t('browse.servicesFound')}`}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`}
                 onTouchStart={() => { longPressTriggered.current = false; longPressRef.current = setTimeout(() => { longPressTriggered.current = true; setContextMenu({ service: s }); }, 500); }}
                 onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
                 onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
-                onClick={(e) => {
-                  if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; return; }
-                  saveRecentlyViewed(s);
-                }}
+                onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; return; } saveRecentlyViewed(s); }}
                 className="block bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 hover:shadow-sm group overflow-hidden transition-all duration-200">
-                {s.image && (
-                  <img src={s.image} alt={s.title} loading="lazy" className="w-full h-40 object-cover" />
-                )}
+                {s.image && <img src={s.image} alt={s.title} loading="lazy" className="w-full h-40 object-cover" />}
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2">{s.title}</h3>
@@ -378,11 +450,16 @@ export default function BrowsePage() {
                       {s.provider_name?.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.provider_name}</span>
-                    {s.provider_city && <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">· {s.provider_city}</span>}
+                    {/* Distance badge — only shown in nearMe mode */}
+                    {nearMe && s.distance != null ? (
+                      <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
+                    ) : s.provider_city ? (
+                      <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">· {s.provider_city}</span>
+                    ) : null}
                     {s.avg_rating && <span className="text-xs text-gray-400 ml-auto shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{s.points_cost} <span className="text-primary-500">🪃</span></span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">{fmtPrice(s)}</span>
                     {user && s.provider_id !== user.id && (
                       <button onClick={(e) => quickRequest(s.id, e)}
                         className="text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 px-3 py-1.5 rounded-lg transition-all">
@@ -394,7 +471,7 @@ export default function BrowsePage() {
               </Link>
             ))}
           </div>
-          {totalPages > 1 && (
+          {totalPages > 1 && !nearMe && (
             <div className="flex items-center justify-center gap-2 mt-8">
               <button onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={page <= 1}
                 className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">←</button>
@@ -415,7 +492,7 @@ export default function BrowsePage() {
         </button>
       )}
 
-      {/* Request confirmation modal */}
+      {/* ── Quick request confirmation sheet ── */}
       {requestConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRequestConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
@@ -425,16 +502,14 @@ export default function BrowsePage() {
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                Cost: {requestConfirm.service.points_cost} <span className="text-primary-500">🪃</span>
+                Price: <span className="text-primary-600">{fmtPrice(requestConfirm.service)}</span>
               </p>
-              <div className="flex gap-2 pt-2 pb-10" style={{ paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 5rem))' }}>
-                <button
-                  onClick={() => setRequestConfirm(null)}
+              <div className="flex gap-2 pt-2" style={{ paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 5rem))' }}>
+                <button onClick={() => setRequestConfirm(null)}
                   className="flex-1 py-3 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                   Cancel
                 </button>
-                <button
-                  onClick={() => confirmRequest(requestConfirm.service.id)}
+                <button onClick={() => confirmRequest(requestConfirm.service.id)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">
                   Send Request
                 </button>
@@ -443,6 +518,8 @@ export default function BrowsePage() {
           </div>
         </div>
       )}
+
+      {/* ── Long-press context menu ── */}
       {contextMenu && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setContextMenu(null)}>
           <div className="absolute inset-0 bg-black/40" />
@@ -450,7 +527,7 @@ export default function BrowsePage() {
             <div className="w-10 h-1 bg-gray-200 dark:bg-gray-600 rounded-full mx-auto mt-3 mb-2" />
             <div className="px-4 pb-2">
               <p className="text-sm font-semibold dark:text-white truncate">{contextMenu.service.title}</p>
-              <p className="text-xs text-gray-400">{contextMenu.service.provider_name} · {contextMenu.service.points_cost} 🪃</p>
+              <p className="text-xs text-gray-400">{contextMenu.service.provider_name} · {fmtPrice(contextMenu.service)}</p>
             </div>
             <div className="border-t border-gray-100 dark:border-gray-700">
               <button onClick={() => { navigator.share?.({ title: contextMenu.service.title, url: `${window.location.origin}/services/${contextMenu.service.id}` }); setContextMenu(null); }}
@@ -458,11 +535,13 @@ export default function BrowsePage() {
                 <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
                 Share
               </button>
-              {user && <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)}
-                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
-                Message provider
-              </Link>}
+              {user && (
+                <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)}
+                  className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
+                  Message provider
+                </Link>
+              )}
               <Link to={`/services/${contextMenu.service.id}`} onClick={() => setContextMenu(null)}
                 className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
                 <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>

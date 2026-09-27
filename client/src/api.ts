@@ -88,7 +88,7 @@ export const api = {
   getMyFavorites: () => request('/services/user/favorites'),
   isFavorited: (id: number) => request(`/services/${id}/favorited`),
   getPopularServices: () => request('/services/trending/popular'),
-  getNearbyServices: (lat: number, lng: number, radius?: number) => request(`/services/nearby?lat=${lat}&lng=${lng}${radius ? `&radius=${radius}` : ''}`),
+  getNearbyServices: (lat: number, lng: number, radius?: number) => request(`/services/nearby?lat=${lat}&lng=${lng}&radius=${radius ?? 10}`),
   getStats: () => cachedRequest('/services/stats'),
 
   // Requests
@@ -211,6 +211,7 @@ export const api = {
   getAdminReports: () => request('/admin/reports'),
   resolveReport: (id: number, status: string) => request(`/admin/reports/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
   adminDeleteService: (id: number) => request(`/admin/services/${id}`, { method: 'DELETE' }),
+  triggerDigest: () => request('/admin/trigger-digest', { method: 'POST' }),
 
   // Leaderboard
   getWeeklyLeaders: () => request('/leaderboard/weekly'),
@@ -219,11 +220,20 @@ export const api = {
 
   // Payments
   getPackages: () => request('/payments/packages'),
+  getStripePublishableKey: () => request('/payments/publishable-key'),
   createCheckout: (packageId: string) => request('/payments/checkout', { method: 'POST', body: JSON.stringify({ packageId }) }),
   confirmTopUp: (amount: number) => request('/payments/confirm', { method: 'POST', body: JSON.stringify({ amount }) }),
   getTransactionHistory: () => request('/payments/history'),
   giftBoomerangs: (toUserId: number, amount: number, message?: string) => request('/payments/gift', { method: 'POST', body: JSON.stringify({ to_user_id: toUserId, amount, message }) }),
   boostService: (serviceId: number) => request('/payments/boost', { method: 'POST', body: JSON.stringify({ service_id: serviceId }) }),
+  // Per-service escrow (Vinted-style hold)
+  createServiceIntent: (requestId: number) => request('/payments/create-service-intent', { method: 'POST', body: JSON.stringify({ request_id: requestId }) }),
+  captureServicePayment: (requestId: number) => request(`/payments/capture/${requestId}`, { method: 'POST' }),
+  refundServicePayment: (requestId: number) => request(`/payments/refund/${requestId}`, { method: 'POST' }),
+  // Stripe Connect — provider payout onboarding
+  stripeConnectOnboard: () => request('/payments/connect/onboard', { method: 'POST' }),
+  stripeConnectStatus: () => request('/payments/connect/status'),
+  stripeConnectDashboard: () => request('/payments/connect/dashboard-link', { method: 'POST' }),
 
   // Review management
   hideReview: (reviewId: number, hidden: boolean) => request(`/requests/reviews/${reviewId}/hide`, { method: 'PUT', body: JSON.stringify({ hidden }) }),

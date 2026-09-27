@@ -246,6 +246,25 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS reschedule_by INTEGER'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_accept BOOLEAN DEFAULT false'); } catch(e) {}
 
+    // === Stripe Connect — provider payout accounts ===
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_id TEXT'); } catch(e) {}
+    // 'none' | 'pending' | 'active' | 'restricted'
+    try { await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_status TEXT DEFAULT 'none'"); } catch(e) {}
+
+    // === Real-money charging system migration ===
+    // price_eur: provider-set EUR price (replaces points_cost as the primary pricing unit)
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS price_eur NUMERIC(10,2)'); } catch(e) {}
+    // stripe_payment_intent_id: tracks per-request Stripe PaymentIntent
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT'); } catch(e) {}
+    // amount_eur: actual EUR amount charged (captured at payment time)
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS amount_eur NUMERIC(10,2)'); } catch(e) {}
+    // platform_fee_eur: 10% platform fee stored per request
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS platform_fee_eur NUMERIC(10,2)'); } catch(e) {}
+    // provider_payout_eur: what the provider receives after fee
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS provider_payout_eur NUMERIC(10,2)'); } catch(e) {}
+    // payment_status: 'pending' | 'paid' | 'refunded' | 'free'
+    try { await client.query("ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending'"); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

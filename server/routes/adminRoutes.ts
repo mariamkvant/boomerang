@@ -345,4 +345,17 @@ router.get('/analytics', authMiddleware, adminMiddleware, async (_req: AuthReque
   });
 });
 
+// Manually trigger weekly digest (admin only)
+router.post('/trigger-digest', authMiddleware, adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  const DIGEST_SECRET = process.env.DIGEST_SECRET || 'boomerang-digest-secret';
+  const PORT = process.env.PORT || 3001;
+  try {
+    const r = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${DIGEST_SECRET}`, { method: 'POST' });
+    const data: any = await r.json();
+    res.json({ triggered: true, result: data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

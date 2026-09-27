@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
+import { useToast } from '../components/Toast';
 
 export default function EditServicePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [form, setForm] = useState({
     title: '', description: '', category_id: '', subcategory_id: '',
-    points_cost: '', duration_minutes: '', is_product: false,
+    price_eur: '', duration_minutes: '',
+    is_product: false, city: '', country: 'Luxembourg',
   });
+  const [image, setImage] = useState<string | null>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -23,10 +28,13 @@ export default function EditServicePage() {
         description: svc.description,
         category_id: String(svc.category_id),
         subcategory_id: svc.subcategory_id ? String(svc.subcategory_id) : '',
-        points_cost: String(svc.points_cost),
-        duration_minutes: String(svc.duration_minutes),
+        price_eur: svc.price_eur ? String(svc.price_eur) : svc.points_cost ? String((svc.points_cost / 10).toFixed(2)) : '',
+        duration_minutes: String(svc.duration_minutes || 60),
         is_product: !!svc.is_product,
+        city: svc.city || '',
+        country: svc.country || 'Luxembourg',
       });
+      setExistingImage(svc.image || null);
       if (svc.category_id) api.getSubcategories(svc.category_id).then(setSubcategories).catch(() => {});
       setLoading(false);
     }).catch(() => { setError('Service not found'); setLoading(false); });
@@ -36,18 +44,33 @@ export default function EditServicePage() {
     if (form.category_id) api.getSubcategories(Number(form.category_id)).then(setSubcategories).catch(() => setSubcategories([]));
   }, [form.category_id]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) return toast('Image must be under 2MB', 'error');
+    const reader = new FileReader();
+    reader.onload = () => setImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setSaving(true);
+    const price = parseFloat(form.price_eur);
+    if (!price || price <= 0) { setError('Please enter a valid price'); setSaving(false); return; }
     try {
-      await api.updateService(Number(id), {
+      const body: any = {
         title: form.title,
         description: form.description,
         category_id: Number(form.category_id),
         subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
-        points_cost: Number(form.points_cost),
+        price_eur: price,
         duration_minutes: Number(form.duration_minutes),
         is_product: form.is_product,
-      });
+        city: form.city,
+        country: form.country,
+      };
+      if (image !== null) body.image = image; // new image uploaded
+      await api.updateService(Number(id), body);
       navigate(`/services/${id}`);
     } catch (err: any) { setError(err.message); setSaving(false); }
   };
@@ -57,6 +80,8 @@ export default function EditServicePage() {
 
   if (loading) return <div className="text-center py-20 text-gray-400">Loading...</div>;
 
+  const displayImage = image || existingImage;
+
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
       <h2 className="text-2xl font-bold mb-6 dark:text-white">Edit Listing</h2>
@@ -64,26 +89,25 @@ export default function EditServicePage() {
       <form onSubmit={handleSave} className="bg-white dark:bg-[#1c1c1c] p-4 sm:p-8 rounded-2xl shadow-card space-y-5">
 
         {/* Service / Item toggle */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Type</label>
-          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#242424] rounded-xl">
-            <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-              Service
-            </button>
-            <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-              Item / Product
-            </button>
-          </div>
+        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#242424] rounded-xl">
+          <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            Service
+          </button>
+          <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#1c1c1c] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            Item / Product
+          </button>
         </div>
 
+        {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
           <input id="title" required value={form.title} onChange={set('title')}
             className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
         </div>
 
+        {/* Category */}
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
           <select id="category" required value={form.category_id} onChange={set('category_id')}
@@ -104,24 +128,80 @@ export default function EditServicePage() {
           </div>
         )}
 
+        {/* Description */}
         <div>
           <label htmlFor="desc" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
           <textarea id="desc" required value={form.description} onChange={set('description')} rows={4}
             className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Location */}
+        <div>
+          <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
+          <select id="country" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#242424] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+            {['Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">City / Area</label>
+          {form.country === 'Luxembourg' ? (
+            <select id="city" value={form.city} onChange={set('city')}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#242424] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none">
+              <option value="">Select commune</option>
+              {['Luxembourg City','Esch-sur-Alzette','Differdange','Dudelange','Ettelbruck','Diekirch','Wiltz','Echternach','Remich','Grevenmacher','Mersch','Mamer','Strassen','Bertrange','Hesperange','Walferdange','Bettembourg','Schifflange','Kayl','Sanem','Pétange','Bascharage','Other'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          ) : (
+            <input id="city" value={form.city} onChange={set('city')} placeholder="Your city or area"
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+          )}
+        </div>
+
+        {/* Price */}
+        <div>
+          <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Price</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">€</span>
+            <input id="price_eur" type="number" min="1" max="9999" step="0.01" required
+              value={form.price_eur} onChange={set('price_eur')}
+              className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+          </div>
+          {form.price_eur && parseFloat(form.price_eur) > 0 && (
+            <p className="text-xs text-gray-400 mt-1.5">
+              You receive <span className="font-semibold text-green-600">€{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after 10% platform fee
+            </p>
+          )}
+        </div>
+
+        {/* Duration */}
+        {!form.is_product && (
           <div>
-            <label htmlFor="pts" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Boomerangs</label>
-            <input id="pts" type="number" min="1" required value={form.points_cost} onChange={set('points_cost')}
+            <label htmlFor="dur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duration (min)</label>
+            <input id="dur" type="number" min="15" value={form.duration_minutes} onChange={set('duration_minutes')}
               className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
           </div>
-          {!form.is_product && (
-            <div>
-              <label htmlFor="dur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duration (min)</label>
-              <input id="dur" type="number" min="15" value={form.duration_minutes} onChange={set('duration_minutes')}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#242424] dark:text-white" />
+        )}
+
+        {/* Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {form.is_product ? 'Item Photo' : 'Service Image (optional)'}
+          </label>
+          {displayImage ? (
+            <div className="relative">
+              <img src={displayImage} alt="" className="w-full h-40 object-cover rounded-xl" />
+              <button type="button" onClick={() => { setImage(null); setExistingImage(null); }}
+                className="absolute top-2 right-2 bg-white/80 dark:bg-black/50 rounded-full w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-white">✕</button>
             </div>
+          ) : (
+            <label className="block border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary-300">
+              <span className="text-gray-400 text-sm">Click to upload an image</span>
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImageChange} className="hidden" />
+            </label>
           )}
         </div>
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useToast } from '../components/Toast';
@@ -8,6 +8,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { dark, toggle: toggleDark } = useDarkMode();
   const [bio, setBio] = useState(user?.bio || '');
@@ -18,6 +19,24 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+
+  // Stripe Connect / payouts state
+  const [connectStatus, setConnectStatus] = useState<{status: string; charges_enabled?: boolean; payouts_enabled?: boolean} | null>(null);
+  const [connectLoading, setConnectLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if returning from Stripe onboarding
+    const connect = searchParams.get('connect');
+    if (connect === 'success' || connect === 'refresh') {
+      toast(connect === 'success' ? 'Payout account connected! ✓' : 'Please complete your payout setup.', connect === 'success' ? 'success' : 'error');
+    }
+    // Load connect status if user has started onboarding
+    if ((user as any)?.stripe_account_id) {
+      api.stripeConnectStatus().then(setConnectStatus).catch(() => {});
+    } else {
+      setConnectStatus({ status: 'none' });
+    }
+  }, [user]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,6 +188,89 @@ export default function SettingsPage() {
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{t('settings.availability')}</h3>
         <p className="text-xs text-gray-400 mb-3">{t('settings.availabilityDesc')}</p>
         <Link to="/availability" className="text-sm text-primary-600 hover:text-primary-700 font-medium">{t('settings.manageSchedule')} →</Link>
+      </div>
+
+      {/* ── Payouts (Stripe Connect) ── */}
+      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Payouts</h3>
+
+        {connectStatus === null ? (
+          <p className="text-xs text-gray-400">Loading…</p>
+        ) : connectStatus.status === 'none' || connectStatus.status === 'incomplete' ? (
+          <div>
+            <p className="text-sm text-gray-700 dark:text-gray-200 mb-1 font-medium">Set up your payout account</p>
+            <p className="text-xs text-gray-400 mb-3">
+              Connect your bank account via Stripe to receive payments when you deliver a service.
+              Takes ~2 minutes. Powered by Stripe — your bank details are never stored on Boomerang.
+            </p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-3 py-2.5 mb-3 text-xs text-blue-700 dark:text-blue-300">
+              <span className="font-semibold">How it works:</span> When a requester pays for your service, the money is held securely (like Vinted). Once they confirm delivery — or after 5 days automatically — you receive 90% directly to your bank account.
+            </div>
+            <button disabled={connectLoading} onClick={async () => {
+              setConnectLoading(true);
+              try {
+                const r: any = await api.stripeConnectOnboard();
+                window.location.href = r.url;
+              } catch (err: any) { toast(err.message, 'error'); setConnectLoading(false); }
+            }} className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-gray-800 transition-colors">
+              {connectLoading ? (
+                <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+              )}
+              Connect bank account
+            </button>
+          </div>
+        ) : connectStatus.status === 'pending' ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Verification in progress
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">Stripe is verifying your details. This usually takes a few minutes to a few hours.</p>
+            <button disabled={connectLoading} onClick={async () => {
+              setConnectLoading(true);
+              try {
+                const r: any = await api.stripeConnectOnboard();
+                window.location.href = r.url;
+              } catch (err: any) { toast(err.message, 'error'); }
+              setConnectLoading(false);
+            }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
+              Complete setup →
+            </button>
+          </div>
+        ) : connectStatus.status === 'active' ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" /></svg>
+                Active — payments enabled
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">Your bank account is connected. Payments are released automatically after delivery confirmation.</p>
+            <button disabled={connectLoading} onClick={async () => {
+              setConnectLoading(true);
+              try {
+                const r: any = await api.stripeConnectDashboard();
+                window.open(r.url, '_blank');
+              } catch (err: any) { toast(err.message, 'error'); }
+              setConnectLoading(false);
+            }} className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors disabled:opacity-50">
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" /></svg>
+              {connectLoading ? 'Opening…' : 'View payout dashboard'}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <span className="text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-1 rounded-full">Restricted</span>
+            <p className="text-xs text-gray-400 mt-2 mb-3">Your account has restrictions. Please complete additional verification.</p>
+            <button onClick={async () => {
+              try { const r: any = await api.stripeConnectOnboard(); window.location.href = r.url; } catch {}
+            }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">Fix account issues →</button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">

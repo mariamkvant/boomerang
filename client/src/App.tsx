@@ -94,14 +94,12 @@ function Navbar() {
           {user ? (
             <>
               {isIOS ? (
-                <div className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-full">
-                  <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-                  <span className="text-xs text-primary-500">🪃</span>
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-[#1c1c1c] px-3 py-1.5 rounded-full">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-white">{user.username}</span>
                 </div>
               ) : (
-                <Link to="/buy" className="flex items-center gap-2 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors">
-                  <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-                  <span className="text-xs text-primary-500">🪃</span>
+                <Link to="/settings" className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 dark:bg-[#1c1c1c] dark:hover:bg-[#242424] px-3 py-1.5 rounded-full transition-colors">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-white">{user.username}</span>
                 </Link>
               )}
               <NotificationBell />
@@ -183,9 +181,8 @@ function Navbar() {
         <div className="lg:hidden flex items-center gap-2">
           {user && (
             <Link to="/buy"
-              className="flex items-center gap-1.5 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 px-3 py-1.5 rounded-full transition-colors min-h-[36px]">
-              <span className="text-sm font-semibold text-primary-700">{user.points}</span>
-              <span className="text-sm">🪃</span>
+              className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-[#1c1c1c] dark:hover:bg-[#242424] px-3 py-1.5 rounded-full transition-colors min-h-[36px]">
+              <span className="text-sm font-semibold text-gray-700 dark:text-white">{user.username}</span>
             </Link>
           )}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Toggle menu">

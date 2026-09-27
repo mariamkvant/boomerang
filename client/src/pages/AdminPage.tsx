@@ -44,6 +44,35 @@ function countryFlag(name: string): string {
   return flags[name] || '';
 }
 
+function DigestTrigger() {
+  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const trigger = async () => {
+    setLoading(true);
+    setStatus('');
+    try {
+      const res: any = await api.triggerDigest();
+      setStatus(res.result?.message || 'Done');
+    } catch (e: any) {
+      setStatus('Error: ' + e.message);
+    }
+    setLoading(false);
+  };
+  return (
+    <div className="bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4">
+      <div className="flex-1">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Weekly Digest Email</div>
+        <div className="text-xs text-gray-400 mt-0.5">Sends recap email to all verified users with recent activity</div>
+        {status && <div className="text-xs mt-1 text-primary-600">{status}</div>}
+      </div>
+      <button onClick={trigger} disabled={loading}
+        className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+        {loading ? 'Sending...' : 'Send Now'}
+      </button>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState<'stats'|'analytics'|'users'|'services'|'reports'|'support'>('stats');
   const [stats, setStats] = useState<any>(null);
@@ -88,7 +117,8 @@ export default function AdminPage() {
       </div>
 
       {tab === 'stats' && stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             ['Users', stats.total_users, 'text-gray-900'],
             ['New this week', stats.new_users_week, 'text-primary-600'],
@@ -104,6 +134,8 @@ export default function AdminPage() {
               <div className="text-xs text-gray-400 mt-1">{label}</div>
             </div>
           ))}
+          </div>
+          <DigestTrigger />
         </div>
       )}
 

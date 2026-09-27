@@ -66,6 +66,15 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Stripe webhook needs the raw body BEFORE JSON parsing — mount it first
+app.post('/api/payments/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res, next) => {
+    // Pass through to the paymentRoutes webhook handler with raw body intact
+    next();
+  }
+);
+
 app.use(express.json({ limit: '10mb' }));
 
 // Page view tracking — lightweight, fire-and-forget
@@ -216,10 +225,16 @@ initDatabase().then(() => {
   initPush();
   initWebSocket(server);
 
-  // Weekly digest scheduler — runs every 5 min, sends on Mondays at 9am
+  // Weekly digest scheduler — runs every 5 min, sends on Mondays between 9:00–9:30 UTC
+  // Tracks last-sent week so a server restart during the window doesn't double-send or skip
+  let lastDigestWeek = '';
   setInterval(async () => {
     const now = new Date();
-    if (now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 5) {
+    const isDigestWindow = now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 30;
+    // ISO week identifier: "YYYY-Www"
+    const weekId = `${now.getUTCFullYear()}-W${String(Math.ceil(now.getUTCDate() / 7)).padStart(2, '0')}`;
+    if (isDigestWindow && lastDigestWeek !== weekId) {
+      lastDigestWeek = weekId;
       console.log('[DIGEST] Triggering weekly digest...');
       try {
         const res = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${process.env.DIGEST_SECRET || 'boomerang-digest-secret'}`, { method: 'POST' });
@@ -316,6 +331,53 @@ initDatabase().then(() => {
         const msg = `Reminder: "${session.title}" at ${session.start_time} today`;
         await notify({ userId: session.provider_id, type: 'booking_reminder', title: 'Coming up soon', body: `${msg} with ${session.requester_name}`, link: '/dashboard' });
         await notify({ userId: session.requester_id, type: 'booking_reminder', title: 'Coming up soon', body: `${msg} with ${session.provider_name}`, link: '/dashboard' });
+      }
+
+      // ── Vinted-style auto-release: capture held payments after 5 days of no response ──
+      // Mirrors Vinted's "buyer protection window" — if buyer doesn't confirm OR dispute
+      // within 5 days of delivery, money is automatically released to provider.
+      if (process.env.STRIPE_SECRET_KEY) {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const autoReleaseRequests = await db.all(
+          `SELECT sr.id, sr.stripe_payment_intent_id, sr.requester_id, s.provider_id, s.title,
+            sr.amount_eur, sr.platform_fee_eur
+           FROM service_requests sr
+           JOIN services s ON sr.service_id = s.id
+           WHERE sr.status = 'delivered'
+             AND sr.payment_status IN ('authorized', 'pending')
+             AND sr.stripe_payment_intent_id IS NOT NULL
+             AND sr.delivered_at < NOW() - INTERVAL '5 days'`
+        );
+        for (const r of autoReleaseRequests) {
+          try {
+            const intent = await stripe.paymentIntents.retrieve(r.stripe_payment_intent_id);
+            if (intent.status === 'requires_capture') {
+              await stripe.paymentIntents.capture(r.stripe_payment_intent_id);
+              const price = parseFloat(r.amount_eur || '0');
+              const fee   = Math.round(price * 0.10 * 100) / 100;
+              const payout = Math.round((price - fee) * 100) / 100;
+              await db.run(
+                `UPDATE service_requests SET status = 'completed', completed_at = NOW(), payment_status = 'paid', platform_fee_eur = ?, provider_payout_eur = ? WHERE id = ?`,
+                fee, payout, r.id,
+              );
+              await notify({
+                userId: r.provider_id, type: 'delivery_confirmed',
+                title: 'Payment auto-released 💰',
+                body: `Payment for "${r.title}" was automatically released after 5 days. Check your Stripe dashboard.`,
+                link: '/settings',
+              });
+              await notify({
+                userId: r.requester_id, type: 'auto_release',
+                title: 'Exchange completed',
+                body: `"${r.title}" was automatically completed after 5 days. If there was an issue, please contact support.`,
+                link: '/dashboard',
+              });
+              console.log(`[AUTO-RELEASE] Captured payment for request ${r.id}`);
+            }
+          } catch (captureErr: any) {
+            console.error(`[AUTO-RELEASE] Failed for request ${r.id}:`, captureErr.message);
+          }
+        }
       }
     } catch (err) {
       console.error('[REMINDERS] Error:', err);

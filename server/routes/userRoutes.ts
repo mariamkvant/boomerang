@@ -182,7 +182,7 @@ router.get('/:id/achievements', async (req: AuthRequest, res: Response) => {
 
 // Get current user profile
 router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, notify_email, notify_push, notify_reminders, created_at FROM users WHERE id = ?', req.userId);
+  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, notify_email, notify_push, notify_reminders, auto_accept, stripe_account_id, stripe_account_status, created_at FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.userId);
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });

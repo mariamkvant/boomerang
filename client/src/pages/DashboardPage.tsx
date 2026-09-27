@@ -302,13 +302,11 @@ export default function DashboardPage() {
           </div>
           {isIOS ? (
             <div className="shrink-0 text-right ml-auto">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
-              <div className="text-xs text-gray-400 mt-0.5">🪃</div>
+              <Link to="/settings" className="text-xs text-primary-500 font-medium">Payouts →</Link>
             </div>
           ) : (
-            <Link to="/buy" className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{user?.points}</div>
-              <div className="text-xs text-primary-500 mt-0.5">🪃 gift / top up</div>
+            <Link to="/settings" className="shrink-0 text-right ml-auto hover:opacity-80 transition-opacity">
+              <div className="text-xs text-primary-500 mt-0.5">Payout settings →</div>
             </Link>
           )}
         </div>

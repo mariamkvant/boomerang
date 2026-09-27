@@ -51,12 +51,11 @@ export default function MePage() {
           {/* Stats row — simplified */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold dark:text-white">{user.points}</span>
-              <span className="text-xs text-gray-400">🪃</span>
+              <span className="text-base font-bold dark:text-white">{trust?.completed || 0}</span>
+              <span className="text-xs text-gray-400">exchanges</span>
             </div>
             {trust && (
               <>
-                <span className="text-xs text-gray-400">{trust.completed || 0} exchanges</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                   trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
                   trust.level === 'Gold' ? 'bg-amber-100 text-amber-700' :
