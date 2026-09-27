@@ -6,9 +6,10 @@ import ShareCard from '../components/ShareCard';
 import { nativeShare, haptic } from '../utils/platform';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-function fmtEur(v: number | string | null | undefined): string {
+function fmtEur(v: number | string | null | undefined, currency?: string): string {
   const n = parseFloat(String(v ?? 0));
-  return `€${(n % 1 === 0 ? n.toFixed(0) : n.toFixed(2))}`;
+  const symbol = currency === 'gel' ? '₾' : '€';
+  return `${symbol}${(n % 1 === 0 ? n.toFixed(0) : n.toFixed(2))}`;
 }
 
 // ── tiny inline modal so we can replace window.prompt / window.confirm ────────
@@ -195,9 +196,10 @@ export default function ServiceDetailPage() {
   const priceEur: number | null = service.price_eur != null ? parseFloat(service.price_eur) : null;
   // Keep ref in sync so async Stripe callbacks see the current value
   priceEurRef.current = priceEur;
+  const currency: string = service.currency || 'eur';
   const platformFee = priceEur != null ? Math.round(priceEur * 0.10 * 100) / 100 : null;
   const providerGets = priceEur != null && platformFee != null ? Math.round((priceEur - platformFee) * 100) / 100 : null;
-  const displayPrice = priceEur != null ? fmtEur(priceEur) : `${service.points_cost ?? '?'} 🪃`;
+  const displayPrice = priceEur != null ? fmtEur(priceEur, currency) : `${service.points_cost ?? '?'} pts`;
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-40 md:pb-8">
@@ -432,15 +434,15 @@ export default function ServiceDetailPage() {
                     <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2 space-y-1.5">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Service price</span>
-                        <span className="font-bold text-primary-600">{fmtEur(priceEur)}</span>
+                        <span className="font-bold text-primary-600">{fmtEur(priceEur, currency)}</span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-400">
                         <span>Platform fee (10%)</span>
-                        <span>−{fmtEur(platformFee!)}</span>
+                        <span>−{fmtEur(platformFee!, currency)}</span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-400">
                         <span>Provider receives</span>
-                        <span className="text-green-600 font-medium">{fmtEur(providerGets!)}</span>
+                        <span className="text-green-600 font-medium">{fmtEur(providerGets!, currency)}</span>
                       </div>
                     </div>
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg p-2.5 mt-1">
@@ -487,7 +489,7 @@ export default function ServiceDetailPage() {
                   {requesting ? (
                     <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>
                   ) : priceEur != null ? (
-                    <>Confirm & Hold {fmtEur(priceEur)}</>
+                    <>Confirm & Hold {fmtEur(priceEur, currency)}</>
                   ) : 'Confirm'}
                 </button>
               </div>
@@ -503,7 +505,7 @@ export default function ServiceDetailPage() {
               <p className="font-semibold text-primary-700 dark:text-primary-400">Request sent!</p>
               <p className="text-sm text-primary-600 dark:text-primary-300 mt-1">
                 {priceEur != null
-                  ? `The provider will review your request. Payment of ${fmtEur(priceEur)} is held securely until you confirm delivery.`
+                  ? `The provider will review your request. Payment of ${fmtEur(priceEur, currency)} is held securely until you confirm delivery.`
                   : 'The provider will review your request. Check your dashboard for updates.'}
               </p>
               <div className="flex gap-3 justify-center mt-3">
@@ -592,7 +594,7 @@ export default function ServiceDetailPage() {
                 <h4 className="font-semibold text-sm dark:text-white group-hover:text-primary-600 mb-1">{s.title}</h4>
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>
-                    {s.price_eur != null ? fmtEur(s.price_eur) : `${s.points_cost} 🪃`}
+                    {s.price_eur != null ? fmtEur(s.price_eur, s.currency) : `${s.points_cost} 🪃`}
                     {!s.price_eur && s.duration_minutes ? ` · ${s.duration_minutes}min` : ''}
                   </span>
                   {s.avg_rating && <span>★ {Number(s.avg_rating).toFixed(1)}</span>}

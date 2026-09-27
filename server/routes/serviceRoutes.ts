@@ -201,6 +201,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   const finalPriceEur = Math.round(Number(price_eur) * 100) / 100; // round to 2dp
   // Keep points_cost for any legacy references — set to price * 10 as a dummy
   const legacyPoints = Math.round(finalPriceEur * 10);
+  // Set currency based on country (GEL for Georgia, EUR for everything else)
+  const serviceCurrency = (req.body.country === 'Georgia') ? 'gel' : 'eur';
 
   if (req.body.is_bundle && req.body.sessions_count > 1 && req.body.bundle_discount > 0) {
     // For bundles: price covers all sessions with discount already applied by client
@@ -211,14 +213,15 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       (provider_id, category_id, subcategory_id, title, description,
        price_eur, points_cost, duration_minutes,
        is_bundle, sessions_count, bundle_discount,
-       group_id, image, city, country, is_product, quantity)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       group_id, image, city, country, is_product, quantity, currency)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     req.userId, category_id, subcategory_id || null,
     title, description,
     finalPriceEur, legacyPoints, duration_minutes || 60,
     req.body.is_bundle || false, req.body.sessions_count || 1, req.body.bundle_discount || 0,
     req.body.group_id || null, imageUrl, serviceCity,
     req.body.country || 'Luxembourg', req.body.is_product || false, req.body.quantity || 1,
+    serviceCurrency,
   );
 
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
@@ -251,12 +254,14 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
     is_active        = COALESCE(?, is_active),
     is_product       = COALESCE(?, is_product),
     city             = COALESCE(?, city),
-    country          = COALESCE(?, country)
+    country          = COALESCE(?, country),
+    currency         = CASE WHEN ? IS NOT NULL THEN (CASE WHEN ? = 'Georgia' THEN 'gel' ELSE 'eur' END) ELSE currency END
     WHERE id = ?`,
     title, description, category_id, subcategory_id,
     priceEurVal, legacyPoints, duration_minutes,
     is_active, is_product !== undefined ? is_product : null,
     city || null, country || null,
+    country || null, country || null,
     req.params.id,
   );
 

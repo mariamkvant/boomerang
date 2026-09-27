@@ -65,7 +65,7 @@ export default function HomePage() {
             <div className="max-w-xl flex-1">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-                Now live in Europe
+                Now live in Europe & Georgia
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
                 {t('hero.headline')}<br />
@@ -293,7 +293,7 @@ export default function HomePage() {
                   <p className="text-xs text-gray-500 line-clamp-2 mb-3">{m.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{m.requester_name}</span>
-                    <span className="text-sm font-semibold text-primary-600">{m.points_budget} {t('browse.boomerangs')}</span>
+                    <span className="text-sm font-semibold text-primary-600">{m.points_budget} pts</span>
                   </div>
                 </div>
               ))}
@@ -316,7 +316,9 @@ export default function HomePage() {
                   <h3 className="font-semibold text-[15px] mt-1 mb-2 group-hover:text-primary-600">{s.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{s.provider_name}</span>
-                    <span className="text-sm font-semibold text-primary-600">{s.points_cost} {t('browse.boomerangs')}</span>
+                    <span className="text-sm font-semibold text-primary-600">
+                      {s.price_eur != null ? `€${parseFloat(s.price_eur).toFixed(0)}` : `${s.points_cost} pts`}
+                    </span>
                   </div>
                 </Link>
               ))}

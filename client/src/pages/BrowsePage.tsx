@@ -22,8 +22,11 @@ const RADIUS_OPTIONS = [
 
 function fmtPrice(s: any): string {
   const p = s.price_eur != null ? parseFloat(s.price_eur) : null;
-  if (p != null && p > 0) return `€${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}`;
-  return `${s.points_cost ?? '?'} 🪃`;
+  if (p != null && p > 0) {
+    const symbol = s.currency === 'gel' ? '₾' : '€';
+    return `${symbol}${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}`;
+  }
+  return `${s.points_cost ?? '?'} pts`;
 }
 
 function fmtDist(km: number): string {

@@ -254,6 +254,8 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // === Real-money charging system migration ===
     // price_eur: provider-set EUR price (replaces points_cost as the primary pricing unit)
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS price_eur NUMERIC(10,2)'); } catch(e) {}
+    // currency: 'eur' or 'gel' (Georgian Lari) — defaults to eur
+    try { await client.query("ALTER TABLE services ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'eur'"); } catch(e) {}
     // stripe_payment_intent_id: tracks per-request Stripe PaymentIntent
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT'); } catch(e) {}
     // amount_eur: actual EUR amount charged (captured at payment time)

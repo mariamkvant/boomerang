@@ -139,7 +139,7 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
   if (!request_id) return res.status(400).json({ error: 'request_id is required' });
 
   const r = await db.get(`
-    SELECT sr.*, s.title, s.price_eur, s.provider_id, u.email as requester_email
+    SELECT sr.*, s.title, s.price_eur, s.currency, s.provider_id, u.email as requester_email
     FROM service_requests sr
     JOIN services s ON sr.service_id = s.id
     JOIN users u ON sr.requester_id = u.id
@@ -166,12 +166,13 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
 
   try {
     const stripe = getStripe();
+    const currency = r.currency || 'eur';          // 'gel' for Georgia, 'eur' elsewhere
     const amountCents = Math.round(price * 100);
     const feeCents    = Math.round(amountCents * PLATFORM_FEE_RATE); // 10%
 
     const intent = await stripe.paymentIntents.create({
       amount: amountCents,
-      currency: 'eur',
+      currency: currency,
       capture_method: 'manual',                  // ← ESCROW: authorise only, don't charge yet
       payment_method_types: ['card'],
       receipt_email: r.requester_email || undefined,
