@@ -10,7 +10,10 @@ const AUTO_RELEASE_DAYS = 5;    // Like Vinted: auto-release if buyer doesn't ac
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error('Stripe not configured');
+  if (!key) {
+    console.error('[STRIPE] STRIPE_SECRET_KEY is not set in environment variables');
+    throw new Error('Payment system not configured. Please contact support.');
+  }
   return require('stripe')(key);
 }
 
@@ -25,7 +28,24 @@ function getStripe() {
 router.post('/connect/onboard', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const stripe = getStripe();
-    const user = await db.get('SELECT id, email, username, stripe_account_id, stripe_account_status FROM users WHERE id = ?', req.userId);
+
+    // Use a safe query — if stripe_account_id column doesn't exist yet, fall back gracefully
+    let user: any;
+    try {
+      user = await db.get('SELECT id, email, username, stripe_account_id, stripe_account_status FROM users WHERE id = ?', req.userId);
+    } catch {
+      // Column may not exist yet — run migration inline
+      try {
+        const { Pool } = require('pg');
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+        const client = await pool.connect();
+        await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_id TEXT');
+        await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_status TEXT DEFAULT 'none'");
+        client.release();
+        await pool.end();
+      } catch {}
+      user = await db.get('SELECT id, email, username FROM users WHERE id = ?', req.userId);
+    }
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     let accountId = user.stripe_account_id;

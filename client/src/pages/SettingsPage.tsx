@@ -228,8 +228,13 @@ export default function SettingsPage() {
               setConnectLoading(true);
               try {
                 const r: any = await api.stripeConnectOnboard();
+                if (!r.url) throw new Error('No redirect URL received from server');
                 window.location.href = r.url;
-              } catch (err: any) { toast(err.message, 'error'); setConnectLoading(false); }
+              } catch (err: any) {
+                console.error('[Connect] onboard error:', err);
+                toast(err.message || 'Failed to start payout setup. Please try again.', 'error');
+                setConnectLoading(false);
+              }
             }} className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-gray-800 transition-colors">
               {connectLoading ? (
                 <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
