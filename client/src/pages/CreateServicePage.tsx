@@ -272,7 +272,7 @@ export default function CreateServicePage() {
                 Your price <span className="text-gray-400 font-normal">({currencyName})</span>
               </label>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 mb-3 text-xs text-blue-700 dark:text-blue-300">
-                You keep <span className="font-semibold">90%</span> — Boomerang takes a 10% platform fee when payment is released.
+                You keep <span className="font-semibold">80%</span> — Boomerang takes a 20% platform fee when payment is released.
               </div>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">{currencySymbol}</span>
@@ -283,7 +283,7 @@ export default function CreateServicePage() {
               </div>
               {form.price_eur && parseFloat(form.price_eur) > 0 && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-                  You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after the 10% platform fee
+                  You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.8).toFixed(2)}</span> after the 20% platform fee
                 </p>
               )}
             </div>

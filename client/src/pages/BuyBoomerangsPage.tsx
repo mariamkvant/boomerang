@@ -144,7 +144,7 @@ export default function EarningsPage() {
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Connect your bank account via Stripe to receive payments when you deliver a service.</p>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-3 py-2.5 mb-3 text-xs text-blue-700 dark:text-blue-300">
-              Payment is held securely when a buyer requests your service. After they confirm delivery, Stripe sends 90% directly to your bank account.
+              Payment is held securely when a buyer requests your service. After they confirm delivery, Stripe sends 80% directly to your bank account.
             </div>
             <button disabled={connectLoading} onClick={async () => {
               setConnectLoading(true);

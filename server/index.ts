@@ -354,7 +354,7 @@ initDatabase().then(() => {
             if (intent.status === 'requires_capture') {
               await stripe.paymentIntents.capture(r.stripe_payment_intent_id);
               const price = parseFloat(r.amount_eur || '0');
-              const fee   = Math.round(price * 0.10 * 100) / 100;
+              const fee   = Math.round(price * 0.20 * 100) / 100;
               const payout = Math.round((price - fee) * 100) / 100;
               await db.run(
                 `UPDATE service_requests SET status = 'completed', completed_at = NOW(), payment_status = 'paid', platform_fee_eur = ?, provider_payout_eur = ? WHERE id = ?`,

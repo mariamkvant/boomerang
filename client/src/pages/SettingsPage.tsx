@@ -293,7 +293,7 @@ export default function SettingsPage() {
               Takes ~2 minutes. Powered by Stripe — your bank details are never stored on Boomerang.
             </p>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-3 py-2.5 mb-3 text-xs text-blue-700 dark:text-blue-300">
-              <span className="font-semibold">How it works:</span> When a requester pays for your service, the money is held securely (like Vinted). Once they confirm delivery — or after 5 days automatically — you receive 90% directly to your bank account.
+              <span className="font-semibold">How it works:</span> When a requester pays for your service, the money is held securely (like Vinted). Once they confirm delivery — or after 5 days automatically — you receive 80% directly to your bank account.
             </div>
             <button disabled={connectLoading} onClick={async () => {
               setConnectLoading(true);

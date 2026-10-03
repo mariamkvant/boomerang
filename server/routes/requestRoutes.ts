@@ -5,7 +5,7 @@ import { notify, notificationEmailHtml } from '../notify';
 
 const router = Router();
 
-const PLATFORM_FEE_RATE = 0.10; // 10%
+const PLATFORM_FEE_RATE = 0.20; // 10%
 
 // Helper: format EUR cents to a readable string
 function eurStr(cents: number) { return `€${(cents / 100).toFixed(2)}`; }

@@ -200,7 +200,7 @@ export default function EditServicePage() {
               </div>
               {form.price_eur && parseFloat(form.price_eur) > 0 && (
                 <p className="text-xs text-gray-400 mt-1.5">
-                  You receive <span className="font-semibold text-green-600">{sym}{(parseFloat(form.price_eur) * 0.9).toFixed(2)}</span> after 10% platform fee
+                  You receive <span className="font-semibold text-green-600">{sym}{(parseFloat(form.price_eur) * 0.8).toFixed(2)}</span> after 20% platform fee
                 </p>
               )}
             </div>

@@ -212,7 +212,7 @@ export default function ServiceDetailPage() {
   // Keep ref in sync so async Stripe callbacks see the current value
   priceEurRef.current = priceEur;
   const currency: string = service.currency || 'eur';
-  const platformFee = priceEur != null ? Math.round(priceEur * 0.10 * 100) / 100 : null;
+  const platformFee = priceEur != null ? Math.round(priceEur * 0.20 * 100) / 100 : null;
   const providerGets = priceEur != null && platformFee != null ? Math.round((priceEur - platformFee) * 100) / 100 : null;
   const displayPrice = priceEur != null ? fmtEur(priceEur, currency) : `${service.points_cost ?? '?'} pts`;
 
@@ -484,7 +484,7 @@ export default function ServiceDetailPage() {
                         <span className="font-bold text-primary-600">{fmtEur(priceEur, currency)}</span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-400">
-                        <span>Platform fee (10%)</span>
+                        <span>Platform fee (20%)</span>
                         <span>−{fmtEur(platformFee!, currency)}</span>
                       </div>
                       <div className="flex justify-between text-xs text-gray-400">
