@@ -217,7 +217,6 @@ export default function SettingsPage() {
           )}
           <p className="text-[11px] text-gray-400 mt-1">You can enter your street address, neighbourhood, district, or just your city.</p>
         </div>
-        </div>
 
         <div>
           <label htmlFor="languages" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">{t('settings.languages')}</label>
