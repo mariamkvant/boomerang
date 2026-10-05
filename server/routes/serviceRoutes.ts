@@ -89,15 +89,15 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     filterParams.push(parseFloat(max_price as string));
   }
 
-  // Proximity filter — active when lat, lng and radius are all provided
+  // Proximity filter — prefers service's own location, falls back to provider home address
   if (lat && lng && radius) {
     const latNum = parseFloat(lat as string);
     const lngNum = parseFloat(lng as string);
     const radiusKm = parseFloat(radius as string);
-    where += ` AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
+    where += ` AND COALESCE(s.service_latitude, u.latitude) IS NOT NULL
       AND (6371 * acos(LEAST(1.0,
-        cos(radians(?)) * cos(radians(u.latitude)) * cos(radians(u.longitude) - radians(?))
-        + sin(radians(?)) * sin(radians(u.latitude))
+        cos(radians(?)) * cos(radians(COALESCE(s.service_latitude, u.latitude))) * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians(?))
+        + sin(radians(?)) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
       ))) < ?`;
     filterParams.push(latNum, lngNum, latNum, radiusKm);
   }
@@ -213,8 +213,9 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
       (provider_id, category_id, subcategory_id, title, description,
        price_eur, points_cost, duration_minutes,
        is_bundle, sessions_count, bundle_discount,
-       group_id, image, city, country, is_product, quantity, currency)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       group_id, image, city, country, is_product, quantity, currency,
+       service_address, service_latitude, service_longitude)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     req.userId, category_id, subcategory_id || null,
     title, description,
     finalPriceEur, legacyPoints, duration_minutes || 60,
@@ -222,6 +223,9 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
     req.body.group_id || null, imageUrl, serviceCity,
     req.body.country || 'Luxembourg', req.body.is_product || false, req.body.quantity || 1,
     serviceCurrency,
+    req.body.service_address || null,
+    req.body.service_latitude || null,
+    req.body.service_longitude || null,
   );
 
   res.status(201).json({ id: result.lastInsertRowid, message: 'Service created' });
@@ -255,12 +259,18 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
     is_product       = COALESCE(?, is_product),
     city             = COALESCE(?, city),
     country          = COALESCE(?, country),
+    service_address  = COALESCE(?, service_address),
+    service_latitude = COALESCE(?, service_latitude),
+    service_longitude= COALESCE(?, service_longitude),
     currency         = CASE WHEN ? IS NOT NULL THEN (CASE WHEN ? = 'Georgia' THEN 'gel' ELSE 'eur' END) ELSE currency END
     WHERE id = ?`,
     title, description, category_id, subcategory_id,
     priceEurVal, legacyPoints, duration_minutes,
     is_active, is_product !== undefined ? is_product : null,
     city || null, country || null,
+    req.body.service_address || null,
+    req.body.service_latitude || null,
+    req.body.service_longitude || null,
     country || null, country || null,
     req.params.id,
   );
@@ -316,7 +326,7 @@ router.get('/:id/favorited', authMiddleware, async (req: AuthRequest, res: Respo
   res.json({ favorited: !!fav });
 });
 
-// Nearby services — location-based search using Haversine formula
+// Nearby services — prefers service's own location, falls back to provider home address
 router.get('/nearby', async (req: AuthRequest, res: Response) => {
   const { lat, lng, radius = '10' } = req.query;
   if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
@@ -326,20 +336,21 @@ router.get('/nearby', async (req: AuthRequest, res: Response) => {
     `SELECT s.*, c.name as category_name, c.icon as category_icon,
       u.username as provider_name, u.city as provider_city,
       u.id as provider_user_id, u.avatar as provider_avatar,
-      u.latitude as provider_latitude, u.longitude as provider_longitude,
+      COALESCE(s.service_latitude, u.latitude) as provider_latitude,
+      COALESCE(s.service_longitude, u.longitude) as provider_longitude,
       COALESCE(s.price_eur, NULL) as price_eur,
       (6371 * acos(LEAST(1.0,
-        cos(radians($1)) * cos(radians(u.latitude)) * cos(radians(u.longitude) - radians($2))
-        + sin(radians($1)) * sin(radians(u.latitude))
+        cos(radians($1)) * cos(radians(COALESCE(s.service_latitude, u.latitude))) * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians($2))
+        + sin(radians($1)) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
       ))) as distance
     FROM services s
     JOIN categories c ON s.category_id = c.id
     JOIN users u ON s.provider_id = u.id
     WHERE s.is_active = 1 AND s.group_id IS NULL
-      AND u.latitude IS NOT NULL AND u.longitude IS NOT NULL
+      AND COALESCE(s.service_latitude, u.latitude) IS NOT NULL
       AND (6371 * acos(LEAST(1.0,
-        cos(radians($1)) * cos(radians(u.latitude)) * cos(radians(u.longitude) - radians($2))
-        + sin(radians($1)) * sin(radians(u.latitude))
+        cos(radians($1)) * cos(radians(COALESCE(s.service_latitude, u.latitude))) * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians($2))
+        + sin(radians($1)) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
       ))) < $3
     ORDER BY distance ASC LIMIT 50`,
     Number(lat), Number(lng), maxDist,

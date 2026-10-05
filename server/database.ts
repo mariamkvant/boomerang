@@ -267,6 +267,15 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // payment_status: 'pending' | 'paid' | 'refunded' | 'free'
     try { await client.query("ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending'"); } catch(e) {}
 
+    // === Service location (separate from provider home address) ===
+    // Providers can optionally set a different location for where they deliver the service
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS service_address TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS service_latitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS service_longitude REAL'); } catch(e) {}
+
+    // Index for service location radius queries
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_lat ON services(service_latitude)'); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

@@ -66,7 +66,7 @@ export default function BrowsePage() {
   const [locating, setLocating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number>(5); // default 5 km
+  const [radiusKm, setRadiusKm] = useState<number>(0.5); // default 500m
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -359,35 +359,48 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* ── Category pills ── */}
+      {/* ── Category pills — 5 pinned + expandable ── */}
       {(() => {
-        const VISIBLE = 8;
-        const allShown = showAllCats || selectedCat !== '' || categories.length <= VISIBLE;
-        const visible = allShown ? categories : categories.slice(0, VISIBLE);
+        // These 5 always visible regardless of scroll — the most common neighbourhood needs
+        const PINNED_NAMES = ['Pet Care', 'Childcare & Education', 'Transportation', 'Home Repair', 'Cleaning'];
+        const pinned = categories.filter(c => PINNED_NAMES.includes(c.name));
+        const rest = categories.filter(c => !PINNED_NAMES.includes(c.name));
         return (
           <div className="mt-3 mb-5">
             <div className="flex flex-wrap gap-1.5">
+              {/* All button */}
               <button onClick={() => { handleCatClick(''); setShowAllCats(false); }}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
                 All
               </button>
-              {visible.map((c: any) => (
+              {/* Pinned categories — always visible */}
+              {pinned.map((c: any) => (
                 <button key={c.id} onClick={() => handleCatClick(String(c.id))}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-                  {translateCat(c.name)}
+                  {c.icon} {translateCat(c.name)}
                 </button>
               ))}
-              {!allShown && (
-                <button onClick={() => setShowAllCats(true)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
-                  +{categories.length - VISIBLE} more
-                </button>
-              )}
-              {allShown && categories.length > VISIBLE && !selectedCat && (
-                <button onClick={() => setShowAllCats(false)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
-                  Show less
-                </button>
+              {/* Expandable rest */}
+              {showAllCats ? (
+                <>
+                  {rest.map((c: any) => (
+                    <button key={c.id} onClick={() => handleCatClick(String(c.id))}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                      {c.icon} {translateCat(c.name)}
+                    </button>
+                  ))}
+                  <button onClick={() => setShowAllCats(false)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
+                    Show less ↑
+                  </button>
+                </>
+              ) : (
+                rest.length > 0 && (
+                  <button onClick={() => setShowAllCats(true)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
+                    +{rest.length} more
+                  </button>
+                )
               )}
             </div>
           </div>

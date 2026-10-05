@@ -44,6 +44,9 @@ export default function ServiceDetailPage() {
   const [hasServices, setHasServices] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pickupDetails, setPickupDetails] = useState('');
+  // Calendar state
+  const [calMonth, setCalMonth] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }; });
+  const [providerAvailability, setProviderAvailability] = useState<any[]>([]); // day_of_week slots
 
   // Stripe Elements state — card input lives inside the confirm sheet
   const [stripeInstance, setStripeInstance] = useState<any>(null);
@@ -64,6 +67,15 @@ export default function ServiceDetailPage() {
     api.getService(Number(id)).then(setService).catch(() => {});
     api.trackView('service', Number(id));
   }, [id]);
+
+  // Load provider's weekly availability pattern so calendar can show available days
+  useEffect(() => {
+    if (service) {
+      api.getUserAvailability(service.provider_id)
+        .then(setProviderAvailability)
+        .catch(() => {});
+    }
+  }, [service]);
 
   useEffect(() => {
     // Check if provider can receive payments (has active Stripe Connect account)
@@ -195,11 +207,6 @@ export default function ServiceDetailPage() {
     } catch (err: any) { setStatus(err.message); }
     setRequesting(false);
   };
-
-  const dateOptions = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date(); d.setDate(d.getDate() + i);
-    return d.toISOString().split('T')[0];
-  });
 
   if (!service) return (
     <div className="text-center py-20">
@@ -379,44 +386,109 @@ export default function ServiceDetailPage() {
         {/* ── Request form ── */}
         {user && !isOwner && status !== 'success' && hasServices && priceEur != null && providerConnectStatus === 'ok' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-sm dark:text-white">Request this service</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-sm dark:text-white">Pick a date & time</h3>
               <button type="button" onClick={() => setMessage(`Hi ${service.provider_name}, I'd like to request "${service.title}". When would work for you?`)}
                 className="text-xs text-primary-500 hover:text-primary-600 font-medium">Use template</button>
             </div>
 
-            {/* Date picker */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pick a date</label>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {dateOptions.map(d => {
-                  const date = new Date(d + 'T12:00:00');
-                  return (
-                    <button key={d} type="button" onClick={() => setSelectedDate(d)}
-                      className={`flex-shrink-0 w-16 py-2 rounded-xl text-center text-xs font-medium border transition-all ${selectedDate === d ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-                      <div>{date.toLocaleDateString('en', { weekday: 'short' })}</div>
-                      <div className="text-lg font-bold">{date.getDate()}</div>
-                      <div>{date.toLocaleDateString('en', { month: 'short' })}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            {/* ── Month Calendar ── */}
+            {(() => {
+              const today = new Date();
+              today.setHours(0,0,0,0);
+              const maxDate = new Date(today); maxDate.setDate(today.getDate() + 60);
+              const { year, month } = calMonth;
+              const firstDay = new Date(year, month, 1);
+              const lastDay = new Date(year, month + 1, 0);
+              const startPad = firstDay.getDay(); // 0=Sun
+              const daysInMonth = lastDay.getDate();
+              // Days the provider is available (by day_of_week)
+              const availDays = new Set(providerAvailability.map((s: any) => s.day_of_week));
+              const monthName = firstDay.toLocaleDateString('en', { month: 'long', year: 'numeric' });
 
-            {/* Time slots */}
+              const cells: (number | null)[] = [...Array(startPad).fill(null), ...Array.from({length: daysInMonth}, (_, i) => i + 1)];
+              // Pad end to complete the grid
+              while (cells.length % 7 !== 0) cells.push(null);
+
+              return (
+                <div className="mb-4">
+                  {/* Month nav */}
+                  <div className="flex items-center justify-between mb-3">
+                    <button type="button" onClick={() => setCalMonth(m => {
+                      const d = new Date(m.year, m.month - 1); return { year: d.getFullYear(), month: d.getMonth() };
+                    })} disabled={year === today.getFullYear() && month <= today.getMonth()}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 transition-colors">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <span className="text-sm font-semibold dark:text-white">{monthName}</span>
+                    <button type="button" onClick={() => setCalMonth(m => {
+                      const d = new Date(m.year, m.month + 1); return { year: d.getFullYear(), month: d.getMonth() };
+                    })} disabled={new Date(year, month + 1, 1) > maxDate}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 transition-colors">
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  </div>
+
+                  {/* Day-of-week headers */}
+                  <div className="grid grid-cols-7 mb-1">
+                    {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+                      <div key={d} className="text-center text-[10px] font-medium text-gray-400 dark:text-gray-500 py-1">{d}</div>
+                    ))}
+                  </div>
+
+                  {/* Calendar grid */}
+                  <div className="grid grid-cols-7 gap-0.5">
+                    {cells.map((day, i) => {
+                      if (!day) return <div key={i} />;
+                      const date = new Date(year, month, day);
+                      const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                      const isPast = date < today;
+                      const isTooFar = date > maxDate;
+                      const isProviderAvail = availDays.has(date.getDay());
+                      const isDisabled = isPast || isTooFar || !isProviderAvail;
+                      const isSelected = selectedDate === dateStr;
+                      const isToday = date.getTime() === today.getTime();
+
+                      return (
+                        <button key={i} type="button"
+                          disabled={isDisabled}
+                          onClick={() => { setSelectedDate(dateStr); setSelectedSlot(null); }}
+                          className={`aspect-square flex items-center justify-center rounded-lg text-xs font-medium transition-all
+                            ${isSelected ? 'bg-primary-500 text-white' :
+                              isDisabled ? 'text-gray-300 dark:text-gray-700 cursor-not-allowed' :
+                              isToday ? 'ring-1 ring-primary-400 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20' :
+                              'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {providerAvailability.length === 0 && (
+                    <p className="text-xs text-gray-400 mt-2 text-center">This provider hasn't set availability yet. Send them a message to arrange a time.</p>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Time slots — shown after date selected */}
             {selectedDate && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available times</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Available times on {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </label>
                 {loadingSlots ? (
-                  <p className="text-xs text-gray-400">Loading slots...</p>
+                  <div className="flex gap-2">
+                    {[1,2,3].map(i => <div key={i} className="h-9 w-24 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />)}
+                  </div>
                 ) : availableSlots.length === 0 ? (
-                  <p className="text-xs text-gray-400">No available slots on this date. Try another day.</p>
+                  <p className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">No slots available on this date — all times may be booked. Try another day.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {availableSlots.map((s: any, i: number) => (
                       <button key={i} type="button" onClick={() => setSelectedSlot(s)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${selectedSlot?.start_time === s.start_time ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-                        {s.start_time} – {s.end_time}
+                        {s.start_time}
                       </button>
                     ))}
                   </div>
