@@ -63,6 +63,7 @@ export default function BrowsePage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [nearMe, setNearMe] = useState(false);
+  const [userHasServices, setUserHasServices] = useState(true); // optimistic — hide banner until we know
   const [locating, setLocating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -151,6 +152,16 @@ export default function BrowsePage() {
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
 
+  // Task #14: check if user has any active services
+  useEffect(() => {
+    if (user) {
+      api.getServices(`provider=${user.id}`).then((res: any) => {
+        const svcs = Array.isArray(res) ? res : res.services || [];
+        setUserHasServices(svcs.filter((s: any) => s.is_active !== 0).length > 0);
+      }).catch(() => setUserHasServices(true)); // on error, hide banner
+    }
+  }, [user]);
+
   // Debounce search + city
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -191,7 +202,21 @@ export default function BrowsePage() {
             .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); setLocating(false); })
             .catch(() => { setLoading(false); setLocating(false); });
         },
-        () => { setNearMe(false); setLoading(false); setLocating(false); toast('Location access denied. Enable it in settings.', 'error'); },
+        () => {
+          // Task #6: denied — fall back to saved profile coords if available
+          if (user && (user as any).latitude) {
+            const coords = { lat: (user as any).latitude, lng: (user as any).longitude };
+            setUserCoords(coords);
+            const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
+            api.getNearbyServices(coords.lat, coords.lng, effectiveRadius)
+              .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); setLocating(false); })
+              .catch(() => setLoading(false));
+            toast('Using your saved home location for nearby search.', 'success');
+          } else {
+            setNearMe(false); setLoading(false); setLocating(false);
+            toast('Location blocked. Set your home address in Settings to use Near Me.', 'error');
+          }
+        },
         { enableHighAccuracy: false, timeout: 10000 },
       );
       return;
@@ -213,6 +238,10 @@ export default function BrowsePage() {
 
   const toggleNearMe = () => {
     if (nearMe) { setNearMe(false); return; }
+    // Task #6: if we already have saved user coords, use them directly — no GPS prompt needed
+    if (!userCoords && user && (user as any).latitude) {
+      setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
+    }
     setNearMe(true);
   };
 
@@ -227,6 +256,17 @@ export default function BrowsePage() {
         <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
       </div>
+
+      {/* Task #14: "Offer a service first" banner for logged-in users with no services */}
+      {user && !userHasServices && (
+        <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-primary-800 dark:text-primary-300">Post a service to request from others</p>
+            <p className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">Boomerang works both ways — offer your skills first, then request help from neighbours.</p>
+          </div>
+          <Link to="/services/new" className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-primary-600 shrink-0 whitespace-nowrap">Offer a service →</Link>
+        </div>
+      )}
 
       {/* ── Sticky search + controls ── */}
       <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">

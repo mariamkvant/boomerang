@@ -36,13 +36,13 @@ export default function CreateServicePage() {
     if (user) {
       const userCity = (user as any).city || '';
       if (userCity && !form.city) {
-        // Parse stored city — may be "Tbilisi — Vake" format
         const parts = userCity.split(' — ');
         const baseCity = parts[0].trim();
         const district = parts[1]?.trim() || '';
-        setForm(f => ({ ...f, city: baseCity, district }));
+        // Task #22: infer country from city
+        const inferredCountry = baseCity === 'Tbilisi' || ['Batumi','Kutaisi','Rustavi','Gori'].some(c => baseCity.includes(c)) ? 'Georgia' : form.country;
+        setForm(f => ({ ...f, city: baseCity, district, country: inferredCountry }));
       }
-      // Show user's home address as the default service address
       if ((user as any).latitude) {
         setServiceLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
         setServiceAddress(userCity || 'My home address');

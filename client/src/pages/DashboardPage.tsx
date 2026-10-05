@@ -132,6 +132,7 @@ export default function DashboardPage() {
   const [txHistory, setTxHistory] = useState<any[]>([]);
   const [showTxHistory, setShowTxHistory] = useState(false);
   const [disputeForm, setDisputeForm] = useState<{ id: number; reason: string } | null>(null);
+  const [disputeExplainer, setDisputeExplainer] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -258,15 +259,16 @@ export default function DashboardPage() {
     );
   };
 
-  // Auto-confirm countdown (72h from delivered_at)
+  // Auto-confirm countdown — matches server 5-day (120h) auto-release window
   const AutoConfirmCountdown = ({ deliveredAt }: { deliveredAt: string }) => {
     if (!deliveredAt) return null;
-    const deadline = new Date(deliveredAt).getTime() + 72 * 60 * 60 * 1000;
+    const deadline = new Date(deliveredAt).getTime() + 120 * 60 * 60 * 1000; // 5 days = 120h
     const remaining = deadline - Date.now();
-    if (remaining <= 0) return <span className="text-xs text-gray-400">Auto-confirming soon...</span>;
-    const hours = Math.floor(remaining / 3600000);
-    const mins = Math.floor((remaining % 3600000) / 60000);
-    return <span className="text-xs text-gray-400">Auto-confirms in {hours > 0 ? `${hours}h` : `${mins}m`}</span>;
+    if (remaining <= 0) return <span className="text-xs text-gray-400">Auto-releasing soon…</span>;
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
+    const label = days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+    return <span className="text-xs text-gray-400">Payment auto-releases in {label} if not confirmed</span>;
   };
 
   const tabs = [
@@ -538,7 +540,9 @@ export default function DashboardPage() {
                             {r._role === 'provider' ? r.requester_name : r.provider_name}
                           </Link> · {r.points_cost} 🪃
                         </p>
-                        {r.dispute_reason && <p className="text-xs text-red-600 dark:text-red-400 mt-1 italic">"{r.dispute_reason}"</p>}
+                        {r.dispute_reason && <p className="text-xs text-red-600 dark:text-red-400 mt-1 italic">Requester: "{r.dispute_reason}"</p>}
+                        {/* Task #10: show provider response if exists, or let provider add one */}
+                        {(r as any).provider_dispute_note && <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 italic">Your response: "{(r as any).provider_dispute_note}"</p>}
                       </div>
                     </div>
                     {/* Resolution actions — different per role */}
@@ -617,6 +621,11 @@ export default function DashboardPage() {
                     <>
                       <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Mark delivered</button>
                       <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
+                      {/* Task #7: provider self-cancel */}
+                      <button onClick={async () => {
+                        const ok = await confirm({ title: "Can't complete this service?", message: "Cancelling will release the payment hold and notify the requester. Only cancel if you genuinely can't complete this service.", confirmText: 'Yes, cancel', danger: true });
+                        if (ok) { try { await api.cancelRequest(r.id); toast('Cancelled — requester notified and payment released.'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                      }} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg font-medium">Can't complete</button>
                     </>
                   )}
                   {r.status === 'delivered' && (
@@ -890,6 +899,14 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">Edit</Link>
                 <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
+                {/* Task #18: Boost button */}
+                {!s.boosted_until || new Date(s.boosted_until) < new Date() ? (
+                  <button onClick={async () => {
+                    try { await api.boostService(s.id); toast('Service boosted for 7 days! ⚡'); load(); } catch (err: any) { toast(err.message, 'error'); }
+                  }} className="text-xs text-amber-500 hover:text-amber-600 font-medium" title="Boost this listing to appear higher in search">⚡ Boost</button>
+                ) : (
+                  <span className="text-xs text-amber-400 font-medium">⚡ Boosted</span>
+                )}
                 <button onClick={async () => { const ok = await confirm({ title: 'Delete service', message: 'Are you sure you want to delete this service? This cannot be undone.', confirmText: 'Delete', danger: true }); if (ok) { await api.deleteService(s.id); load(); } }} className="text-xs text-gray-400 hover:text-red-500">Delete</button>
               </div>
             </div>
@@ -1018,12 +1035,41 @@ export default function DashboardPage() {
               <button onClick={async () => {
                 try {
                   await api.disputeRequest(disputeForm.id, disputeForm.reason || undefined);
-                  toast('Issue raised — exchange paused');
                   setDisputeForm(null);
                   load();
+                  // Task #9: show post-dispute explainer
+                  setDisputeExplainer(true);
                 } catch (err: any) { toast(err.message, 'error'); }
               }} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Raise issue</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Task #9: Post-dispute explainer */}
+      {disputeExplainer && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDisputeExplainer(false)}>
+          <div className="bg-white dark:bg-[#1c1c1c] rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+                <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+              </div>
+              <h3 className="font-semibold dark:text-white mb-2">Issue raised — what happens next?</h3>
+            </div>
+            <div className="space-y-3 mb-5">
+              {[
+                { n: '1', text: 'The payment hold is paused — your card will not be charged.' },
+                { n: '2', text: 'Both you and the provider have been notified.' },
+                { n: '3', text: 'Discuss via messages to try to resolve it together.' },
+                { n: '4', text: 'If unresolved, our team will review within 2 business days.' },
+              ].map(s => (
+                <div key={s.n} className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{s.n}</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{s.text}</p>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setDisputeExplainer(false)} className="w-full bg-[#1f2937] text-white py-2.5 rounded-xl text-sm font-semibold">Got it</button>
           </div>
         </div>
       )}

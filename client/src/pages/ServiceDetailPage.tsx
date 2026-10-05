@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import ShareCard from '../components/ShareCard';
 import { nativeShare, haptic } from '../utils/platform';
+import { useToast } from '../components/Toast';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function fmtEur(v: number | string | null | undefined, currency?: string): string {
@@ -30,6 +31,7 @@ function InlineModal({ title, children, onClose }: { title: string; children: Re
 export default function ServiceDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const [service, setService] = useState<any>(null);
   const [message, setMessage] = useState('');
@@ -355,8 +357,21 @@ export default function ServiceDetailPage() {
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Provider hasn't set up payouts yet</p>
-              <p className="text-sm text-amber-700 dark:text-amber-400">This provider hasn't connected their bank account yet so can't accept payments. You can message them to let them know.</p>
-              <Link to={`/messages?to=${service.provider_id}`} className="inline-block mt-3 text-sm font-medium bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600">Message {service.provider_name}</Link>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">This provider hasn't connected their bank account yet so can't accept payments.</p>
+              <div className="flex flex-wrap gap-2">
+                {/* Task #12: notify provider button */}
+                <button onClick={async () => {
+                  try {
+                    await api.sendDM(service.provider_id, `Hi ${service.provider_name}! I'd like to book "${service.title}" but noticed your payout account isn't set up yet. Could you connect it in Settings → Payouts so I can pay? Thanks!`);
+                    toast('Message sent to provider about payout setup ✓', 'success');
+                  } catch {}
+                }} className="text-sm font-medium bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600">
+                  Notify {service.provider_name} →
+                </button>
+                <Link to={`/messages?to=${service.provider_id}`} className="text-sm font-medium border border-amber-400 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-lg hover:bg-amber-50">
+                  Message them
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -467,6 +482,15 @@ export default function ServiceDetailPage() {
                   {providerAvailability.length === 0 && (
                     <p className="text-xs text-gray-400 mt-2 text-center">This provider hasn't set availability yet. Send them a message to arrange a time.</p>
                   )}
+                  {/* Task #8: legend */}
+                  {providerAvailability.length > 0 && (
+                    <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-400">
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-primary-500 inline-block" /> Selected</span>
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-200 inline-block" /> Available</span>
+                      <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-100 inline-block text-gray-300 text-[8px] flex items-center justify-center" /></span>
+                      <span className="text-gray-300">Greyed = not available</span>
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -512,7 +536,7 @@ export default function ServiceDetailPage() {
 
             <button onClick={() => setShowConfirm(true)} disabled={requesting}
               className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md">
-              {requesting ? 'Sending...' : `Request for ${displayPrice}`}
+              {requesting ? 'Sending...' : selectedDate && selectedSlot ? `Book ${new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })} · ${selectedSlot.start_time}` : selectedDate ? `Request for ${displayPrice} (no time selected)` : `Request for ${displayPrice}`}
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
           </div>
@@ -547,21 +571,13 @@ export default function ServiceDetailPage() {
                   </div>
                 )}
 
-                {/* EUR price breakdown */}
+                {/* EUR price breakdown — Task #16: show only total to buyer, not fee breakdown */}
                 {priceEur != null ? (
                   <>
-                    <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2 space-y-1.5">
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Service price</span>
+                        <span className="text-gray-500">Total</span>
                         <span className="font-bold text-primary-600">{fmtEur(priceEur, currency)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Platform fee (20%)</span>
-                        <span>−{fmtEur(platformFee!, currency)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>Provider receives</span>
-                        <span className="text-green-600 font-medium">{fmtEur(providerGets!, currency)}</span>
                       </div>
                     </div>
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg p-2.5 mt-1">
@@ -582,9 +598,17 @@ export default function ServiceDetailPage() {
               {priceEur != null && (
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Card details</label>
+                  {/* Task #15: skeleton while Stripe.js loads */}
+                  {!stripeInstance && (
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] flex items-center gap-3 animate-pulse">
+                      <div className="h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded" />
+                      <div className="h-3 flex-1 bg-gray-200 dark:bg-gray-700 rounded" />
+                      <div className="h-3 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                    </div>
+                  )}
                   <div
                     ref={cardMountRef}
-                    className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px]"
+                    className={`border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] ${!stripeInstance ? 'hidden' : ''}`}
                   />
                   {paymentError && (
                     <p className="text-xs text-red-500 mt-1.5">{paymentError}</p>

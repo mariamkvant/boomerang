@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -37,16 +37,50 @@ const NEED_OPTIONS = [
 export default function OnboardingPage() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0); // 0 = intro
+  const [step, setStep] = useState(0);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedNeeds, setSelectedNeeds] = useState<string[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
   const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
   const [nearbyServices, setNearbyServices] = useState<any[]>([]);
+  const [citySuggestions, setCitySuggestions] = useState<any[]>([]);
+  const [cityCoords, setCityCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const cityDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
+
+  // Task #4 — geocode when user types city (same as SettingsPage Nominatim autocomplete)
+  const handleCityChange = (val: string) => {
+    setCity(val);
+    setCityCoords(null);
+    if (cityDebounceRef.current) clearTimeout(cityDebounceRef.current);
+    if (val.length < 3) { setCitySuggestions([]); return; }
+    setGeocoding(true);
+    cityDebounceRef.current = setTimeout(async () => {
+      try {
+        const q = encodeURIComponent(val);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1`, {
+          headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' },
+        });
+        const data = await res.json();
+        setCitySuggestions(data);
+      } catch {}
+      setGeocoding(false);
+    }, 500);
+  };
+
+  const selectCitySuggestion = async (s: any) => {
+    const lat = parseFloat(s.lat); const lng = parseFloat(s.lon);
+    const addr = s.address || {};
+    const displayCity = addr.neighbourhood || addr.suburb || addr.city_district || addr.city || addr.town || addr.village || s.display_name.split(',')[0];
+    setCity(displayCity);
+    setCityCoords({ lat, lng });
+    setCitySuggestions([]);
+    await api.updateProfile({ city: displayCity, latitude: lat, longitude: lng });
+  };
 
   const detectLocation = async () => {
     if (!navigator.geolocation) return;
@@ -59,6 +93,7 @@ export default function OnboardingPage() {
           const data = await res.json();
           const detected = data.address?.city || data.address?.town || data.address?.village || '';
           setCity(detected);
+          setCityCoords({ lat: latitude, lng: longitude });
           await api.updateProfile({ city: detected, latitude, longitude });
         } catch {}
         setLocating(false);
@@ -72,21 +107,16 @@ export default function OnboardingPage() {
   const toggleNeed = (s: string) => setSelectedNeeds(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   const handleFinish = async () => {
-    // Save bio and selected skills as interests (not auto-creating services)
     if (bio) await api.updateProfile({ bio });
-    // Save skills as user interests for matching, but don't auto-create generic services
-    const skillNames = selectedSkills.join(', ');
-    if (skillNames && !bio) {
-      await api.updateProfile({ bio: `Skills: ${skillNames}` });
-    }
+    else if (selectedSkills.length > 0) await api.updateProfile({ bio: `Skills: ${selectedSkills.join(', ')}` });
     localStorage.setItem('onboarding_done', 'true');
     await refreshUser();
-    navigate('/dashboard');
+    // Send them straight to create a service — first action they should take
+    navigate('/services/new');
   };
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
-      {/* Progress — only show after intro */}
       {step > 0 && (
         <div className="flex gap-2 mb-8">
           {[1,2,3,4].map(s => (
@@ -95,20 +125,24 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      {/* Step 0: Interactive intro */}
+      {/* Step 0 — intro: Task #21 fix 🪃 icon + update copy */}
       {step === 0 && (
         <div className="text-center">
-          <div className="text-5xl mb-4">🪃</div>
+          <div className="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg className="w-9 h-9 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+          </div>
           <h2 className="text-2xl font-bold mb-2">Welcome to Boomerang</h2>
-          <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Exchange skills, services, and items — no money needed. Here's how it works:</p>
+          <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">Your neighbourhood marketplace — offer services, set your price, get paid via Stripe.</p>
           <div className="space-y-3 text-left mb-8">
             {[
-              { icon: '1', title: 'Offer a skill', desc: 'Post what you can do — cooking, coding, gardening, anything.' },
-              { icon: '2', title: 'Browse & request', desc: 'Find someone who has what you need and send a request.' },
-              { icon: '🪃', title: 'Pay & get paid securely', desc: 'Set your price, get paid via Stripe after delivery. Payment held safely until you confirm.' },
+              { icon: '1', title: 'Set your location', desc: 'Find neighbours within 500m who need what you offer.' },
+              { icon: '2', title: 'List your skills', desc: 'Post any service — cleaning, tutoring, pet care, rides.' },
+              { icon: '3', title: 'Get paid securely', desc: 'Set your price. Payment held by Stripe until delivery confirmed.' },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4">
-                <div className="w-10 h-10 bg-primary-50 dark:bg-primary-900/30 rounded-xl flex items-center justify-center text-xl shrink-0">{item.icon}</div>
+                <div className="w-10 h-10 bg-primary-50 dark:bg-primary-900/30 rounded-xl flex items-center justify-center font-bold text-primary-600 shrink-0">{item.icon}</div>
                 <div>
                   <p className="font-semibold text-sm text-gray-900 dark:text-white">{item.title}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>
@@ -126,55 +160,66 @@ export default function OnboardingPage() {
         </div>
       )}
 
+      {/* Step 1 — location: Task #4 geocode typed city */}
       {step === 1 && (
         <div>
           <h2 className="text-2xl font-bold mb-2">Where are you located?</h2>
-          <p className="text-gray-500 text-sm mb-4">Boomerang connects you with people nearby. For the best experience, share your approximate location.</p>
+          <p className="text-gray-500 text-sm mb-4">Boomerang connects you with people nearby. Your exact address stays private.</p>
 
-          {/* Privacy assurance */}
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
             <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-            <div>
-              <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">Your home address is private</p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Your exact location is <strong>never shown</strong> to other users. It's only used to calculate distance for the "Near Me" filter — like 500m or 1km radius search.</p>
-            </div>
+            <p className="text-xs text-blue-700 dark:text-blue-300"><strong>Private:</strong> Your exact location is never shown to other users — only used for the "Near Me" distance filter (500m, 1km, etc.).</p>
           </div>
 
-          {/* GPS detect button — primary action */}
           <button onClick={detectLocation} disabled={locating}
-            className={`w-full py-4 rounded-xl font-semibold text-sm mb-3 flex items-center justify-center gap-2 transition-all ${city && locating === false ? 'bg-green-500 hover:bg-green-600' : 'bg-primary-500 hover:bg-primary-600'} text-white disabled:opacity-50`}>
+            className={`w-full py-4 rounded-xl font-semibold text-sm mb-3 flex items-center justify-center gap-2 transition-all ${cityCoords ? 'bg-green-500 hover:bg-green-600' : 'bg-primary-500 hover:bg-primary-600'} text-white disabled:opacity-50`}>
             {locating ? (
-              <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Detecting your location…</>
-            ) : city ? (
-              <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> {city} — location set</>
+              <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Detecting…</>
+            ) : cityCoords ? (
+              <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg> {city} — GPS saved ✓</>
             ) : (
-              <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg> Share my location (recommended)</>
+              <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg> Use GPS (recommended)</>
             )}
           </button>
-          {city && (
-            <p className="text-xs text-center text-green-600 mb-3">✓ GPS coordinates saved privately — you'll appear in nearby searches</p>
-          )}
 
-          <div className="text-center text-xs text-gray-400 mb-3">or enter your city manually (less accurate)</div>
-          <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Tbilisi, Luxembourg City, Berlin..."
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white mb-6" />
+          <div className="text-center text-xs text-gray-400 mb-3">or search your address</div>
+
+          {/* Autocomplete address search */}
+          <div className="relative mb-6">
+            <input
+              value={city}
+              onChange={e => handleCityChange(e.target.value)}
+              placeholder="e.g. Tbilisi, Vake or 123 Rustaveli Ave..."
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white pr-8"
+            />
+            {geocoding && <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />}
+            {citySuggestions.length > 0 && !cityCoords && (
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden">
+                {citySuggestions.map((s: any, i: number) => (
+                  <button key={i} type="button" onClick={() => selectCitySuggestion(s)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#374151] border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <p className="font-medium truncate">{s.display_name.split(',').slice(0,2).join(',')}</p>
+                    <p className="text-xs text-gray-400 truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <button onClick={async () => {
             if (city) {
-              await api.updateProfile({ city });
+              // If no coords yet (user typed but didn't pick suggestion), try quick geocode
+              if (!cityCoords) await api.updateProfile({ city });
               try {
                 const res = await api.getServices(`city=${encodeURIComponent(city)}&limit=5`);
-                const svcs = Array.isArray(res) ? res : res.services || [];
-                setNearbyServices(svcs);
+                setNearbyServices(Array.isArray(res) ? res : res.services || []);
               } catch {}
               setStep(2);
             }
-          }}
-            disabled={!city.trim()}
+          }} disabled={!city.trim()}
             className="w-full bg-[#1f2937] text-white py-3 rounded-xl font-semibold hover:bg-[#111827] disabled:opacity-50">
             Continue →
           </button>
-          {!city.trim() && <p className="text-xs text-gray-400 text-center mt-2">Please share or enter your location to continue</p>}
         </div>
       )}
 
@@ -182,26 +227,25 @@ export default function OnboardingPage() {
         <div>
           {nearbyServices.length > 0 && (
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 mb-6">
-              <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">Available near {city}:</p>
+              <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">Services available near you:</p>
               <div className="space-y-2">
                 {nearbyServices.slice(0, 3).map((s: any) => (
                   <div key={s.id} className="flex items-center justify-between text-sm">
                     <span className="text-gray-700 dark:text-gray-300 truncate">{s.title}</span>
-                    <span className="text-xs text-primary-600 shrink-0 ml-2">{s.points_cost} 🪃</span>
+                    <span className="text-xs text-primary-600 shrink-0 ml-2">{s.price_eur != null ? `€${parseFloat(s.price_eur).toFixed(0)}` : `${s.points_cost} pts`}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-green-600 dark:text-green-400 mt-2">+ more services waiting for you</p>
             </div>
           )}
           <h2 className="text-2xl font-bold mb-2">What are you good at?</h2>
-          <p className="text-gray-500 text-sm mb-6">Pick at least one skill. We'll create your first service listings.</p>
+          <p className="text-gray-500 text-sm mb-6">Pick your skills so we can match you with people who need help.</p>
           <div className="grid grid-cols-2 gap-3">
             {SKILL_OPTIONS.map(s => (
               <button key={s.label} onClick={() => toggleSkill(s.label)}
-                className={`p-4 rounded-xl text-left border-2 transition-all ${selectedSkills.includes(s.label) ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-primary-200'}`}>
+                className={`p-4 rounded-xl text-left border-2 transition-all ${selectedSkills.includes(s.label) ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-200'}`}>
                 <span className="text-2xl">{s.icon}</span>
-                <div className="text-sm font-medium mt-1">{s.label}</div>
+                <div className="text-sm font-medium mt-1 dark:text-white">{s.label}</div>
               </button>
             ))}
           </div>
@@ -220,32 +264,35 @@ export default function OnboardingPage() {
           <div className="grid grid-cols-2 gap-3">
             {NEED_OPTIONS.map(s => (
               <button key={s.label} onClick={() => toggleNeed(s.label)}
-                className={`p-4 rounded-xl text-left border-2 transition-all ${selectedNeeds.includes(s.label) ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-primary-200'}`}>
+                className={`p-4 rounded-xl text-left border-2 transition-all ${selectedNeeds.includes(s.label) ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-200'}`}>
                 <span className="text-2xl">{s.icon}</span>
-                <div className="text-sm font-medium mt-1">{s.label}</div>
+                <div className="text-sm font-medium mt-1 dark:text-white">{s.label}</div>
               </button>
             ))}
           </div>
           <div className="flex gap-3 mt-6">
-            <button onClick={() => setStep(2)} className="flex-1 border-2 border-gray-200 py-3 rounded-xl font-medium text-gray-600">← Back</button>
+            <button onClick={() => setStep(2)} className="flex-1 border-2 border-gray-200 dark:border-gray-700 py-3 rounded-xl font-medium text-gray-600 dark:text-gray-400">← Back</button>
             <button onClick={() => setStep(4)} className="flex-1 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">Next →</button>
           </div>
         </div>
       )}
 
+      {/* Step 4 — Task #3 fix: remove false 'we'll create listings', add post CTA */}
       {step === 4 && (
         <div>
           <h2 className="text-2xl font-bold mb-2">Tell people about yourself</h2>
-          <p className="text-gray-500 text-sm mb-6">A short bio helps build trust.</p>
-          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder="e.g. I'm a guitar teacher who loves gardening. Always happy to help!"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none mb-4" />
-          <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-6">
-            <p className="text-sm text-primary-700 font-medium">You're all set!</p>
-            <p className="text-xs text-primary-600 mt-1">We'll create {selectedSkills.length} service listing{selectedSkills.length !== 1 ? 's' : ''} for you.</p>
+          <p className="text-gray-500 text-sm mb-6">A short bio helps build trust with your first customers.</p>
+          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder="e.g. I'm a guitar teacher based in Vake. I also do home repairs and gardening."
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white mb-4" />
+
+          {/* Correct CTA — no fake "we'll create listings" */}
+          <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl p-4 mb-6">
+            <p className="text-sm text-primary-700 dark:text-primary-300 font-medium mb-1">Almost done! 🎉</p>
+            <p className="text-xs text-primary-600 dark:text-primary-400">Next step: post your first service. It takes 2 minutes and you'll be ready to receive requests.</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep(3)} className="flex-1 border-2 border-gray-200 py-3 rounded-xl font-medium text-gray-600">← Back</button>
-            <button onClick={handleFinish} className="flex-1 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">🪃 Start Boomeranging</button>
+            <button onClick={() => setStep(3)} className="flex-1 border-2 border-gray-200 dark:border-gray-700 py-3 rounded-xl font-medium text-gray-600 dark:text-gray-400">← Back</button>
+            <button onClick={handleFinish} className="flex-1 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">Post my first service →</button>
           </div>
         </div>
       )}

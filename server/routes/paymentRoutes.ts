@@ -5,7 +5,7 @@ import { notify } from '../notify';
 
 const router = Router();
 
-const PLATFORM_FEE_RATE = 0.20; // 10% — Boomerang's take
+const PLATFORM_FEE_RATE = 0.20; // 20% — Boomerang's platform fee
 const AUTO_RELEASE_DAYS = 5;    // Like Vinted: auto-release if buyer doesn't act within 5 days
 
 function getStripe() {

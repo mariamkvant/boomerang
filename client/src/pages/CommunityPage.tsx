@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +13,9 @@ export default function CommunityPage() {
   const [shoutForm, setShoutForm] = useState({ to_user_id: '', message: '' });
   const [showForm, setShowForm] = useState(false);
   const [success, setSuccess] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [userResults, setUserResults] = useState<any[]>([]);
+  const shoutDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     api.getCommunityFeed().then(setFeed).catch(() => {});
@@ -43,12 +46,40 @@ export default function CommunityPage() {
       {showForm && (
         <form onSubmit={handleShoutout} className="bg-white p-6 rounded-2xl shadow-card mb-6 space-y-4">
           <h3 className="font-semibold">Thank someone publicly</h3>
-          <input type="number" value={shoutForm.to_user_id} onChange={e => setShoutForm(f => ({...f, to_user_id: e.target.value}))}
-            placeholder="User ID (from their profile URL)" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+          {/* Task #5: username search instead of raw User ID */}
+          <div className="relative">
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">Recipient</label>
+            <input
+              value={userSearch}
+              onChange={e => {
+                setUserSearch(e.target.value);
+                setShoutForm(f => ({ ...f, to_user_id: '' }));
+                if (shoutDebounceRef.current) clearTimeout(shoutDebounceRef.current);
+                if (e.target.value.length < 2) { setUserResults([]); return; }
+                shoutDebounceRef.current = setTimeout(() => {
+                  api.searchPeople(e.target.value).then(r => setUserResults(r.filter((u: any) => u.id !== user?.id).slice(0, 5))).catch(() => {});
+                }, 300);
+              }}
+              placeholder="Search by username..."
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-primary-500"
+            />
+            {userResults.length > 0 && !shoutForm.to_user_id && (
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 z-10 overflow-hidden">
+                {userResults.map((u: any) => (
+                  <button key={u.id} type="button" onClick={() => { setShoutForm(f => ({ ...f, to_user_id: String(u.id) })); setUserSearch(u.username); setUserResults([]); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left">
+                    <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">{u.username?.charAt(0).toUpperCase()}</div>
+                    <span className="text-sm font-medium text-gray-900">{u.username}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <textarea value={shoutForm.message} onChange={e => setShoutForm(f => ({...f, message: e.target.value}))}
             placeholder="What did they help you with? Say thanks!" rows={3}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
-          <button type="submit" className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600">Post Shoutout</button>
+          <button type="submit" disabled={!shoutForm.to_user_id || !shoutForm.message}
+            className="bg-primary-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50">Post Shoutout</button>
         </form>
       )}
 

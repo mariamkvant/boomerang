@@ -73,19 +73,12 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium leading-none">Activity</span>
         </Link>
 
-        {/* Messages — separate with its own DM badge */}
-        <Link to="/messages" className={`flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1 transition-colors ${isActive(['/messages']) ? 'text-primary-500' : 'text-gray-400'}`}>
-          <div className="relative">
-            <svg className="w-6 h-6" fill={isActive(['/messages']) ? 'currentColor' : 'none'} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-            </svg>
-            {unreadDMs > 0 && (
-              <span className="absolute -top-1 -right-1.5 min-w-[16px] h-[16px] bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                {unreadDMs > 9 ? '9+' : unreadDMs}
-              </span>
-            )}
-          </div>
-          <span className="text-[11px] font-medium leading-none">Messages</span>
+        {/* Groups — Task #20 */}
+        <Link to="/groups" className={`flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1 transition-colors ${isActive(['/groups']) ? 'text-primary-500' : 'text-gray-400'}`}>
+          <svg className="w-6 h-6" fill={isActive(['/groups']) ? 'currentColor' : 'none'} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+          </svg>
+          <span className="text-[11px] font-medium leading-none">Groups</span>
         </Link>
 
         {/* Me */}

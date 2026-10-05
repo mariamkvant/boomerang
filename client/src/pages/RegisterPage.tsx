@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const groupCode = searchParams.get('group');
+  const refCode = searchParams.get('ref'); // Task #13: referral code from sharing
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,11 +29,9 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
+      // AuthContext.register reads ?ref= from window.location.search automatically
       await register(username, email, password);
-      // Auto-join group if invite code present
-      if (groupCode) {
-        try { await api.joinByCode(groupCode); } catch {}
-      }
+      if (groupCode) { try { await api.joinByCode(groupCode); } catch {} }
       navigate('/verify-email');
     }
     catch (err: any) { setError(err.message); setLoading(false); }

@@ -281,9 +281,9 @@ initDatabase().then(() => {
         await notify({
           userId: r.requester_id, type: 'reminder',
           title: 'Please confirm delivery',
-          body: `"${r.title}" was marked as delivered. Please confirm to complete the exchange.`,
+          body: `"${r.title}" was marked as delivered. Confirm it to release payment to the provider — or raise an issue if something went wrong. Payment auto-releases in 5 days.`,
           link: '/dashboard',
-          email: { to: r.requester_email, subject: `Please confirm: ${r.title}`, html: notificationEmailHtml('Confirm delivery', `The service "${r.title}" was marked as delivered. Please confirm to release the boomerangs.`, 'https://www.boomerang.fyi/dashboard') },
+          email: { to: r.requester_email, subject: `Action needed: confirm delivery of "${r.title}"`, html: notificationEmailHtml('Confirm delivery', `<strong>${r.title}</strong> was marked as delivered by the provider.<br/><br/>Please confirm it within <strong>5 days</strong> to release payment, or raise an issue if something went wrong. If you take no action, payment will release automatically after 5 days.`, 'https://www.boomerang.fyi/dashboard') },
         });
       }
 

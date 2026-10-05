@@ -80,6 +80,12 @@ export default function ProfilePage() {
                   }`}>{trust.level}</span>
                 )}
                 {superhelper?.is_superhelper && <span className="bg-gray-900 text-white text-xs px-2 py-0.5 rounded-full font-medium">Superhelper</span>}
+                {/* Task #17: top 3 leaderboard badge */}
+                {(profile as any).leaderboard_rank && (profile as any).leaderboard_rank <= 3 && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                    {(profile as any).leaderboard_rank === 1 ? '🥇 #1 this week' : (profile as any).leaderboard_rank === 2 ? '🥈 #2 this week' : '🥉 #3 this week'}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500 mt-1.5">
                 {profile.city && <span>{profile.city}</span>}

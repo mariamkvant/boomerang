@@ -346,6 +346,12 @@ export default function SettingsPage() {
               </span>
             </div>
             <p className="text-xs text-gray-400 mb-3">Your bank account is connected. Payments are released automatically after delivery confirmation.</p>
+            <div className="bg-gray-50 dark:bg-[#2a3942] rounded-lg px-3 py-2.5 mb-3 text-xs text-gray-500 dark:text-gray-400">
+              <p className="font-medium text-gray-600 dark:text-gray-300 mb-1">Payout schedule</p>
+              <p>• <strong>First payout:</strong> within 7 business days of your first delivery</p>
+              <p>• <strong>After that:</strong> automatic weekly payouts to your bank</p>
+              <p className="mt-1 text-gray-400">Stripe handles all transfers — you'll see them in your payout dashboard.</p>
+            </div>
             <button disabled={connectLoading} onClick={async () => {
               setConnectLoading(true);
               try {
