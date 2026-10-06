@@ -202,7 +202,7 @@ export default function ProfilePage() {
               <Link key={s.id} to={`/services/${s.id}`} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 group transition-all">
                 <h4 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white">{s.title}</h4>
                 <p className="text-xs text-gray-500 mt-1">
-                  {s.category_name} · {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : s.points_cost + ' pts'}
+                  {s.category_name} · {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : 'Contact provider'}
                 </p>
               </Link>
             ))}
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{s.title}</p>
                 <p className="text-xs text-primary-600 font-medium mt-1">
-                  {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : s.points_cost + ' pts'}
+                  {s.price_eur != null ? (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0) : 'Contact provider'}
                 </p>
               </Link>
             ))}

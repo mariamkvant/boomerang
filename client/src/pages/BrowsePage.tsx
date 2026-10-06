@@ -26,7 +26,7 @@ function fmtPrice(s: any): string {
     const symbol = s.currency === 'gel' ? '₾' : '€';
     return `${symbol}${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}`;
   }
-  return `${s.points_cost ?? '?'} pts`;
+  return 'Contact provider';
 }
 
 function fmtDist(km: number): string {
@@ -67,7 +67,7 @@ export default function BrowsePage() {
   const [locating, setLocating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number>(0.5); // default 500m
+  const [radiusKm, setRadiusKm] = useState<number>(5); // default 5km
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -507,7 +507,7 @@ export default function BrowsePage() {
       ) : viewMode === 'map' ? (
         <>
           <p className="text-sm text-gray-400 mb-4">{services.filter((s: any) => s.provider_latitude && s.provider_longitude).length} {t('browse.onMap')}</p>
-          <MapView services={services} userLat={userCoords?.lat} userLng={userCoords?.lng} />
+          <MapView services={services} userLat={userCoords?.lat} userLng={userCoords?.lng} radiusKm={nearMe ? radiusKm : undefined} />
         </>
       ) : (
         <>

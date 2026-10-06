@@ -232,7 +232,9 @@ export default function OnboardingPage() {
                 {nearbyServices.slice(0, 3).map((s: any) => (
                   <div key={s.id} className="flex items-center justify-between text-sm">
                     <span className="text-gray-700 dark:text-gray-300 truncate">{s.title}</span>
-                    <span className="text-xs text-primary-600 shrink-0 ml-2">{s.price_eur != null ? `€${parseFloat(s.price_eur).toFixed(0)}` : `${s.points_cost} pts`}</span>
+                    <span className="text-xs text-primary-600 shrink-0 ml-2">
+                      {s.price_eur != null ? `${s.currency === 'gel' ? '₾' : '€'}${parseFloat(s.price_eur).toFixed(0)}` : 'Contact provider'}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -108,13 +108,22 @@ export default function ServiceDetailPage() {
 
   // Load Stripe.js once (no npm install — CDN script)
   useEffect(() => {
-    if ((window as any).Stripe) { setStripeInstance((window as any).Stripe()); return; }
+    // If Stripe script already loaded, we still need the key to initialise
+    if ((window as any).Stripe && (window as any).__stripePublishableKey) {
+      setStripeInstance((window as any).Stripe((window as any).__stripePublishableKey));
+      return;
+    }
     api.getStripePublishableKey().then((r: any) => {
       if (!r.key) return;
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.onload = () => setStripeInstance((window as any).Stripe(r.key));
-      document.head.appendChild(script);
+      (window as any).__stripePublishableKey = r.key; // cache key globally
+      if ((window as any).Stripe) {
+        setStripeInstance((window as any).Stripe(r.key));
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.onload = () => setStripeInstance((window as any).Stripe(r.key));
+        document.head.appendChild(script);
+      }
     }).catch(() => {});
   }, []);
 
@@ -223,7 +232,7 @@ export default function ServiceDetailPage() {
   const currency: string = service.currency || 'eur';
   const platformFee = priceEur != null ? Math.round(priceEur * 0.20 * 100) / 100 : null;
   const providerGets = priceEur != null && platformFee != null ? Math.round((priceEur - platformFee) * 100) / 100 : null;
-  const displayPrice = priceEur != null ? fmtEur(priceEur, currency) : `${service.points_cost ?? '?'} pts`;
+  const displayPrice = priceEur != null ? fmtEur(priceEur, currency) : 'Contact provider';
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-40 md:pb-8">
@@ -288,7 +297,7 @@ export default function ServiceDetailPage() {
           <div className="flex items-center gap-2 bg-primary-50 dark:bg-primary-900/20 px-4 py-2.5 rounded-xl">
             <div>
               <div className="text-xl font-bold text-primary-700 dark:text-primary-400">{displayPrice}</div>
-              <div className="text-xs text-primary-500">{priceEur != null ? 'per session' : 'boomerangs'}</div>
+              <div className="text-xs text-primary-500">{priceEur != null ? 'per session' : 'price on request'}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 px-4 py-2.5 rounded-xl">
@@ -589,7 +598,7 @@ export default function ServiceDetailPage() {
                 ) : (
                   <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                     <span className="text-gray-500">Cost</span>
-                    <span className="font-bold text-primary-600">{service.points_cost} 🪃</span>
+                    <span className="font-bold text-primary-600">Contact provider</span>
                   </div>
                 )}
               </div>
@@ -737,7 +746,7 @@ export default function ServiceDetailPage() {
                 <h4 className="font-semibold text-sm dark:text-white group-hover:text-primary-600 mb-1">{s.title}</h4>
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>
-                    {s.price_eur != null ? fmtEur(s.price_eur, s.currency) : `${s.points_cost} 🪃`}
+                    {s.price_eur != null ? fmtEur(s.price_eur, s.currency) : 'Contact provider'}
                     {!s.price_eur && s.duration_minutes ? ` · ${s.duration_minutes}min` : ''}
                   </span>
                   {s.avg_rating && <span>★ {Number(s.avg_rating).toFixed(1)}</span>}

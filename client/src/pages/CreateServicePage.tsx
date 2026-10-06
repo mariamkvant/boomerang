@@ -21,6 +21,7 @@ export default function CreateServicePage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [createdServiceId, setCreatedServiceId] = useState<number | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [quickMode, setQuickMode] = useState(true);
   // Service location — defaults to provider's home address, can be overridden
@@ -119,12 +120,48 @@ export default function CreateServicePage() {
         service_latitude: serviceLatLng?.lat || null,
         service_longitude: serviceLatLng?.lng || null,
       });
-      navigate(`/services/${res.id}`);
+      setCreatedServiceId(res.id);
     } catch (err: any) { setError(err.message); setLoading(false); }
   };
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [field]: e.target.value }));
+
+  // ── Success screen — shown after service is created ──────────────────────
+  if (createdServiceId != null) {
+    return (
+      <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
+        <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-sm text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold dark:text-white mb-2">Service listed!</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            Your service is now live. Set your availability so buyers know when you're free.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate(`/availability?service=${createdServiceId}`)}
+              className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 transition-colors">
+              Set availability →
+            </button>
+            <button
+              onClick={() => navigate(`/services/${createdServiceId}`)}
+              className="w-full border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              View service
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 py-2">
+              Go to dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">

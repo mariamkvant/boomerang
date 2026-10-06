@@ -26,6 +26,7 @@ interface MapViewProps {
   services: Service[];
   userLat?: number | null;
   userLng?: number | null;
+  radiusKm?: number;
 }
 
 function fmtPrice(s: Service): string {
@@ -34,7 +35,7 @@ function fmtPrice(s: Service): string {
     const n = Number(s.price_eur);
     return `${sym}${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
   }
-  return `${s.points_cost} pts`;
+  return 'Contact provider';
 }
 
 function stars(rating: number): string {
@@ -141,7 +142,7 @@ function makeUserIcon(): L.DivIcon {
   });
 }
 
-export default function MapView({ services, userLat, userLng }: MapViewProps) {
+export default function MapView({ services, userLat, userLng, radiusKm = 5 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
@@ -167,10 +168,9 @@ export default function MapView({ services, userLat, userLng }: MapViewProps) {
     // Zoom control — top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Clean tile layer (CartoDB Positron — minimal, fast, no busy labels)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
+    // Tile layer — OpenStreetMap (free, no API key required)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
     }).addTo(map);
 
@@ -180,9 +180,9 @@ export default function MapView({ services, userLat, userLng }: MapViewProps) {
         .addTo(map)
         .bindTooltip('You', { permanent: false, direction: 'top', className: 'leaflet-tooltip-clean' });
 
-      // 500m radius circle around user
+      // Radius circle around user (matches selected radius filter)
       L.circle([userLat, userLng], {
-        radius: 500, color: '#3b82f6', fillColor: '#3b82f6',
+        radius: (radiusKm > 0 ? radiusKm : 5) * 1000, color: '#3b82f6', fillColor: '#3b82f6',
         fillOpacity: 0.06, weight: 1.5, dashArray: '4 4',
       }).addTo(map);
     }
@@ -228,7 +228,7 @@ export default function MapView({ services, userLat, userLng }: MapViewProps) {
         mapInstance.current = null;
       }
     };
-  }, [services, userLat, userLng]);
+  }, [services, userLat, userLng, radiusKm]);
 
   return (
     <>

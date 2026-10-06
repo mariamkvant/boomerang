@@ -321,11 +321,11 @@ export default function DashboardPage() {
               <div key={i} className="flex items-center justify-between text-xs">
                 <span className="text-gray-600 dark:text-gray-300 truncate flex-1">{tx.description || tx.type}</span>
                 <span className={`font-semibold shrink-0 ml-2 ${tx.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                  {tx.amount > 0 ? '+' : ''}{tx.amount} 🪃
+                  {tx.amount > 0 ? '+' : ''}{tx.currency === 'gel' ? '₾' : '€'}{Math.abs(parseFloat(tx.amount || 0)).toFixed(2)}
                 </span>
               </div>
             ))}
-            <Link to="/buy" className="text-xs text-primary-500 hover:text-primary-600 font-medium block mt-1">View all →</Link>
+            <Link to="/earnings" className="text-xs text-primary-500 hover:text-primary-600 font-medium block mt-1">View all →</Link>
           </div>
         )}
         {(() => {
@@ -451,7 +451,7 @@ export default function DashboardPage() {
           <div className="min-w-0 flex-1">
             <p className="text-xs text-primary-600 font-medium mb-0.5">Match for you</p>
             <p className="text-sm font-medium dark:text-white truncate">{dailyMatch.title}</p>
-            <p className="text-xs text-gray-400">{dailyMatch.requester_name} · {dailyMatch.points_budget} 🪃</p>
+            <p className="text-xs text-gray-400">{dailyMatch.requester_name}</p>
           </div>
           <Link to="/help-wanted" className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 shrink-0">Help →</Link>
         </div>
@@ -506,7 +506,7 @@ export default function DashboardPage() {
                         return s.done ? el : <Link key={i} to={links[s.label] || '/settings'}>{el}</Link>;
                       })}
                     </div>
-                    <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to earn 25 bonus boomerangs! 🪃</p>
+                    <p className="text-xs text-primary-600 mt-3">Complete all steps within 7 days to unlock a profile badge!</p>
                   </div>
                 );
               })()}
@@ -538,7 +538,7 @@ export default function DashboardPage() {
                           {r._role === 'provider' ? 'Disputed by' : 'You disputed'}{' '}
                           <Link to={`/users/${r._role === 'provider' ? r.requester_id : r.provider_id}`} className="text-primary-600 hover:underline">
                             {r._role === 'provider' ? r.requester_name : r.provider_name}
-                          </Link> · {r.points_cost} 🪃
+                          </Link>{r.amount_eur ? ` · ${r.currency === 'gel' ? '₾' : '€'}${parseFloat(r.amount_eur).toFixed(0)}` : ''}
                         </p>
                         {r.dispute_reason && <p className="text-xs text-red-600 dark:text-red-400 mt-1 italic">Requester: "{r.dispute_reason}"</p>}
                         {/* Task #10: show provider response if exists, or let provider add one */}
@@ -551,14 +551,14 @@ export default function DashboardPage() {
                         <>
                           {/* Requester disputed — they can accept it was done, or cancel */}
                           <button onClick={async () => {
-                            const ok = await confirm({ title: 'Accept service was completed', message: `This will transfer ${r.points_cost} boomerangs to the provider. Only do this if the issue is resolved.`, confirmText: 'Yes, complete' });
-                            if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved — points transferred'); load(); refreshUser(); } catch (err: any) { toast(err.message, 'error'); } }
+                            const ok = await confirm({ title: 'Accept service was completed', message: `This will release the payment to the provider. Only do this if the issue is resolved.`, confirmText: 'Yes, complete' });
+                            if (ok) { try { await api.resolveDispute(r.id, 'complete'); toast('Resolved — payment released to provider'); load(); refreshUser(); } catch (err: any) { toast(err.message, 'error'); } }
                           }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium">
                             Accept as completed
                           </button>
                           <button onClick={async () => {
-                            const ok = await confirm({ title: 'Cancel exchange', message: 'No boomerangs will be transferred. Both parties walk away.', confirmText: 'Cancel exchange', danger: true });
-                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no points transferred'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                            const ok = await confirm({ title: 'Cancel exchange', message: 'No payment will be made. Both parties walk away.', confirmText: 'Cancel exchange', danger: true });
+                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no payment made'); load(); } catch (err: any) { toast(err.message, 'error'); } }
                           }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
                             Cancel exchange
                           </button>
@@ -567,8 +567,8 @@ export default function DashboardPage() {
                         <>
                           {/* Provider — can agree to cancel, or message to discuss */}
                           <button onClick={async () => {
-                            const ok = await confirm({ title: 'Agree to cancel', message: 'No boomerangs will be transferred. The exchange will be cancelled.', confirmText: 'Agree to cancel', danger: true });
-                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no points transferred'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                            const ok = await confirm({ title: 'Agree to cancel', message: 'No payment will be made. The exchange will be cancelled.', confirmText: 'Agree to cancel', danger: true });
+                            if (ok) { try { await api.resolveDispute(r.id, 'cancel'); toast('Cancelled — no payment made'); load(); } catch (err: any) { toast(err.message, 'error'); } }
                           }} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium">
                             Agree to cancel
                           </button>
@@ -600,7 +600,7 @@ export default function DashboardPage() {
                     {badge(r.status)}
                     {r.is_product && <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">Item</span>}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link> · {r.points_cost} 🪃</p>
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.requester_id}`} className="text-primary-600 hover:underline">{r.requester_name}</Link>{r.amount_eur ? ` · ${r.currency === 'gel' ? '₾' : '€'}${parseFloat(r.amount_eur).toFixed(0)}` : ''}</p>
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
                   {r.message && <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-[#2a3942] p-2.5 rounded-lg italic">"{r.message}"</p>}
                   {r.pickup_details && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">Pickup: {r.pickup_details}</p>}
@@ -682,7 +682,7 @@ export default function DashboardPage() {
           ))}
           {outgoing.length === 0 && (
             <div className="text-center py-12 bg-white rounded-2xl shadow-sm">
-              <div className="text-4xl mb-3">🪃</div>
+              <div className="text-4xl mb-3">📋</div>
               <p className="text-gray-500 text-sm">You haven't requested any services yet</p>
               <Link to="/browse" className="inline-block mt-3 text-sm font-medium text-primary-600 hover:underline">Browse services →</Link>
             </div>
@@ -696,7 +696,7 @@ export default function DashboardPage() {
                     {badge(r.status)}
                     {r.is_product && <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">Item</span>}
                   </div>
-                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link> · {r.points_cost} 🪃
+                  <p className="text-xs text-gray-500">From <Link to={`/users/${r.provider_id}`} className="text-primary-600 hover:underline">{r.provider_name}</Link>{r.amount_eur ? ` · ${r.currency === 'gel' ? '₾' : '€'}${parseFloat(r.amount_eur).toFixed(0)}` : ''}
                     {r.status === 'completed' && <span className="text-gray-400"> · Exchanged ✓</span>}
                   </p>
                   {r.created_at && <p className="text-xs text-gray-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
@@ -839,7 +839,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_name} · {h.points_budget} 🪃</p>
+                  <p className="text-xs text-gray-500">{h.category_name}</p>
                   {h.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {h.helper_name}</p>}
                 </div>
                 <div className="flex gap-2">
@@ -867,7 +867,7 @@ export default function DashboardPage() {
                     <span className="font-semibold text-sm">{h.title}</span>
                     {badge(h.status)}
                   </div>
-                  <p className="text-xs text-gray-500">{h.category_name} · {h.points_budget} 🪃</p>
+                  <p className="text-xs text-gray-500">{h.category_name}</p>
                   <p className="text-xs text-gray-400 mt-1">Requested by {h.requester_name}</p>
                 </div>
                 <div className="flex gap-2">
@@ -894,7 +894,7 @@ export default function DashboardPage() {
             <div key={s.id} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm flex items-center justify-between">
               <Link to={`/services/${s.id}`} className="flex-1 group">
                 <h3 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white cursor-pointer">{s.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">{s.category_name} · {s.points_cost} 🪃</p>
+                <p className="text-xs text-gray-500 mt-1">{s.category_name}{s.price_eur != null ? ` · ${s.currency === 'gel' ? '₾' : '€'}${parseFloat(s.price_eur).toFixed(0)}` : ''}</p>
               </Link>
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">Edit</Link>
@@ -925,7 +925,7 @@ export default function DashboardPage() {
                         {badge(r.status)}
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {r.requester_name} · {r.points_cost} 🪃
+                        {r.requester_name}{r.amount_eur ? ` · ${r.currency === 'gel' ? '₾' : '€'}${parseFloat(r.amount_eur).toFixed(0)}` : ''}
                         {r.created_at && ` · ${new Date(r.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric' })}`}
                       </p>
                     </div>

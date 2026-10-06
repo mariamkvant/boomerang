@@ -58,15 +58,15 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium text-primary-500 leading-none">{t('nav.offer2')}</span>
         </Link>
 
-        {/* Dashboard (was Chat) — pending requests badge only (no DM mixing) */}
+        {/* Dashboard (was Chat) — pending requests badge + unread DMs */}
         <Link to="/dashboard" className={`flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1 transition-colors ${isActive(['/dashboard']) ? 'text-primary-500' : 'text-gray-400'}`}>
           <div className="relative">
             <svg className="w-6 h-6" fill={isActive(['/dashboard']) ? 'currentColor' : 'none'} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
             </svg>
-            {pendingActions > 0 && (
+            {(pendingActions + unreadDMs) > 0 && (
               <span className="absolute -top-1 -right-1.5 min-w-[16px] h-[16px] bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                {pendingActions > 9 ? '9+' : pendingActions}
+                {(pendingActions + unreadDMs) > 9 ? '9+' : (pendingActions + unreadDMs)}
               </span>
             )}
           </div>

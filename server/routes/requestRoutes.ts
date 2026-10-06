@@ -5,7 +5,7 @@ import { notify, notificationEmailHtml } from '../notify';
 
 const router = Router();
 
-const PLATFORM_FEE_RATE = 0.20; // 10%
+const PLATFORM_FEE_RATE = 0.20; // 20%
 
 // Helper: format EUR cents to a readable string
 function eurStr(cents: number) { return `€${(cents / 100).toFixed(2)}`; }
@@ -116,7 +116,7 @@ router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Respons
     delivery_note || null, req.params.id,
   );
   const requester = await db.get('SELECT id, email FROM users WHERE id = ?', r.requester_id);
-  if (requester) { await notify({ userId: requester.id, type: 'service_delivered', title: 'Service delivered!', body: 'The provider marked your service as delivered. Please confirm within 72 hours.', link: '/dashboard' }); }
+  if (requester) { await notify({ userId: requester.id, type: 'service_delivered', title: 'Service delivered!', body: 'The provider marked your service as delivered. Please confirm within 5 days or it will auto-complete.', link: '/dashboard' }); }
   res.json({ message: 'Service marked as delivered. Waiting for requester confirmation.' });
 });
 
