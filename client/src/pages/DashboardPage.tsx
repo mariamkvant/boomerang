@@ -614,6 +614,10 @@ export default function DashboardPage() {
                         {actionSuccess === r.id ? '✓ Accepted' : t('dashboard.accept')}
                       </button>
                       <button onClick={() => handleAction(api.cancelRequest, r.id)} className="w-full sm:w-auto text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
+                      <button onClick={async () => {
+                        const ok = await confirm({ title: 'Archive this request?', message: "The request will be declined and hidden from your dashboard. The requester won't be notified.", confirmText: 'Archive' });
+                        if (ok) { try { await api.cancelRequest(r.id); await api.archiveRequest(r.id); toast('Archived'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                      }} className="w-full sm:w-auto text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Archive</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
@@ -624,14 +628,18 @@ export default function DashboardPage() {
                       <button onClick={async () => {
                         const ok = await confirm({ title: "Can't complete this service?", message: "Cancelling will release the payment hold and notify the requester. Only cancel if you genuinely can't complete this service.", confirmText: 'Yes, cancel', danger: true });
                         if (ok) { try { await api.cancelRequest(r.id); toast('Cancelled — requester notified and payment released.'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg font-medium">Can't complete</button>
+                      }} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg font-medium">Cancel</button>
                     </>
                   )}
                   {r.status === 'delivered' && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('dashboard.waiting')}</span>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
                         className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg font-medium">Nudge</button>
+                      <button onClick={async () => {
+                        const ok = await confirm({ title: 'Archive this request?', message: 'The request will be hidden from your dashboard. Payment (if any) will be released automatically after 5 days.', confirmText: 'Archive' });
+                        if (ok) { try { await api.archiveRequest(r.id); toast('Request archived'); load(); } catch (err: any) { toast(err.message, 'error'); } }
+                      }} className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg font-medium" title="Archive">Archive</button>
                     </div>
                   )}
                 </div>

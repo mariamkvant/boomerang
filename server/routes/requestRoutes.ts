@@ -76,9 +76,9 @@ router.put('/:id/archive', authMiddleware, async (req: AuthRequest, res: Respons
   const isProvider  = r.provider_id  === req.userId;
   if (!isRequester && !isProvider) return res.status(403).json({ error: 'Not your request' });
 
-  // Only allow archiving completed or cancelled requests
-  if (!['completed', 'cancelled'].includes(r.status)) {
-    return res.status(400).json({ error: 'Only completed or cancelled requests can be archived' });
+  // Only allow archiving completed, cancelled, or delivered (stuck) requests
+  if (!['completed', 'cancelled', 'delivered'].includes(r.status)) {
+    return res.status(400).json({ error: 'Only completed, cancelled or delivered requests can be archived' });
   }
 
   if (isRequester) {
