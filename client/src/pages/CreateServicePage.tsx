@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+
+// ── The 5 core categories always shown + everything else under "Other"
+const CORE_CATEGORY_NAMES = ['Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
+
+// Duration options shown as pills
+const DURATION_OPTIONS = [
+  { label: '30 min', value: 30 },
+  { label: '1 hour', value: 60 },
+  { label: '2 hours', value: 120 },
+  { label: '3 hours', value: 180 },
+];
 
 export default function CreateServicePage() {
   const navigate = useNavigate();
@@ -10,11 +21,14 @@ export default function CreateServicePage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('group');
+
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [showOtherCategories, setShowOtherCategories] = useState(false);
+
   const [form, setForm] = useState({
     title: '', description: '', category_id: '', subcategory_id: '',
-    price_eur: '', duration_minutes: '60',
+    price_eur: '', duration_minutes: '60',           // default 1 hour
     is_bundle: false, sessions_count: '1', bundle_discount: '10',
     city: '', country: 'Luxembourg', is_product: false, quantity: '1',
     district: '',
@@ -23,17 +37,17 @@ export default function CreateServicePage() {
   const [loading, setLoading] = useState(false);
   const [createdServiceId, setCreatedServiceId] = useState<number | null>(null);
   const [image, setImage] = useState<string | null>(null);
-  const [quickMode, setQuickMode] = useState(true);
-  // Service location — defaults to provider's home address, can be overridden
+
+  // Service location — defaults to provider's home address
   const [serviceAddress, setServiceAddress] = useState('');
   const [serviceAddressSuggestions, setServiceAddressSuggestions] = useState<any[]>([]);
   const [serviceAddressSearching, setServiceAddressSearching] = useState(false);
   const [serviceAddressSet, setServiceAddressSet] = useState(false);
-  const [serviceLatLng, setServiceLatLng] = useState<{lat: number; lng: number} | null>(null);
+  const [serviceLatLng, setServiceLatLng] = useState<{ lat: number; lng: number } | null>(null);
   const [showLocationOverride, setShowLocationOverride] = useState(false);
   const addrDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Pre-fill city/country from user profile when available
+  // Pre-fill from user profile
   useEffect(() => {
     if (user) {
       const userCity = (user as any).city || '';
@@ -41,18 +55,28 @@ export default function CreateServicePage() {
         const parts = userCity.split(' — ');
         const baseCity = parts[0].trim();
         const district = parts[1]?.trim() || '';
-        // Task #22: infer country from city
-        const inferredCountry = baseCity === 'Tbilisi' || ['Batumi','Kutaisi','Rustavi','Gori'].some(c => baseCity.includes(c)) ? 'Georgia' : form.country;
+        const inferredCountry = ['Tbilisi','Batumi','Kutaisi','Rustavi','Gori'].some(c => baseCity.includes(c)) ? 'Georgia' : form.country;
         setForm(f => ({ ...f, city: baseCity, district, country: inferredCountry }));
       }
       if ((user as any).latitude) {
         setServiceLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
-        setServiceAddress(userCity || 'My home address');
+        setServiceAddress(userCity || 'Home address');
         setServiceAddressSet(true);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
+
+  useEffect(() => {
+    if (form.category_id) {
+      api.getSubcategories(Number(form.category_id)).then(setSubcategories).catch(() => setSubcategories([]));
+      setForm(f => ({ ...f, subcategory_id: '' }));
+    } else {
+      setSubcategories([]);
+    }
+  }, [form.category_id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,23 +92,12 @@ export default function CreateServicePage() {
     const cat = categories.find((c: any) => String(c.id) === form.category_id);
     const catName = cat?.name || 'this';
     const templates = [
-      `I'm offering ${form.title.toLowerCase()} to anyone in the community. Whether you're a beginner or just need a hand, I'm happy to help. I have experience with ${catName.toLowerCase()} and enjoy sharing what I know.`,
-      `Looking for ${form.title.toLowerCase()}? I can help! I have practical experience in ${catName.toLowerCase()} and I'm passionate about helping others. Let's connect and make it happen.`,
-      `${form.title} — available for the community. I believe in sharing skills and helping each other out. Reach out if you need help with ${catName.toLowerCase()}, I'd love to assist.`,
+      `I'm offering ${form.title.toLowerCase()} to anyone in the community. Happy to help — I have experience with ${catName.toLowerCase()} and enjoy sharing what I know.`,
+      `Looking for ${form.title.toLowerCase()}? I can help! I have practical experience in ${catName.toLowerCase()}. Let's connect and make it happen.`,
+      `${form.title} — available for the community. Reach out if you need help with ${catName.toLowerCase()}, I'd love to assist.`,
     ];
     setForm(f => ({ ...f, description: templates[Math.floor(Math.random() * templates.length)] }));
   };
-
-  useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
-
-  useEffect(() => {
-    if (form.category_id) {
-      api.getSubcategories(Number(form.category_id)).then(setSubcategories).catch(() => setSubcategories([]));
-      setForm(f => ({ ...f, subcategory_id: '' }));
-    } else {
-      setSubcategories([]);
-    }
-  }, [form.category_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,12 +105,11 @@ export default function CreateServicePage() {
 
     const price = form.price_eur ? parseFloat(form.price_eur) : null;
     if (price !== null && price <= 0) {
-      setError('Price must be greater than €0 — or leave it blank to arrange payment via message');
+      setError('Price must be greater than €0 — or leave it blank to arrange via message');
       setLoading(false); return;
     }
     if (price !== null && price > 9999) {
-      setError('Price cannot exceed €9,999');
-      setLoading(false); return;
+      setError('Price cannot exceed €9,999'); setLoading(false); return;
     }
 
     try {
@@ -106,7 +118,7 @@ export default function CreateServicePage() {
         category_id: Number(form.category_id),
         subcategory_id: form.subcategory_id ? Number(form.subcategory_id) : null,
         price_eur: price,
-        duration_minutes: Number(form.duration_minutes),
+        duration_minutes: Number(form.duration_minutes) || 60,
         is_bundle: form.is_bundle,
         sessions_count: Number(form.sessions_count),
         bundle_discount: Number(form.bundle_discount),
@@ -114,9 +126,7 @@ export default function CreateServicePage() {
         image,
         is_product: form.is_product,
         quantity: Number(form.quantity),
-        // Include district in city field if Tbilisi
         city: form.district ? `${form.city} — ${form.district}` : form.city,
-        // Service location (defaults to home, can be overridden)
         service_address: serviceAddress || null,
         service_latitude: serviceLatLng?.lat || null,
         service_longitude: serviceLatLng?.lng || null,
@@ -128,7 +138,7 @@ export default function CreateServicePage() {
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [field]: e.target.value }));
 
-  // ── Success screen — shown after service is created ──────────────────────
+  // ── Success screen ────────────────────────────────────────────────────────
   if (createdServiceId != null) {
     return (
       <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
@@ -140,22 +150,19 @@ export default function CreateServicePage() {
           </div>
           <h2 className="text-xl font-bold dark:text-white mb-2">Service listed!</h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-            Your service is now live. Set your availability so buyers know when you're free.
+            Now set your availability so buyers can book a time slot.
           </p>
           <div className="space-y-3">
-            <button
-              onClick={() => navigate(`/availability?service=${createdServiceId}`)}
-              className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 transition-colors">
+            <button onClick={() => navigate(`/availability?service=${createdServiceId}`)}
+              className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">
               Set availability →
             </button>
-            <button
-              onClick={() => navigate(`/services/${createdServiceId}`)}
-              className="w-full border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <button onClick={() => navigate(`/services/${createdServiceId}`)}
+              className="w-full border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800">
               View service
             </button>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-full text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 py-2">
+            <button onClick={() => navigate('/dashboard')}
+              className="w-full text-sm text-gray-400 py-2">
               Go to dashboard
             </button>
           </div>
@@ -164,38 +171,38 @@ export default function CreateServicePage() {
     );
   }
 
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const coreCategories = categories.filter(c => CORE_CATEGORY_NAMES.includes(c.name));
+  const otherCategories = categories.filter(c => !CORE_CATEGORY_NAMES.includes(c.name));
+  const selectedCat = categories.find(c => String(c.id) === form.category_id);
+  const isGel = form.country === 'Georgia';
+  const currencySymbol = isGel ? '₾' : '€';
+
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
-      <h2 className="text-2xl font-bold mb-2 dark:text-white">Offer a Service</h2>
+      <h2 className="text-2xl font-bold mb-1 dark:text-white">Offer a Service</h2>
       <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-        {groupId ? 'This service will be posted to your community only' : 'Share what you\'re good at — set your own price'}
+        {groupId ? 'This will be posted to your community only' : 'Share what you\'re good at'}
       </p>
 
-      {/* ── Mandatory address gate — must have GPS set to post ── */}
+      {/* Address gate */}
       {!(user as any)?.latitude && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 mb-6">
-          <div className="flex items-start gap-3">
-            <svg className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
-            <div>
-              <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">Set your home address first</p>
-              <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">
-                To list a service, you need to set your home address. This is kept private and only used to help neighbours find your services within 500m, 1km, etc.
-              </p>
-              <a href="/settings" className="inline-block bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-600">
-                Go to Settings to set address →
-              </a>
-            </div>
-          </div>
+          <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">Set your home address first</p>
+          <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">
+            Your address is kept private and only used so neighbours can find your services nearby.
+          </p>
+          <a href="/settings" className="inline-block bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-600">
+            Go to Settings →
+          </a>
         </div>
       )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>
-      )}
+      {error && <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-6">
 
-        {/* Service type toggle */}
+        {/* ── Service / Item toggle ── */}
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -203,161 +210,163 @@ export default function CreateServicePage() {
           </button>
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            Item / Product
+            Item / Rental
           </button>
         </div>
 
-        {form.is_product && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
-            List a physical item you're offering — homemade goods, plants, books, crafts, etc. Arrange pickup/delivery via messages.
-          </div>
-        )}
-
-        {/* Quick/Advanced toggle */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500 dark:text-gray-400">{quickMode ? 'Quick mode' : 'Advanced mode'}</span>
-          <button type="button" onClick={() => setQuickMode(!quickMode)} className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-            {quickMode ? 'Show more options' : 'Simplify'}
-          </button>
-        </div>
-
-        {/* Category */}
+        {/* ── Category pill picker ── */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
-          <select id="category" required value={form.category_id} onChange={set('category_id')}
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-            <option value="">Select a category</option>
-            {categories.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Category</label>
+          <div className="flex flex-wrap gap-2">
+            {coreCategories.map((c: any) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' }))}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  form.category_id === String(c.id)
+                    ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                    : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                }`}
+              >
+                {c.icon} {c.name}
+              </button>
             ))}
-          </select>
-        </div>
-
-        {/* Subcategory */}
-        {subcategories.length > 0 && (
-          <div>
-            <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subcategory</label>
-            <select id="subcategory" required value={form.subcategory_id} onChange={set('subcategory_id')}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-              <option value="">Select a subcategory</option>
-              {subcategories.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+            {/* Other bucket */}
+            {showOtherCategories ? (
+              <>
+                {otherCategories.map((c: any) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => { setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' })); setShowOtherCategories(false); }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                      form.category_id === String(c.id)
+                        ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                        : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                    }`}
+                  >
+                    {c.icon} {c.name}
+                  </button>
+                ))}
+                <button type="button" onClick={() => setShowOtherCategories(false)}
+                  className="px-4 py-2 rounded-full text-sm font-medium border bg-gray-100 dark:bg-[#2a3942] text-gray-500 border-gray-200 dark:border-gray-600">
+                  Show less ↑
+                </button>
+              </>
+            ) : (
+              <button type="button" onClick={() => setShowOtherCategories(true)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
+                    ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                    : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                }`}>
+                {form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
+                  ? `${selectedCat?.icon} ${selectedCat?.name}`
+                  : `+ More categories`}
+              </button>
+            )}
           </div>
-        )}
 
-        {/* Title */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
-          <input id="title" required value={form.title} onChange={set('title')} placeholder="e.g. Guitar lessons for beginners"
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
-        </div>
-
-        {/* Location */}
-        <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
-          <select id="country" required value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value, city: '' }))}
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-            {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">City / Area</label>
-          {form.country === 'Luxembourg' ? (
-            <select id="city" required value={form.city} onChange={set('city')}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-              <option value="">Select your commune</option>
-              {['Luxembourg City','Esch-sur-Alzette','Differdange','Dudelange','Ettelbruck','Diekirch','Wiltz','Echternach','Remich','Grevenmacher','Mersch','Capellen','Steinfort','Mamer','Strassen','Bertrange','Hesperange','Sandweiler','Niederanven','Walferdange','Steinsel','Lorentzweiler','Lintgen','Bettembourg','Schifflange','Kayl','Rumelange','Sanem','Mondercange','Pétange','Bascharage','Clemency','Garnich','Hobscheid','Koerich','Septfontaines','Kehlen','Kopstal','Leudelange','Reckange-sur-Mess','Roeser','Weiler-la-Tour','Contern','Frisange','Mondorf-les-Bains','Dalheim','Lenningen','Stadtbredimus','Waldbredimus','Bous','Betzdorf','Flaxweiler','Junglinster','Manternach','Mertert','Wormeldange','Bech','Beaufort','Consdorf','Larochette','Medernach','Nommern','Reisdorf','Rosport-Mompach','Waldbillig','Berdorf','Bourscheid','Clervaux','Esch-sur-Sûre','Feulen','Grosbous','Hoscheid','Kiischpelt','Lac de la Haute-Sûre','Parc Hosingen','Putscheid','Tandel','Troisvierges','Vianden','Weiswampach','Wincrange','Winseler','Bissen','Colmar-Berg','Ell','Fischbach','Helperknapp','Préizerdaul','Rambrouch','Redange-sur-Attert','Saeul','Useldange','Vichten','Wahl','Other'].map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          ) : form.country === 'Georgia' ? (
-            <select id="city" required value={form.city} onChange={set('city')}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-              <option value="">Select your city</option>
-              {['Tbilisi','Batumi','Kutaisi','Rustavi','Gori','Zugdidi','Poti','Khashuri','Samtredia','Senaki','Zugdidi','Marneuli','Telavi','Akhaltsikhe','Ozurgeti','Kaspi','Chiatura','Tskaltubo','Borjomi','Akhalkalaki','Other'].map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          ) : (
-            <input id="city" required value={form.city} onChange={set('city')}
-              placeholder={form.country === 'United Kingdom' ? 'e.g. London, Bristol...' : form.country === 'Germany' ? 'e.g. Berlin, Munich...' : form.country === 'France' ? 'e.g. Paris, Lyon...' : 'Your city or area'}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
+          {/* Subcategory pills — shown when a category is selected */}
+          {subcategories.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-2">Specify further (optional)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {subcategories.map((s: any) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, subcategory_id: form.subcategory_id === String(s.id) ? '' : String(s.id) }))}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      form.subcategory_id === String(s.id)
+                        ? 'bg-primary-500 text-white border-primary-500'
+                        : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:border-primary-300'
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Tbilisi district selector */}
-        {form.country === 'Georgia' && form.city === 'Tbilisi' && (
-          <div>
-            <label htmlFor="district" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">District / Area in Tbilisi</label>
-            <select id="district" value={form.district || ''} onChange={e => setForm(f => ({ ...f, district: e.target.value }))}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-[#2a3942] dark:text-white">
-              <option value="">Select district (optional)</option>
-              {['Old Tbilisi (Dzveli Tbilisi)','Vake','Saburtalo','Didube','Gldani','Isani','Samgori','Nadzaladevi','Mtatsminda','Chugureti','Avlabari','Ortachala','Varketili','Dighomi','Temqa','Ponichala','Lilo','Shindisi','Other'].map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* ── Title ── */}
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
+          <input id="title" required value={form.title} onChange={set('title')}
+            placeholder="e.g. Dog walking in the park"
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
+        </div>
 
-        {/* Description */}
+        {/* ── Description ── */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
             <button type="button" onClick={generateDescription} className="text-xs text-primary-600 hover:text-primary-700 font-medium">AI Generate</button>
           </div>
-          <textarea id="description" required value={form.description} onChange={set('description')} rows={4}
-            placeholder="Describe what you offer, your experience, and what people can expect..."
-            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
+          <textarea id="description" required value={form.description} onChange={set('description')} rows={3}
+            placeholder="What do you offer? What can people expect?"
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
         </div>
 
-        {/* Image */}
-        {(form.is_product || !quickMode) && (
+        {/* ── Duration ── */}
+        {!form.is_product && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {form.is_product ? 'Item Photo' : 'Service Image (optional)'}
-              {form.is_product && <span className="text-red-500 ml-1">*</span>}
+              Session duration
+              <span className="ml-1 text-xs font-normal text-gray-400">— buyers will book in this unit</span>
             </label>
-            {image ? (
-              <div className="relative">
-                <img src={image} alt="" className="w-full h-40 object-cover rounded-xl" />
-                <button type="button" onClick={() => setImage(null)} className="absolute top-2 right-2 bg-white/80 rounded-full w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-white">✕</button>
-              </div>
-            ) : (
-              <label className="block border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary-300">
-                <span className="text-gray-400 text-sm">Click to upload an image</span>
-                <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImageChange} className="hidden" />
-              </label>
-            )}
-          </div>
-        )}
-
-        {/* Duration */}
-        {!quickMode && !form.is_product && (
-          <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duration (minutes)</label>
-            <div className="flex gap-2 mb-2">
-              {[30, 60, 90, 120].map(d => (
-                <button key={d} type="button" onClick={() => setForm(f => ({ ...f, duration_minutes: String(d) }))}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${form.duration_minutes === String(d) ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-                  {d} min
+            <div className="flex gap-2 mb-2 flex-wrap">
+              {DURATION_OPTIONS.map(d => (
+                <button key={d.value} type="button"
+                  onClick={() => setForm(f => ({ ...f, duration_minutes: String(d.value) }))}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                    form.duration_minutes === String(d.value)
+                      ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                      : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                  }`}>
+                  {d.label}
                 </button>
               ))}
             </div>
-            <input id="duration" type="number" min="15" step="15" value={form.duration_minutes} onChange={set('duration_minutes')}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white"
-              placeholder="Or enter custom duration" />
+            {/* Availability link */}
+            <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-primary-800 dark:text-primary-300">Set your schedule</p>
+                <p className="text-xs text-primary-600 dark:text-primary-400">Buyers will see available slots in your service calendar</p>
+              </div>
+              <Link to="/availability" className="text-xs font-semibold text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 whitespace-nowrap shrink-0">
+                Set hours →
+              </Link>
+            </div>
           </div>
         )}
 
-        {/* ── Service location (defaults to home address) ── */}
+        {/* ── Image (optional for services, shown always for items) ── */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Service location
+            Photo <span className="text-gray-400 font-normal text-xs">{form.is_product ? '(required)' : '(optional)'}</span>
           </label>
+          {image ? (
+            <div className="relative">
+              <img src={image} alt="" className="w-full h-40 object-cover rounded-xl" />
+              <button type="button" onClick={() => setImage(null)}
+                className="absolute top-2 right-2 bg-white/80 rounded-full w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-white">✕</button>
+            </div>
+          ) : (
+            <label className="block border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary-300 transition-colors">
+              <svg className="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+              <span className="text-gray-400 text-sm">Click to upload a photo</span>
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImageChange} className="hidden" />
+            </label>
+          )}
+        </div>
 
-          {/* Default: home address pill — shown when not overriding */}
+        {/* ── Location ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
           {!showLocationOverride ? (
             <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
               <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -366,32 +375,25 @@ export default function CreateServicePage() {
               <div className="flex-1 min-w-0">
                 {serviceLatLng ? (
                   <>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                      {serviceAddress || 'Home address'}
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-400">✓ GPS location set — buyers can find you in radius searches</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{serviceAddress || 'Home address'}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">✓ Buyers can find you in nearby searches</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">No home address set</p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400">Set your address in Settings to appear in radius searches</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No address set</p>
+                    <p className="text-xs text-amber-600">Go to Settings to add your address</p>
                   </>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={() => setShowLocationOverride(true)}
-                className="text-xs text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 shrink-0"
-              >
-                Change
-              </button>
+              <button type="button" onClick={() => setShowLocationOverride(true)}
+                className="text-xs text-primary-600 dark:text-primary-400 font-medium shrink-0">Change</button>
             </div>
           ) : (
-            /* Override: address search input */
             <div>
               <div className="relative">
                 <input
                   value={serviceAddress}
+                  autoFocus
                   onChange={e => {
                     setServiceAddress(e.target.value);
                     setServiceAddressSet(false);
@@ -402,36 +404,25 @@ export default function CreateServicePage() {
                     addrDebounceRef.current = setTimeout(async () => {
                       try {
                         const q = encodeURIComponent(e.target.value);
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1`, {
-                          headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' }
-                        });
-                        const data = await res.json();
-                        setServiceAddressSuggestions(data);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5`, { headers: { 'User-Agent': 'Boomerang/1.0' } });
+                        setServiceAddressSuggestions(await res.json());
                       } catch {}
                       setServiceAddressSearching(false);
                     }, 500);
                   }}
-                  placeholder="Search for a different location..."
-                  autoFocus
+                  placeholder="Search for a different meeting point..."
                   className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white pr-8"
                 />
                 {serviceAddressSearching && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <span className="inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />
-                  </span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />
                 )}
                 {serviceAddressSuggestions.length > 0 && !serviceAddressSet && (
                   <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden">
                     {serviceAddressSuggestions.map((s: any, i: number) => (
                       <button key={i} type="button"
-                        onClick={() => {
-                          setServiceAddress(s.display_name);
-                          setServiceLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
-                          setServiceAddressSuggestions([]);
-                          setServiceAddressSet(true);
-                        }}
+                        onClick={() => { setServiceAddress(s.display_name); setServiceLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) }); setServiceAddressSuggestions([]); setServiceAddressSet(true); }}
                         className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#374151] border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <p className="font-medium truncate">{s.display_name.split(',').slice(0,2).join(',')}</p>
+                        <p className="font-medium truncate">{s.display_name.split(',').slice(0, 2).join(',')}</p>
                         <p className="text-xs text-gray-400 truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
                       </button>
                     ))}
@@ -439,56 +430,37 @@ export default function CreateServicePage() {
                 )}
               </div>
               <button type="button" onClick={() => {
-                // Revert to home address
                 if (user && (user as any).latitude) {
                   setServiceLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
                   setServiceAddress((user as any).city || 'Home address');
                   setServiceAddressSet(true);
                 }
                 setShowLocationOverride(false);
-              }} className="text-xs text-gray-400 hover:text-gray-600 mt-1.5">
-                ← Use home address instead
-              </button>
-              {serviceAddressSet && serviceLatLng && (
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
-                  Custom location set
-                </p>
-              )}
+              }} className="text-xs text-gray-400 hover:text-gray-600 mt-1.5">← Use home address</button>
             </div>
           )}
         </div>
-        {/* ── Price (EUR or GEL depending on country) ── */}
-        {(() => {
-          const isGel = form.country === 'Georgia';
-          const currencySymbol = isGel ? '₾' : '€';
-          const currencyName = isGel ? 'Georgian Lari (₾)' : 'Euro (€)';
-          return (
-            <div>
-              <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Your price <span className="text-gray-400 font-normal">({currencyName})</span>
-                <span className="ml-2 text-xs font-normal text-gray-400">optional</span>
-              </label>
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 mb-3 text-xs text-blue-700 dark:text-blue-300">
-                You keep <span className="font-semibold">80%</span> — Boomerang takes a 20% platform fee. Leave blank to arrange payment via message.
-              </div>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">{currencySymbol}</span>
-                <input id="price_eur" type="number" min="1" max="99999" step="0.01"
-                  value={form.price_eur} onChange={set('price_eur')}
-                  placeholder="Leave blank to arrange via message"
-                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
-              </div>
-              {form.price_eur && parseFloat(form.price_eur) > 0 && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-                  You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.8).toFixed(2)}</span> after the 20% platform fee
-                </p>
-              )}
-            </div>
-          );
-        })()}
 
-        {/* Quantity — products only */}
+        {/* ── Price ── */}
+        <div>
+          <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Price <span className="text-gray-400 font-normal text-xs">({isGel ? '₾ GEL' : '€ EUR'}) — optional</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
+            <input id="price_eur" type="number" min="1" max="99999" step="0.01"
+              value={form.price_eur} onChange={set('price_eur')}
+              placeholder="Leave blank to arrange via message"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
+          </div>
+          {form.price_eur && parseFloat(form.price_eur) > 0 && (
+            <p className="text-xs text-gray-400 mt-1.5">
+              You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.8).toFixed(2)}</span> after the 20% platform fee
+            </p>
+          )}
+        </div>
+
+        {/* ── Quantity — items only ── */}
         {form.is_product && (
           <div>
             <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Quantity available</label>
@@ -497,33 +469,9 @@ export default function CreateServicePage() {
           </div>
         )}
 
-        {/* Bundle — services only in advanced mode */}
-        {!quickMode && !form.is_product && (
-          <div className="border-t border-gray-100 dark:border-gray-700 pt-5">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" checked={form.is_bundle} onChange={e => setForm(f => ({ ...f, is_bundle: e.target.checked }))} className="rounded" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">Offer as a package deal</span>
-            </label>
-            {form.is_bundle && (
-              <div className="grid grid-cols-2 gap-4 mt-3">
-                <div>
-                  <label htmlFor="sessions" className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Number of sessions</label>
-                  <input id="sessions" type="number" min="2" value={form.sessions_count} onChange={e => setForm(f => ({ ...f, sessions_count: e.target.value }))}
-                    className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
-                </div>
-                <div>
-                  <label htmlFor="discount" className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Discount %</label>
-                  <input id="discount" type="number" min="0" max="50" value={form.bundle_discount} onChange={e => setForm(f => ({ ...f, bundle_discount: e.target.value }))}
-                    className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         <button type="submit" disabled={loading}
-          className="w-full bg-primary-500 text-white py-3 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 hover:shadow-md transition-all">
-          {loading ? 'Creating...' : form.is_product ? 'List Item' : 'Publish Service'}
+          className="w-full bg-primary-500 text-white py-3.5 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 transition-all text-sm">
+          {loading ? 'Publishing...' : form.is_product ? 'List Item' : 'Publish Service'}
         </button>
       </form>
     </div>
