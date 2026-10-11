@@ -577,8 +577,8 @@ export default function ServiceDetailPage() {
           </div>
         )}
 
-        {/* ── Request form ── */}
-        {user && !isOwner && status !== 'success' && hasServices && priceEur != null && providerConnectStatus === 'ok' && (
+        {/* ── Request form — shown to all logged-in users (no offer-first gate) ── */}
+        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'ok' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-sm dark:text-white">Pick a date & time</h3>
@@ -886,7 +886,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* ── Sticky mobile request bar ── */}
-      {user && !isOwner && status !== 'success' && hasServices && (priceEur != null ? (providerConnectStatus === 'ok') : true) && (
+      {user && !isOwner && status !== 'success' && (priceEur != null ? (providerConnectStatus === 'ok') : true) && (
         <div className="fixed left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-40 md:hidden shadow-lg"
           style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
           <div>

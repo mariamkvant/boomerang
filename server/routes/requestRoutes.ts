@@ -64,6 +64,50 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   });
 });
 
+// ─── ARCHIVE / UNARCHIVE ────────────────────────────────────────────────────
+router.put('/:id/archive', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get(`
+    SELECT sr.*, s.provider_id FROM service_requests sr
+    JOIN services s ON sr.service_id = s.id
+    WHERE sr.id = ?`, req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+
+  const isRequester = r.requester_id === req.userId;
+  const isProvider  = r.provider_id  === req.userId;
+  if (!isRequester && !isProvider) return res.status(403).json({ error: 'Not your request' });
+
+  // Only allow archiving completed or cancelled requests
+  if (!['completed', 'cancelled'].includes(r.status)) {
+    return res.status(400).json({ error: 'Only completed or cancelled requests can be archived' });
+  }
+
+  if (isRequester) {
+    await db.run('UPDATE service_requests SET archived_by_requester = true WHERE id = ?', req.params.id);
+  } else {
+    await db.run('UPDATE service_requests SET archived_by_provider = true WHERE id = ?', req.params.id);
+  }
+  res.json({ message: 'Request archived' });
+});
+
+router.put('/:id/unarchive', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const r = await db.get(`
+    SELECT sr.*, s.provider_id FROM service_requests sr
+    JOIN services s ON sr.service_id = s.id
+    WHERE sr.id = ?`, req.params.id);
+  if (!r) return res.status(404).json({ error: 'Request not found' });
+
+  const isRequester = r.requester_id === req.userId;
+  const isProvider  = r.provider_id  === req.userId;
+  if (!isRequester && !isProvider) return res.status(403).json({ error: 'Not your request' });
+
+  if (isRequester) {
+    await db.run('UPDATE service_requests SET archived_by_requester = false WHERE id = ?', req.params.id);
+  } else {
+    await db.run('UPDATE service_requests SET archived_by_provider = false WHERE id = ?', req.params.id);
+  }
+  res.json({ message: 'Request unarchived' });
+});
+
 // ─── INCOMING / OUTGOING ────────────────────────────────────────────────────
 router.get('/incoming', authMiddleware, async (req: AuthRequest, res: Response) => {
   const requests = await db.all(`
@@ -72,7 +116,9 @@ router.get('/incoming', authMiddleware, async (req: AuthRequest, res: Response) 
     FROM service_requests sr
     JOIN services s ON sr.service_id = s.id
     JOIN users u ON sr.requester_id = u.id
-    WHERE s.provider_id = ? ORDER BY sr.created_at DESC`, req.userId);
+    WHERE s.provider_id = ?
+      AND (sr.archived_by_provider IS NULL OR sr.archived_by_provider = false)
+    ORDER BY sr.created_at DESC`, req.userId);
   res.json(requests);
 });
 
@@ -87,7 +133,9 @@ router.get('/outgoing', authMiddleware, async (req: AuthRequest, res: Response) 
     FROM service_requests sr
     JOIN services s ON sr.service_id = s.id
     JOIN users u ON s.provider_id = u.id
-    WHERE sr.requester_id = $2 ORDER BY sr.created_at DESC`, req.userId, req.userId);
+    WHERE sr.requester_id = $2
+      AND (sr.archived_by_requester IS NULL OR sr.archived_by_requester = false)
+    ORDER BY sr.created_at DESC`, req.userId, req.userId);
   res.json(requests);
 });
 

@@ -771,6 +771,14 @@ export default function DashboardPage() {
                   {r.status === 'completed' && (
                     <Link to={`/services/${r.service_id}`} className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Request again</Link>
                   )}
+                  {/* Archive button — for completed or cancelled requests */}
+                  {['completed', 'cancelled'].includes(r.status) && (
+                    <button onClick={async () => {
+                      try { await api.archiveRequest(r.id); toast('Archived'); load(); } catch (err: any) { toast(err.message, 'error'); }
+                    }} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 font-medium" title="Archive this request">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                    </button>
+                  )}
                 </div>
               </div>
               {['accepted','delivered','completed','disputed'].includes(r.status) && (
@@ -930,6 +938,13 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <Link to={`/messages?to=${r.requester_id}`} className="text-xs text-primary-500 hover:text-primary-600 shrink-0 ml-2">Message</Link>
+                    {r.status === 'completed' || r.status === 'cancelled' ? (
+                      <button onClick={async () => {
+                        try { await api.archiveRequest(r.id); toast('Archived'); load(); } catch (err: any) { toast(err.message, 'error'); }
+                      }} className="text-xs text-gray-400 hover:text-gray-600 px-1.5 py-1 rounded border border-gray-200 dark:border-gray-700 shrink-0 ml-1" title="Archive">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>
+                      </button>
+                    ) : null}
                   </div>
                 ))}
               </div>
