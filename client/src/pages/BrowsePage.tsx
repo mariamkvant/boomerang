@@ -24,7 +24,7 @@ function fmtPrice(s: any): string {
   const p = s.price_eur != null ? parseFloat(s.price_eur) : null;
   if (p != null && p > 0) {
     const symbol = s.currency === 'gel' ? '₾' : '€';
-    return `${symbol}${p % 1 === 0 ? p.toFixed(0) : p.toFixed(2)}`;
+    return `${symbol}${Math.round(p)}`;
   }
   return 'Contact provider';
 }

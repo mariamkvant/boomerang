@@ -12,7 +12,7 @@ export default function HelpWantedPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: '', description: '', category_id: '', points_budget: '10' });
+  const [form, setForm] = useState({ title: '', description: '', category_id: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [bumpedIds, setBumpedIds] = useState<Set<number>>(new Set());
@@ -34,8 +34,8 @@ export default function HelpWantedPage() {
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault(); setError('');
     try {
-      await api.postHelpWanted({ ...form, category_id: Number(form.category_id), points_budget: Number(form.points_budget) });
-      setSuccess('Posted! People can now offer to help.'); setForm({ title: '', description: '', category_id: '', points_budget: '10' });
+      await api.postHelpWanted({ ...form, category_id: Number(form.category_id) });
+      setSuccess('Posted! People can now offer to help.'); setForm({ title: '', description: '', category_id: '' });
       load(); setTab('browse');
     } catch (err: any) { setError(err.message); }
   };
@@ -77,7 +77,7 @@ export default function HelpWantedPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs text-gray-400">{r.category_name}</span>
-                    <span className="text-xs text-primary-600 font-medium">{r.points_budget} 🪃</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Community favour</span>
                     {r.status !== 'open' && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                         {r.status === 'completed' ? 'Done' : r.status === 'accepted' ? 'In progress' : r.status === 'delivered' ? 'Delivered' : r.status}
@@ -131,7 +131,7 @@ export default function HelpWantedPage() {
                   {r.status === 'accepted' ? 'In progress' : r.status}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name} · 🪃 {r.points_budget}</p>
+              <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name} · Community favour</p>
               {r.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {r.helper_name}</p>}
             </div>
           ))}
@@ -158,10 +158,9 @@ export default function HelpWantedPage() {
             <textarea id="hw-desc" required value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} rows={3} placeholder="Describe what you need..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
-          <div>
-            <label htmlFor="hw-pts" className="block text-sm font-medium text-gray-700 mb-1.5">Boomerangs you'll pay</label>
-            <input id="hw-pts" type="number" min="1" required value={form.points_budget} onChange={e => setForm(f => ({...f, points_budget: e.target.value}))}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none" />
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">🤝 Community favour — no payment</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">Help requests are free exchanges. You're asking your neighbours for a favour — they help because they want to, not for money. Say thanks in return!</p>
           </div>
           <button type="submit" className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600">Post Request</button>
         </form>
