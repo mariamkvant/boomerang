@@ -10,6 +10,23 @@ router.get('/categories', async (_req, res: Response) => {
   res.json(categories);
 });
 
+// Cities that have active services (for the city picker)
+router.get('/cities', async (_req, res: Response) => {
+  const cities = await db.all(`
+    SELECT COALESCE(s.city, u.city) as city, COUNT(*) as service_count
+    FROM services s
+    JOIN users u ON s.provider_id = u.id
+    WHERE s.is_active = 1
+      AND s.group_id IS NULL
+      AND COALESCE(s.city, u.city) IS NOT NULL
+      AND COALESCE(s.city, u.city) != ''
+    GROUP BY COALESCE(s.city, u.city)
+    ORDER BY service_count DESC
+    LIMIT 50
+  `);
+  res.json(cities);
+});
+
 // Platform stats for activity feed
 router.get('/stats', async (_req, res: Response) => {
   const users = await db.get('SELECT COUNT(*) as count FROM users');

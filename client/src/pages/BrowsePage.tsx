@@ -104,6 +104,10 @@ export default function BrowsePage() {
   // Personalised suggestions
   const [suggestions, setSuggestions] = useState<any[]>([]);
 
+  // Cities with active services
+  const [availableCities, setAvailableCities] = useState<{ city: string; service_count: number }[]>([]);
+  const [citySearch, setCitySearch] = useState('');
+
   // Request sheet
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
@@ -119,6 +123,7 @@ export default function BrowsePage() {
   useEffect(() => {
     setRecentlyViewed(getRecentlyViewed());
     api.getCategories().then(setCategories).catch(() => {});
+    api.getServiceCities().then((res: any) => setAvailableCities(Array.isArray(res) ? res : [])).catch(() => {});
     acquireLocation();
     // Load personalised suggestions for logged-in users
     if (user) {
@@ -337,34 +342,77 @@ export default function BrowsePage() {
           {/* See all services button — removed, replaced by persistent floating button below */}
         </div>
 
-        {/* City picker */}
+        {/* City picker — shows available cities as searchable pills */}
         {showCityPicker && (
-          <div className="pointer-events-auto bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 p-3 space-y-2">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Filter by location</p>
-              <button onClick={() => setShowCityPicker(false)} className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-gray-200">
+          <div className="pointer-events-auto bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden" style={{ maxHeight: '340px', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-white">Cities with services</p>
+              <button onClick={() => { setShowCityPicker(false); setCitySearch(''); }} className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-gray-200">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">City</p>
-              <input type="text" placeholder="e.g. Tbilisi, London..." value={cityFilter}
-                onChange={e => setCityFilter(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none dark:bg-[#2a3942] dark:text-white focus:ring-1 focus:ring-primary-500"
-                autoFocus />
+            {/* Search input */}
+            <div className="px-3 py-2 shrink-0">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                <input
+                  type="text"
+                  placeholder="Search city..."
+                  value={citySearch}
+                  onChange={e => setCitySearch(e.target.value)}
+                  autoFocus
+                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg outline-none dark:bg-[#2a3942] dark:text-white focus:ring-1 focus:ring-primary-500"
+                />
+                {citySearch && (
+                  <button onClick={() => setCitySearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Country</p>
-              <select value={countryFilter} onChange={e => setCountryFilter(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#2a3942] dark:text-white outline-none">
-                <option value="">All countries</option>
-                {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+            {/* City list */}
+            <div className="overflow-y-auto flex-1 px-3 pb-3">
+              {/* Clear filter option */}
+              {cityFilter && (
+                <button
+                  onClick={() => { setCityFilter(''); setCountryFilter(''); setShowCityPicker(false); setCitySearch(''); }}
+                  className="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mb-1 flex items-center gap-2"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                  Clear location filter
+                </button>
+              )}
+              {availableCities.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">Loading cities...</p>
+              ) : (() => {
+                const filtered = availableCities.filter(c =>
+                  !citySearch || c.city.toLowerCase().includes(citySearch.toLowerCase())
+                );
+                return filtered.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">No cities match "{citySearch}"</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {filtered.map(c => (
+                      <button
+                        key={c.city}
+                        onClick={() => { setCityFilter(c.city); setShowCityPicker(false); setCitySearch(''); }}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          cityFilter === c.city
+                            ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                            : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                        }`}
+                      >
+                        📍 {c.city}
+                        <span className={`text-[10px] px-1 py-0.5 rounded-full ${cityFilter === c.city ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                          {c.service_count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
-            <button onClick={() => setShowCityPicker(false)}
-              className="w-full bg-[#1f2937] text-white py-2 rounded-lg text-sm font-semibold">Apply</button>
           </div>
         )}
 

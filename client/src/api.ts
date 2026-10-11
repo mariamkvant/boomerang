@@ -91,6 +91,7 @@ export const api = {
   getNearbyServices: (lat: number, lng: number, radius?: number) => request(`/services/nearby?lat=${lat}&lng=${lng}&radius=${radius ?? 10}`),
   getStats: () => cachedRequest('/services/stats'),
   getSuggestions: () => request('/services/suggestions'),
+  getServiceCities: () => cachedRequest('/services/cities'),
 
   // Requests
   createRequest: (body: any) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),
