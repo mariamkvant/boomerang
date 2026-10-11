@@ -96,6 +96,11 @@ export default function BrowsePage() {
   // Selected pin — syncs map highlight ↔ list scroll
   const [selectedProviderId, setSelectedProviderId] = useState<number | null>(null);
 
+  // Seller profile sheet — shown when a map pin is tapped
+  const [sellerSheet, setSellerSheet] = useState<{ providerId: number } | null>(null);
+  const [sellerProfile, setSellerProfile] = useState<any>(null);
+  const [sellerLoading, setSellerLoading] = useState(false);
+
   // Request sheet
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
@@ -174,15 +179,20 @@ export default function BrowsePage() {
 
   const handleMarkerClick = useCallback((providerId: number) => {
     setSelectedProviderId(providerId);
-    // Expand panel to at least peek
+    // Open seller profile sheet
+    setSellerSheet({ providerId });
+    setSellerProfile(null);
+    setSellerLoading(true);
+    api.getUser(providerId).then((p: any) => {
+      setSellerProfile(p);
+      setSellerLoading(false);
+    }).catch(() => setSellerLoading(false));
+    // Also expand panel to half and scroll to card
     setPanelState(s => (s === 'collapsed' ? 'half' : s === 'peek' ? 'half' : s));
-    // Scroll to that provider's first card
     setTimeout(() => {
       const el = cardRefs.current.get(providerId);
-      if (el && listRef.current) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 320); // wait for panel animation
+      if (el && listRef.current) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 320);
   }, []);
 
   // ── Category ─────────────────────────────────────────────────────────────
@@ -315,6 +325,15 @@ export default function BrowsePage() {
               className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1">
               {locating ? <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '📍'}
               Locate me
+            </button>
+          )}
+          {/* See all services button — shown when radius is active */}
+          {userCoords && (
+            <button
+              onClick={() => { setRadiusKm(0); setUserCoords(null); setCityFilter(''); setCountryFilter(''); }}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 flex items-center gap-1"
+            >
+              🌍 See all services
             </button>
           )}
         </div>
@@ -565,6 +584,126 @@ export default function BrowsePage() {
           </div>
         )}
       </div>
+
+      {/* ── "SEE ALL SERVICES AROUND ME" floating button ── */}
+      {userCoords && radiusKm <= 1 && services.length < 5 && (
+        <div className="absolute bottom-[calc(var(--panel-h,160px)+12px)] left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          <button
+            onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : 10)}
+            className="bg-white dark:bg-[#1c1c1c] shadow-lg border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-800 dark:text-white px-4 py-2.5 rounded-full flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-[#242424] transition-all"
+          >
+            <svg className="w-4 h-4 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            Expand to {radiusKm === 0.5 ? '1km' : radiusKm === 1 ? '5km' : '10km'} radius
+          </button>
+        </div>
+      )}
+
+      {/* ── SELLER PROFILE SHEET ── */}
+      {sellerSheet && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => { setSellerSheet(null); setSelectedProviderId(null); }}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-1" />
+
+            {sellerLoading || !sellerProfile ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="px-5 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+
+                {/* Provider header */}
+                <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gray-700 mb-4">
+                  {sellerProfile.avatar ? (
+                    <img src={sellerProfile.avatar} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-2xl font-bold shrink-0">
+                      {sellerProfile.username?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-bold dark:text-white">{sellerProfile.username}</h2>
+                    {sellerProfile.avg_rating && (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-yellow-500 text-sm">★</span>
+                        <span className="text-sm font-semibold dark:text-white">{Number(sellerProfile.avg_rating).toFixed(1)}</span>
+                        <span className="text-xs text-gray-400">({sellerProfile.review_count || 0} reviews)</span>
+                      </div>
+                    )}
+                    {sellerProfile.city && (
+                      <p className="text-xs text-gray-400 mt-0.5">📍 {sellerProfile.city}</p>
+                    )}
+                  </div>
+                  <Link
+                    to={`/users/${sellerSheet.providerId}`}
+                    onClick={() => setSellerSheet(null)}
+                    className="shrink-0 text-xs font-semibold text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 px-3 py-1.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                  >
+                    Full profile →
+                  </Link>
+                </div>
+
+                {/* Bio */}
+                {sellerProfile.bio && (
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{sellerProfile.bio}</p>
+                )}
+
+                {/* Services */}
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-white mb-3">
+                  Services offered ({sellerProfile.services?.length || 0})
+                </h3>
+                {(!sellerProfile.services || sellerProfile.services.length === 0) ? (
+                  <p className="text-sm text-gray-400">No services listed yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {sellerProfile.services.map((s: any) => (
+                      <div key={s.id} className="flex items-center gap-3 bg-gray-50 dark:bg-[#242424] rounded-xl p-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl shrink-0">
+                          {s.category_icon || '🛠'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold dark:text-white truncate">{s.title}</p>
+                          <p className="text-xs text-gray-400">{s.category_name}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {s.price_eur != null && (
+                            <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
+                              {s.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(s.price_eur))}
+                            </span>
+                          )}
+                          <Link
+                            to={`/services/${s.id}`}
+                            onClick={() => setSellerSheet(null)}
+                            className="text-xs font-semibold bg-[#1f2937] text-white px-3 py-1.5 rounded-lg hover:bg-[#111827]"
+                          >
+                            View
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Message button */}
+                {user && user.id !== sellerSheet.providerId && (
+                  <Link
+                    to={`/messages?to=${sellerSheet.providerId}`}
+                    onClick={() => setSellerSheet(null)}
+                    className="mt-4 w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#242424] transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                    </svg>
+                    Message {sellerProfile.username}
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── REQUEST SHEET ── */}
       {requestConfirm && (

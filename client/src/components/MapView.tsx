@@ -266,6 +266,8 @@ export default function MapView({
 
       marker.on('click', () => {
         if (onMarkerClick) onMarkerClick(providerId);
+        // Close popup immediately — the in-app sheet handles details
+        setTimeout(() => marker.closePopup(), 0);
       });
 
       // Permanent name tooltip — visible when zoomed in (zoom ≥ 15)
