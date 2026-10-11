@@ -268,6 +268,7 @@ export default function ServiceDetailPage() {
       }
 
       setStatus('success');
+      setShowConfirm(false);
       setMessage('');
     } catch (err: any) { setStatus(err.message); }
     setRequesting(false);
