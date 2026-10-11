@@ -177,10 +177,8 @@ router.get('/', async (req: AuthRequest, res: Response) => {
         ))) < ?
       )
       OR
-      -- Services without GPS but in the same city (city-based fallback)
-      (COALESCE(s.service_latitude, u.latitude) IS NULL
-        AND u.city IS NOT NULL AND u.city != ''
-      )
+      -- Services without GPS: always include them (can't filter by distance)
+      COALESCE(s.service_latitude, u.latitude) IS NULL
     )`;
     filterParams.push(latNum, lngNum, latNum, radiusKm);
   }
