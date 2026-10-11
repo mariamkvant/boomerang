@@ -84,6 +84,7 @@ export default function BrowsePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ service: any } | null>(null);
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
+  const [requestMessage, setRequestMessage] = useState('');
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const longPressRef = useRef<ReturnType<typeof setTimeout>>();
@@ -139,12 +140,12 @@ export default function BrowsePage() {
     e.preventDefault(); e.stopPropagation();
     if (!user) return;
     const svc = services.find(s => s.id === serviceId);
-    if (svc) setRequestConfirm({ service: svc });
+    if (svc) { setRequestConfirm({ service: svc }); setRequestMessage(''); }
   };
 
   const confirmRequest = async (serviceId: number) => {
     try {
-      await api.createRequest({ service_id: serviceId, message: 'Quick request from browse' });
+      await api.createRequest({ service_id: serviceId, message: requestMessage.trim() || '' });
       toast('Request sent! Check your dashboard.');
       setRequestConfirm(null);
     } catch (err: any) { toast(err.message, 'error'); setRequestConfirm(null); }
@@ -581,15 +582,50 @@ export default function BrowsePage() {
       {requestConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRequestConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-4" />
-            <div className="px-5 pb-2">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Send request?</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1 line-clamp-2">{requestConfirm.service.title}</p>
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                Price: <span className="text-primary-600">{fmtPrice(requestConfirm.service)}</span>
-              </p>
-              <div className="flex gap-2 pt-2" style={{ paddingBottom: 'max(2.5rem, calc(env(safe-area-inset-bottom) + 5rem))' }}>
+          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-4 sticky top-0" />
+            <div className="px-5 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+
+              {/* Seller info */}
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base shrink-0">
+                  {requestConfirm.service.provider_name?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold dark:text-white truncate">{requestConfirm.service.provider_name}</p>
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                    {requestConfirm.service.avg_rating && <span>★ {Number(requestConfirm.service.avg_rating).toFixed(1)}</span>}
+                    {requestConfirm.service.provider_city && <span>· {requestConfirm.service.provider_city}</span>}
+                  </div>
+                </div>
+                <Link to={`/messages?to=${requestConfirm.service.provider_id}`} onClick={() => setRequestConfirm(null)}
+                  className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-200 shrink-0">
+                  Message
+                </Link>
+              </div>
+
+              {/* Service title + price */}
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{requestConfirm.service.title}</h3>
+              {requestConfirm.service.price_eur != null && (
+                <p className="text-sm font-semibold text-primary-600 mb-4">
+                  {requestConfirm.service.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(requestConfirm.service.price_eur))}
+                  <span className="text-xs font-normal text-gray-400 ml-1">per session · held until you confirm delivery</span>
+                </p>
+              )}
+
+              {/* Message input */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Message to provider (optional)</label>
+                <textarea
+                  value={requestMessage}
+                  onChange={e => setRequestMessage(e.target.value)}
+                  placeholder="e.g. I need this on weekday evenings, I'm in the Vake area..."
+                  rows={3}
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm resize-none bg-white dark:bg-[#2a3942] dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              <div className="flex gap-2">
                 <button onClick={() => setRequestConfirm(null)}
                   className="flex-1 py-3 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
                   Cancel
