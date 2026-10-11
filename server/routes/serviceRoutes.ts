@@ -13,16 +13,40 @@ router.get('/categories', async (_req, res: Response) => {
 // Cities that have active services (for the city picker)
 router.get('/cities', async (_req, res: Response) => {
   const cities = await db.all(`
-    SELECT
-      SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1) as city,
-      COUNT(*) as service_count
-    FROM services s
-    JOIN users u ON s.provider_id = u.id
-    WHERE s.is_active = 1
-      AND s.group_id IS NULL
-      AND COALESCE(s.city, u.city) IS NOT NULL
-      AND COALESCE(s.city, u.city) != ''
-    GROUP BY SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1)
+    WITH raw AS (
+      SELECT
+        -- Step 1: take base city (strip district after ' — ')
+        SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1) as base_city
+      FROM services s
+      JOIN users u ON s.provider_id = u.id
+      WHERE s.is_active = 1
+        AND s.group_id IS NULL
+        AND COALESCE(s.city, u.city) IS NOT NULL
+        AND COALESCE(s.city, u.city) != ''
+    ),
+    normalized AS (
+      SELECT
+        -- Step 2: normalize known variants to canonical city names
+        CASE
+          -- Tbilisi districts → Tbilisi
+          WHEN base_city ILIKE ANY(ARRAY[
+            'Tbilisi%', 'Saburtalo', 'Vake', 'Mtatsminda', 'Isani', 'Samgori',
+            'Gldani', 'Didube', 'Nadzaladevi', 'Chugureti', 'Avlabari',
+            'Ortachala', 'Varketili', 'Dighomi', 'Old Tbilisi%'
+          ]) THEN 'Tbilisi'
+          -- Strip country suffix e.g. "Tbilisi, Georgia" → "Tbilisi"
+          WHEN base_city ILIKE '%,%' THEN TRIM(SPLIT_PART(base_city, ',', 1))
+          -- Luxembourg City variants
+          WHEN base_city ILIKE 'Luxembourg City%' THEN 'Luxembourg City'
+          WHEN base_city = 'Luxembourg' THEN 'Luxembourg City'
+          ELSE base_city
+        END as city
+      FROM raw
+    )
+    SELECT city, COUNT(*) as service_count
+    FROM normalized
+    WHERE city IS NOT NULL AND city != ''
+    GROUP BY city
     ORDER BY service_count DESC
     LIMIT 50
   `);
@@ -93,7 +117,22 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (category)    { where += ' AND s.category_id = ?';                              filterParams.push(category); }
   if (subcategory) { where += ' AND s.subcategory_id = ?';                           filterParams.push(subcategory); }
   if (search)      { where += ' AND (s.title ILIKE ? OR s.description ILIKE ? OR u.username ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`, `%${search}%`); }
-  if (city)        { where += ' AND u.city ILIKE ?';                                  filterParams.push(`%${city}%`); }
+  if (city) {
+    // For Tbilisi: match all district variants stored without the "Tbilisi" prefix
+    if (city.toLowerCase() === 'tbilisi') {
+      const tbilisiDistricts = ['Saburtalo','Vake','Mtatsminda','Isani','Samgori','Gldani','Didube','Nadzaladevi','Chugureti','Avlabari','Ortachala','Varketili','Dighomi'];
+      const likeTerms = tbilisiDistricts.map(() => 'u.city ILIKE ?').join(' OR ');
+      where += ` AND (u.city ILIKE ? OR ${likeTerms})`;
+      filterParams.push('%Tbilisi%', ...tbilisiDistricts.map(d => `%${d}%`));
+    } else if (city.toLowerCase() === 'luxembourg city' || city.toLowerCase() === 'luxembourg') {
+      // Match both "Luxembourg" and "Luxembourg City"
+      where += ' AND (u.city ILIKE ? OR u.city ILIKE ?)';
+      filterParams.push('%Luxembourg City%', '%Luxembourg%');
+    } else {
+      where += ' AND u.city ILIKE ?';
+      filterParams.push(`%${city}%`);
+    }
+  }
 
   if (is_product === '1') { where += ' AND COALESCE(s.is_product, false) = true'; }
   else if (is_product === '0') { where += ' AND COALESCE(s.is_product, false) = false'; }
