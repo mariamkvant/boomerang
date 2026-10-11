@@ -27,13 +27,14 @@ interface MapViewProps {
   userLat?: number | null;
   userLng?: number | null;
   radiusKm?: number;
+  height?: string;
+  onMarkerClick?: (providerId: number) => void;
 }
 
 function fmtPrice(s: Service): string {
   if (s.price_eur != null && Number(s.price_eur) > 0) {
     const sym = s.currency === 'gel' ? '₾' : '€';
-    const n = Number(s.price_eur);
-    return `${sym}${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`;
+    return `${sym}${Math.round(Number(s.price_eur))}`;
   }
   return 'Contact provider';
 }
@@ -43,7 +44,6 @@ function stars(rating: number): string {
   return '★'.repeat(full) + '☆'.repeat(5 - full);
 }
 
-// Build the rich popup HTML for a provider's pin
 function buildPopupHtml(providerName: string, svcs: Service[]): string {
   const first = svcs[0];
   const avgRating = first.avg_rating ? Number(first.avg_rating) : null;
@@ -54,7 +54,8 @@ function buildPopupHtml(providerName: string, svcs: Service[]): string {
       display:flex; align-items:center; justify-content:space-between;
       padding:7px 0; border-bottom:1px solid #f3f4f6; text-decoration:none; gap:8px;
     ">
-      <span style="font-size:12px; color:#111827; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      <span style="font-size:12px; color:#111827; font-weight:500; flex:1; min-width:0;
+        overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
         ${s.category_icon || ''} ${s.title}
       </span>
       <span style="font-size:12px; font-weight:700; color:#f97316; white-space:nowrap; flex-shrink:0;">
@@ -67,18 +68,19 @@ function buildPopupHtml(providerName: string, svcs: Service[]): string {
 
   return `
     <div style="font-family:system-ui,-apple-system,sans-serif; min-width:220px; max-width:280px;">
-      <!-- Provider header -->
       <a href="/users/${first.provider_id || first.provider_user_id}" style="
         display:flex; align-items:center; gap:10px; padding-bottom:10px;
         border-bottom:2px solid #f3f4f6; margin-bottom:8px; text-decoration:none;
       ">
         <div style="
-          width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#f97316,#ea580c);
+          width:36px; height:36px; border-radius:50%;
+          background:linear-gradient(135deg,#f97316,#ea580c);
           display:flex; align-items:center; justify-content:center;
           color:white; font-size:15px; font-weight:700; flex-shrink:0;
         ">${initial}</div>
         <div style="min-width:0; flex:1;">
-          <div style="font-size:14px; font-weight:700; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${providerName}</div>
+          <div style="font-size:14px; font-weight:700; color:#111827;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${providerName}</div>
           <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
             ${avgRating != null ? `
               <span style="font-size:11px; color:#f59e0b;">${stars(avgRating)}</span>
@@ -88,22 +90,17 @@ function buildPopupHtml(providerName: string, svcs: Service[]): string {
           ${first.provider_city ? `<div style="font-size:11px; color:#9ca3af; margin-top:1px;">📍 ${first.provider_city}</div>` : ''}
         </div>
       </a>
-      <!-- Services list -->
-      <div style="margin-bottom:${moreCount ? '4px' : '8px'};">
-        ${servicesHtml}
-      </div>
+      <div style="margin-bottom:${moreCount ? '4px' : '8px'};">${servicesHtml}</div>
       ${moreCount ? `<div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">+${moreCount} more service${moreCount > 1 ? 's' : ''}</div>` : ''}
-      <!-- CTA -->
       <a href="/users/${first.provider_id || first.provider_user_id}" style="
         display:block; text-align:center; background:#1f2937; color:white;
-        padding:8px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none;
-        margin-top:4px;
+        padding:8px; border-radius:8px; font-size:12px; font-weight:600;
+        text-decoration:none; margin-top:4px;
       ">View profile →</a>
     </div>
   `;
 }
 
-// Custom SVG pin marker — orange for providers, blue pulse for user
 function makeProviderIcon(count: number): L.DivIcon {
   const badge = count > 1 ? `<div style="
     position:absolute; top:-4px; right:-4px;
@@ -142,60 +139,53 @@ function makeUserIcon(): L.DivIcon {
   });
 }
 
-export default function MapView({ services, userLat, userLng, radiusKm = 5 }: MapViewProps) {
+export default function MapView({ services, userLat, userLng, radiusKm = 0.5, height = '100%', onMarkerClick }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Destroy previous instance cleanly
     if (mapInstance.current) {
       mapInstance.current.remove();
       mapInstance.current = null;
     }
 
-    // Default center: user location > service centroid > Luxembourg
     let center: [number, number] = [49.6, 6.13];
     if (userLat && userLng) center = [userLat, userLng];
 
-    const map = L.map(mapRef.current, {
-      center, zoom: 13,
-      zoomControl: false,
-    });
+    const map = L.map(mapRef.current, { center, zoom: 15, zoomControl: false });
     mapInstance.current = map;
 
-    // Zoom control — top-right
-    L.control.zoom({ position: 'topright' }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Tile layer — OpenStreetMap (free, no API key required)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
     }).addTo(map);
 
-    // User location marker
     if (userLat && userLng) {
       L.marker([userLat, userLng], { icon: makeUserIcon() })
         .addTo(map)
         .bindTooltip('You', { permanent: false, direction: 'top', className: 'leaflet-tooltip-clean' });
 
-      // Radius circle around user (matches selected radius filter)
-      L.circle([userLat, userLng], {
-        radius: (radiusKm > 0 ? radiusKm : 5) * 1000, color: '#3b82f6', fillColor: '#3b82f6',
-        fillOpacity: 0.06, weight: 1.5, dashArray: '4 4',
-      }).addTo(map);
+      if (radiusKm > 0) {
+        L.circle([userLat, userLng], {
+          radius: radiusKm * 1000,
+          color: '#3b82f6', fillColor: '#3b82f6',
+          fillOpacity: 0.05, weight: 1.5, dashArray: '4 4',
+        }).addTo(map);
+      }
     }
 
-    // Group services by provider location
-    const providerMap = new Map<string, { lat: number; lng: number; name: string; services: Service[] }>();
+    const providerMap = new Map<string, { lat: number; lng: number; name: string; services: Service[]; providerId: number }>();
     for (const s of services) {
       const lat = s.service_latitude ?? s.provider_latitude;
       const lng = s.service_longitude ?? s.provider_longitude;
       if (!lat || !lng) continue;
       const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       if (!providerMap.has(key)) {
-        providerMap.set(key, { lat, lng, name: s.provider_name || 'Provider', services: [] });
+        providerMap.set(key, { lat, lng, name: s.provider_name || 'Provider', services: [], providerId: s.provider_id || s.provider_user_id || 0 });
       }
       providerMap.get(key)!.services.push(s);
     }
@@ -203,62 +193,52 @@ export default function MapView({ services, userLat, userLng, radiusKm = 5 }: Ma
     const allPoints: L.LatLng[] = [];
     if (userLat && userLng) allPoints.push(L.latLng(userLat, userLng));
 
-    providerMap.forEach(({ lat, lng, name, services: svcs }) => {
+    providerMap.forEach(({ lat, lng, name, services: svcs, providerId }) => {
       allPoints.push(L.latLng(lat, lng));
       const marker = L.marker([lat, lng], { icon: makeProviderIcon(svcs.length) });
       marker.addTo(map).bindPopup(buildPopupHtml(name, svcs), {
-        maxWidth: 300,
-        minWidth: 240,
-        autoPan: true,
-        closeButton: true,
+        maxWidth: 300, minWidth: 240, autoPan: true, closeButton: true,
         className: 'boomerang-popup',
       });
+      if (onMarkerClick) {
+        marker.on('click', () => onMarkerClick(providerId));
+      }
     });
 
-    // Fit bounds to show everything
     if (allPoints.length > 1) {
       map.fitBounds(L.latLngBounds(allPoints), { padding: [40, 40], maxZoom: 15 });
     } else if (allPoints.length === 1) {
-      map.setView(allPoints[0], 14);
+      map.setView(allPoints[0], 15);
     }
 
     return () => {
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-      }
+      if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; }
     };
   }, [services, userLat, userLng, radiusKm]);
 
   return (
     <>
-      {/* Inject popup styles — scoped so they don't leak */}
       <style>{`
         .boomerang-popup .leaflet-popup-content-wrapper {
-          border-radius: 14px !important;
-          padding: 0 !important;
+          border-radius: 14px !important; padding: 0 !important;
           box-shadow: 0 8px 30px rgba(0,0,0,0.15) !important;
-          border: none !important;
-          overflow: hidden;
+          border: none !important; overflow: hidden;
         }
-        .boomerang-popup .leaflet-popup-content {
-          margin: 14px !important;
-        }
-        .boomerang-popup .leaflet-popup-tip-container {
-          margin-top: -1px;
-        }
+        .boomerang-popup .leaflet-popup-content { margin: 14px !important; }
+        .boomerang-popup .leaflet-popup-tip-container { margin-top: -1px; }
         .leaflet-tooltip-clean {
-          background: #1f2937;
-          color: white;
-          border: none;
-          font-size: 11px;
-          font-weight: 600;
-          border-radius: 4px;
-          padding: 2px 6px;
+          background: #1f2937; color: white; border: none;
+          font-size: 11px; font-weight: 600; border-radius: 4px; padding: 2px 6px;
         }
         .leaflet-tooltip-clean::before { display: none; }
+        .leaflet-control-zoom { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; }
+        .leaflet-control-zoom a {
+          background: white !important; color: #1f2937 !important;
+          font-size: 16px !important; line-height: 30px !important;
+          width: 30px !important; height: 30px !important;
+        }
       `}</style>
-      <div ref={mapRef} className="w-full rounded-2xl overflow-hidden" style={{ height: '520px', zIndex: 0 }} />
+      <div ref={mapRef} style={{ width: '100%', height, zIndex: 0 }} />
     </>
   );
 }

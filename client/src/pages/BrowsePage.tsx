@@ -1,32 +1,35 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import MapView from '../components/MapView';
-import { SkeletonGrid } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
-import { t, translateCat } from '../i18n';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { translateCat } from '../i18n';
 
-const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
-const MAX_RECENT = 5;
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const RADIUS_OPTIONS = [
   { label: '500 m', value: 0.5 },
   { label: '1 km',  value: 1   },
   { label: '5 km',  value: 5   },
   { label: '10 km', value: 10  },
-  { label: '25 km', value: 25  },
-  { label: 'Any',   value: 0   }, // 0 = no distance cap (use 200km)
 ];
+
+// Always-visible category names (the 4 agreed ones)
+const PINNED_NAMES = ['Pet Care', 'Childcare & Education', 'Home Repair', 'Cleaning'];
+
+const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
+const MAX_RECENT = 5;
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtPrice(s: any): string {
   const p = s.price_eur != null ? parseFloat(s.price_eur) : null;
   if (p != null && p > 0) {
-    const symbol = s.currency === 'gel' ? '₾' : '€';
-    return `${symbol}${Math.round(p)}`;
+    const sym = s.currency === 'gel' ? '₾' : '€';
+    return `${sym}${Math.round(p)}`;
   }
-  return 'Contact provider';
+  return '';
 }
 
 function fmtDist(km: number): string {
@@ -37,11 +40,7 @@ function fmtDist(km: number): string {
 function saveRecentlyViewed(service: any) {
   try {
     const existing: any[] = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
-    const filtered = existing.filter((s: any) => s.id !== service.id);
-    const updated = [
-      { id: service.id, title: service.title, price_eur: service.price_eur, points_cost: service.points_cost, provider_name: service.provider_name },
-      ...filtered,
-    ].slice(0, MAX_RECENT);
+    const updated = [service, ...existing.filter((s: any) => s.id !== service.id)].slice(0, MAX_RECENT);
     localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(updated));
   } catch {}
 }
@@ -50,98 +49,132 @@ function getRecentlyViewed(): any[] {
   try { return JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]'); } catch { return []; }
 }
 
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function BrowsePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Data
   const [services, setServices] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
-  const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [selectedSub, setSelectedSub] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+
+  // Filters
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [nearMe, setNearMe] = useState(false);
-  const [userHasServices, setUserHasServices] = useState(true); // optimistic — hide banner until we know
-  const [locating, setLocating] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState<number>(5); // default 5km
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState('newest');
-  const [cityFilter, setCityFilter] = useState('');
-  const [debouncedCity, setDebouncedCity] = useState('');
-  const [countryFilter, setCountryFilter] = useState('');
-  const [districtFilter, setDistrictFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'services' | 'items'>('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
   const [showAllCats, setShowAllCats] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ service: any } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(0.5); // 500m default
+  const [cityFilter, setCityFilter] = useState('');
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [countryFilter, setCountryFilter] = useState('');
+
+  // Location
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
+
+  // View
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+
+  // List panel (Google Maps-style bottom sheet)
+  // 'peek' = small strip, 'half' = half screen, 'full' = full screen
+  const [panelState, setPanelState] = useState<'peek' | 'half' | 'full'>('peek');
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef<number | null>(null);
+  const dragStartState = useRef<'peek' | 'half' | 'full'>('peek');
+
+  // Request sheet
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
-  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
-  const [showBackToTop, setShowBackToTop] = useState(false);
-  const longPressRef = useRef<ReturnType<typeof setTimeout>>();
-  const longPressTriggered = useRef(false);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // ── Load on mount ────────────────────────────────────────────────────────
+
   useEffect(() => {
-    const onScroll = () => setShowBackToTop(window.scrollY > 400);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    setRecentlyViewed(getRecentlyViewed());
+    api.getCategories().then(setCategories).catch(() => {});
+    // Auto-request location
+    acquireLocation();
   }, []);
 
-  useEffect(() => { setRecentlyViewed(getRecentlyViewed()); }, []);
+  // ── Acquire location ─────────────────────────────────────────────────────
 
-  // Build URLSearchParams for the standard (non-nearMe) fetch
-  const buildParams = () => {
-    const params = new URLSearchParams();
-    if (selectedCat) params.set('category', selectedCat);
-    if (selectedSub) params.set('subcategory', selectedSub);
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    // District takes priority over city text filter (district is stored in city field)
-    if (districtFilter) params.set('city', districtFilter);
-    else if (debouncedCity) params.set('city', debouncedCity);
-    if (page > 1) params.set('page', String(page));
-    if (sortBy !== 'newest') params.set('sort', sortBy);
-    if (typeFilter === 'items') params.set('is_product', '1');
-    if (typeFilter === 'services') params.set('is_product', '0');
-    if (minPrice) params.set('min_price', minPrice);
-    if (maxPrice) params.set('max_price', maxPrice);
-    if (countryFilter) params.set('country', countryFilter);
-    // Wire radius into the main filter when the user has coords (even without nearMe toggle,
-    // if they previously granted location we pass it to improve relevance)
-    if (userCoords && nearMe) {
+  const acquireLocation = useCallback(() => {
+    // Use saved profile coords first (instant, no prompt needed)
+    if (user && (user as any).latitude) {
+      setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
+      return;
+    }
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      () => { setLocating(false); setLocationDenied(true); },
+      { enableHighAccuracy: false, timeout: 8000 },
+    );
+  }, [user]);
+
+  // ── Debounce search ──────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [search]);
+
+  // ── Fetch services ───────────────────────────────────────────────────────
+
+  useEffect(() => {
+    setLoading(true);
+
+    if (userCoords) {
+      // Radius-based fetch
+      const effectiveRadius = radiusKm;
+      const params = new URLSearchParams();
       params.set('lat', String(userCoords.lat));
       params.set('lng', String(userCoords.lng));
-      params.set('radius', String(radiusKm > 0 ? radiusKm : 200));
+      params.set('radius', String(effectiveRadius));
+      if (selectedCat) params.set('category', selectedCat);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (cityFilter) params.set('city', cityFilter);
+      if (countryFilter) params.set('country', countryFilter);
+      api.getServices(params.toString()).then((res: any) => {
+        const svcs = Array.isArray(res) ? res : res.services || [];
+        setServices(svcs);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    } else {
+      // No location — show all with optional filters
+      const params = new URLSearchParams();
+      if (selectedCat) params.set('category', selectedCat);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (cityFilter) params.set('city', cityFilter);
+      if (countryFilter) params.set('country', countryFilter);
+      api.getServices(params.toString()).then((res: any) => {
+        const svcs = Array.isArray(res) ? res : res.services || [];
+        setServices(svcs);
+        setLoading(false);
+      }).catch(() => setLoading(false));
     }
-    return params;
+  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter]);
+
+  // ── Category handling ────────────────────────────────────────────────────
+
+  const handleCatClick = (id: string) => {
+    const val = selectedCat === id ? '' : id;
+    setSelectedCat(val);
+    if (val) setSearchParams({ category: val }); else setSearchParams({});
   };
 
-  const reloadServices = async () => {
-    setRefreshing(true); setLoading(true);
-    try {
-      const res: any = await api.getServices(buildParams().toString());
-      if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
-      else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
-    } catch {}
-    setLoading(false); setRefreshing(false);
-  };
-  usePullToRefresh(reloadServices);
-
-  const quickRequest = async (serviceId: number, e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    if (!user) return;
-    const svc = services.find(s => s.id === serviceId);
-    if (svc) { setRequestConfirm({ service: svc }); setRequestMessage(''); }
-  };
+  // ── Request ──────────────────────────────────────────────────────────────
 
   const confirmRequest = async (serviceId: number) => {
     try {
@@ -151,439 +184,363 @@ export default function BrowsePage() {
     } catch (err: any) { toast(err.message, 'error'); setRequestConfirm(null); }
   };
 
-  useEffect(() => { api.getCategories().then(setCategories).catch(() => {}); }, []);
+  // ── Panel drag ───────────────────────────────────────────────────────────
 
-  // Task #14: check if user has any active services
-  useEffect(() => {
-    if (user) {
-      api.getServices(`provider=${user.id}`).then((res: any) => {
-        const svcs = Array.isArray(res) ? res : res.services || [];
-        setUserHasServices(svcs.filter((s: any) => s.is_active !== 0).length > 0);
-      }).catch(() => setUserHasServices(true)); // on error, hide banner
-    }
-  }, [user]);
-
-  // Debounce search + city
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { setDebouncedSearch(search); setDebouncedCity(cityFilter); setPage(1); }, 300);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [search, cityFilter]);
-
-  // Subcategories
-  useEffect(() => {
-    if (selectedCat) { api.getSubcategories(Number(selectedCat)).then(setSubcategories).catch(() => setSubcategories([])); }
-    else { setSubcategories([]); setSelectedSub(''); }
-  }, [selectedCat]);
-
-  // Main data fetch
-  useEffect(() => {
-    setLoading(true);
-
-    // Near Me mode: use the dedicated nearby endpoint with the chosen radius
-    if (nearMe) {
-      if (!navigator.geolocation) {
-        setNearMe(false); setLoading(false); toast('Geolocation not supported', 'error'); return;
-      }
-      if (userCoords) {
-        // Already have coords — just refetch with new radius
-        const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
-        api.getNearbyServices(userCoords.lat, userCoords.lng, effectiveRadius)
-          .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); })
-          .catch(() => setLoading(false));
-        return;
-      }
-      setLocating(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserCoords(coords);
-          const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
-          api.getNearbyServices(coords.lat, coords.lng, effectiveRadius)
-            .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); setLocating(false); })
-            .catch(() => { setLoading(false); setLocating(false); });
-        },
-        () => {
-          // Task #6: denied — fall back to saved profile coords if available
-          if (user && (user as any).latitude) {
-            const coords = { lat: (user as any).latitude, lng: (user as any).longitude };
-            setUserCoords(coords);
-            const effectiveRadius = radiusKm > 0 ? radiusKm : 200;
-            api.getNearbyServices(coords.lat, coords.lng, effectiveRadius)
-              .then(s => { setServices(s); setTotal(s.length); setTotalPages(1); setLoading(false); setLocating(false); })
-              .catch(() => setLoading(false));
-            toast('Using your saved home location for nearby search.', 'success');
-          } else {
-            setNearMe(false); setLoading(false); setLocating(false);
-            toast('Location blocked. Set your home address in Settings to use Near Me.', 'error');
-          }
-        },
-        { enableHighAccuracy: false, timeout: 10000 },
-      );
-      return;
-    }
-
-    api.getServices(buildParams().toString()).then((res: any) => {
-      if (Array.isArray(res)) { setServices(res); setTotal(res.length); setTotalPages(1); }
-      else { setServices(res.services); setTotal(res.total); setTotalPages(res.totalPages); }
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCat, selectedSub, debouncedSearch, debouncedCity, nearMe, radiusKm, page, sortBy, typeFilter, minPrice, maxPrice, countryFilter, districtFilter]);
-
-  const handleCatClick = (id: string) => {
-    const val = selectedCat === id ? '' : id;
-    setSelectedCat(val); setSelectedSub(''); setPage(1);
-    if (val) setSearchParams({ category: val }); else setSearchParams({});
+  const onPanelTouchStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    dragStartState.current = panelState;
   };
 
-  const toggleNearMe = () => {
-    if (nearMe) { setNearMe(false); return; }
-    // Task #6: if we already have saved user coords, use them directly — no GPS prompt needed
-    if (!userCoords && user && (user as any).latitude) {
-      setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
+  const onPanelTouchEnd = (e: React.TouchEvent) => {
+    if (dragStartY.current === null) return;
+    const dy = dragStartY.current - e.changedTouches[0].clientY;
+    if (Math.abs(dy) < 20) return; // ignore tiny taps
+    if (dy > 40) {
+      // Swipe up
+      setPanelState(s => s === 'peek' ? 'half' : 'full');
+    } else if (dy < -40) {
+      // Swipe down
+      setPanelState(s => s === 'full' ? 'half' : 'peek');
     }
-    setNearMe(true);
+    dragStartY.current = null;
   };
+
+  // ── Derived ──────────────────────────────────────────────────────────────
+
+  const pinned = categories.filter(c => PINNED_NAMES.includes(c.name));
+  const rest = categories.filter(c => !PINNED_NAMES.includes(c.name));
+  const mappable = services.filter((s: any) => (s.service_latitude ?? s.provider_latitude) && (s.service_longitude ?? s.provider_longitude));
+
+  // Panel height classes
+  const panelHeight = panelState === 'full' ? 'h-[85vh]' : panelState === 'half' ? 'h-[45vh]' : 'h-[130px]';
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="animate-fade-in pb-24 md:pb-8">
-      {refreshing && (
-        <div className="flex justify-center py-2">
-          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      <div className="mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold dark:text-white">{t('browse.title')}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">{t('browse.subtitle')}</p>
+    <div className="fixed inset-0 flex flex-col" style={{ top: '64px', bottom: '60px' }}>
+
+      {/* ── MAP (fills entire space) ── */}
+      <div className="absolute inset-0 z-0">
+        {viewMode === 'map' ? (
+          <MapView
+            services={mappable}
+            userLat={userCoords?.lat}
+            userLng={userCoords?.lng}
+            radiusKm={radiusKm}
+            height="100%"
+            onMarkerClick={() => setPanelState('half')}
+          />
+        ) : (
+          // List-only mode: plain background placeholder
+          <div className="w-full h-full bg-gray-50 dark:bg-[#111]" />
+        )}
       </div>
 
-      {/* Task #14: "Offer a service first" banner for logged-in users with no services */}
-      {user && !userHasServices && (
-        <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-primary-800 dark:text-primary-300">Post a service to request from others</p>
-            <p className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">Boomerang works both ways — offer your skills first, then request help from neighbours.</p>
-          </div>
-          <Link to="/services/new" className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-primary-600 shrink-0 whitespace-nowrap">Offer a service →</Link>
-        </div>
-      )}
+      {/* ── FLOATING CONTROLS (overlaid on map) ── */}
+      <div className="absolute top-3 left-3 right-3 z-10 flex flex-col gap-2 pointer-events-none">
 
-      {/* ── Sticky search + controls ── */}
-      <div className="sticky top-16 z-30 bg-[#f8f7f5] dark:bg-[#111111] -mx-4 px-4 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-        {/* Row 1: search + city */}
-        <div className="flex gap-2 mb-2">
+        {/* Row 1: Search bar */}
+        <div className="pointer-events-auto flex gap-2">
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
-              aria-label="Search services" />
+            <input
+              type="text"
+              placeholder="Search services, items..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              aria-label="Search"
+            />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5" aria-label="Clear search">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
             )}
           </div>
-          {!nearMe && (
-            <div className="relative w-28 shrink-0">
-              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-              </svg>
-              <input type="text" placeholder="City..." value={cityFilter} onChange={e => setCityFilter(e.target.value)}
-                className="w-full pl-8 pr-2 py-2 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg text-sm focus:ring-1 focus:ring-gray-400 outline-none dark:text-white"
-                aria-label="Filter by city" />
-            </div>
+
+          {/* Map / List toggle */}
+          <button
+            onClick={() => setViewMode(v => v === 'map' ? 'list' : 'map')}
+            className="bg-white dark:bg-[#1c1c1c] shadow-md rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 flex items-center gap-1.5 whitespace-nowrap"
+          >
+            {viewMode === 'map' ? (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                List
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
+                Map
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Row 2: Radius pills + city button */}
+        <div className="pointer-events-auto flex gap-1.5 items-center flex-wrap">
+          {RADIUS_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setRadiusKm(opt.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+                radiusKm === opt.value
+                  ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                  : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+
+          {/* City / location button */}
+          <button
+            onClick={() => setShowCityPicker(p => !p)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
+              cityFilter || countryFilter
+                ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            {cityFilter || countryFilter || 'City'}
+            {(cityFilter || countryFilter) && (
+              <span onClick={(e) => { e.stopPropagation(); setCityFilter(''); setCountryFilter(''); }} className="ml-0.5 text-gray-400 hover:text-white">✕</span>
+            )}
+          </button>
+
+          {/* Locate me button */}
+          {!userCoords && (
+            <button
+              onClick={acquireLocation}
+              disabled={locating}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1"
+            >
+              {locating
+                ? <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33" /></svg>
+              }
+              Locate me
+            </button>
           )}
         </div>
 
-        {/* Row 2: sort + action buttons */}
-        <div className="flex gap-1.5">
-          <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}
-            className="flex-1 px-2 py-2 rounded-lg text-xs font-medium bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 outline-none">
-            <option value="newest">Newest</option>
-            <option value="price_low">Price ↑</option>
-            <option value="price_high">Price ↓</option>
-            <option value="rating">Rating</option>
-          </select>
-
-          {/* Near Me toggle */}
-          <button onClick={toggleNearMe} title={nearMe ? 'Disable Near Me' : 'Near Me'}
-            className={`p-2 rounded-lg border text-xs transition-colors ${nearMe ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-            {locating
-              ? <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
-            }
-          </button>
-
-          {/* Map toggle */}
-          <button onClick={() => setViewMode(viewMode === 'grid' ? 'map' : 'grid')} title="Map view"
-            className={`p-2 rounded-lg border text-xs transition-colors ${viewMode === 'map' ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c-.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
-          </button>
-
-          {/* Filters toggle */}
-          <button onClick={() => setShowFilters(!showFilters)} title="Filters"
-            className={`p-2 rounded-lg border text-xs transition-colors ${showFilters || typeFilter !== 'all' || minPrice || maxPrice || countryFilter ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-500'}`}>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg>
-          </button>
-        </div>
-
-        {/* ── Radius picker — shown when Near Me is active ── */}
-        {nearMe && (
-          <div className="mt-2">
-            <p className="text-[11px] text-gray-400 mb-1.5">Distance</p>
-            <div className="flex gap-1.5 flex-wrap">
-              {RADIUS_OPTIONS.map(opt => (
-                <button key={opt.value} onClick={() => { setRadiusKm(opt.value); setPage(1); }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${radiusKm === opt.value ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400'}`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Expanded filters ── */}
-        {showFilters && (
-          <div className="bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 rounded-lg p-3 space-y-3 mt-2">
+        {/* City picker dropdown */}
+        {showCityPicker && (
+          <div className="pointer-events-auto bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 p-3 space-y-2">
             <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Country</p>
-              <select value={countryFilter} onChange={e => { setCountryFilter(e.target.value); setDistrictFilter(''); setPage(1); }}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-[#1c1c1c] dark:text-white outline-none">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">City</p>
+              <input
+                type="text"
+                placeholder="e.g. Tbilisi, London..."
+                value={cityFilter}
+                onChange={e => setCityFilter(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none dark:bg-[#2a3942] dark:text-white focus:ring-1 focus:ring-primary-500"
+                autoFocus
+              />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Country</p>
+              <select
+                value={countryFilter}
+                onChange={e => setCountryFilter(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#2a3942] dark:text-white outline-none"
+              >
                 <option value="">All countries</option>
                 {['Georgia','Luxembourg','United Kingdom','Germany','France','Netherlands','Belgium','Spain','Portugal','Ireland','Switzerland','Austria','Italy','Sweden','Denmark','Norway','Finland','Poland','Czech Republic','Other'].map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
-
-            {/* Tbilisi district filter — shown when Georgia is selected */}
-            {countryFilter === 'Georgia' && (
-              <div>
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Tbilisi district</p>
-                <select value={districtFilter} onChange={e => { setDistrictFilter(e.target.value); setPage(1); }}
-                  className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-[#1c1c1c] dark:text-white outline-none">
-                  <option value="">All areas</option>
-                  {['Old Tbilisi (Dzveli Tbilisi)','Vake','Saburtalo','Didube','Gldani','Isani','Samgori','Nadzaladevi','Mtatsminda','Chugureti','Avlabari','Ortachala','Varketili','Dighomi','Temqa','Ponichala','Lilo','Shindisi','Other'].map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Type</p>
-              <div className="flex gap-2">
-                {(['all', 'services', 'items'] as const).map(tf => (
-                  <button key={tf} onClick={() => { setTypeFilter(tf); setPage(1); }}
-                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${typeFilter === tf ? 'bg-gray-900 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
-                    {tf === 'all' ? 'All' : tf === 'services' ? 'Services' : 'Items'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Price range (€)</p>
-              <div className="flex items-center gap-2">
-                <input type="number" min="0" step="0.01" placeholder="Min" value={minPrice} onChange={e => { setMinPrice(e.target.value); setPage(1); }}
-                  className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
-                <span className="text-gray-400 text-xs">–</span>
-                <input type="number" min="0" step="0.01" placeholder="Max" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
-                  className="flex-1 border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm outline-none dark:bg-[#1c1c1c] dark:text-white" />
-                {(minPrice || maxPrice) && (
-                  <button onClick={() => { setMinPrice(''); setMaxPrice(''); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
-                )}
-              </div>
-            </div>
+            <button
+              onClick={() => setShowCityPicker(false)}
+              className="w-full bg-[#1f2937] text-white py-2 rounded-lg text-sm font-semibold"
+            >
+              Apply
+            </button>
           </div>
         )}
-      </div>
 
-      {/* ── Category pills — 5 pinned + expandable ── */}
-      {(() => {
-        // These 5 always visible regardless of scroll — the most common neighbourhood needs
-        const PINNED_NAMES = ['Pet Care', 'Childcare & Education', 'Transportation', 'Home Repair', 'Cleaning'];
-        const pinned = categories.filter(c => PINNED_NAMES.includes(c.name));
-        const rest = categories.filter(c => !PINNED_NAMES.includes(c.name));
-        return (
-          <div className="mt-3 mb-5">
-            <div className="flex flex-wrap gap-1.5">
-              {/* All button */}
-              <button onClick={() => { handleCatClick(''); setShowAllCats(false); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${!selectedCat ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-                All
-              </button>
-              {/* Pinned categories — always visible */}
-              {pinned.map((c: any) => (
+        {/* Row 3: Category pills */}
+        <div className="pointer-events-auto flex gap-1.5 flex-wrap">
+          <button
+            onClick={() => { setSelectedCat(''); setSearchParams({}); }}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+              !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            All
+          </button>
+          {pinned.map((c: any) => (
+            <button
+              key={c.id}
+              onClick={() => handleCatClick(String(c.id))}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+                selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              {c.icon} {translateCat(c.name)}
+            </button>
+          ))}
+          {showAllCats ? (
+            <>
+              {rest.map((c: any) => (
                 <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+                    selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                  }`}>
                   {c.icon} {translateCat(c.name)}
                 </button>
               ))}
-              {/* Expandable rest */}
-              {showAllCats ? (
-                <>
-                  {rest.map((c: any) => (
-                    <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${selectedCat === String(c.id) ? 'bg-[#1f2937] text-white' : 'bg-white dark:bg-[#1c1c1c] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-                      {c.icon} {translateCat(c.name)}
-                    </button>
-                  ))}
-                  <button onClick={() => setShowAllCats(false)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
-                    Show less ↑
-                  </button>
-                </>
-              ) : (
-                rest.length > 0 && (
-                  <button onClick={() => setShowAllCats(true)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 whitespace-nowrap hover:bg-gray-200 transition-colors">
-                    +{rest.length} more
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ── Subcategory pills ── */}
-      {subcategories.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-5" style={{ scrollbarWidth: 'none' }}>
-          <button onClick={() => setSelectedSub('')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${!selectedSub ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-            All
-          </button>
-          {subcategories.map((s: any) => (
-            <button key={s.id} onClick={() => setSelectedSub(selectedSub === String(s.id) ? '' : String(s.id))}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 ${selectedSub === String(s.id) ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800'}`}>
-              {s.name}
+              <button onClick={() => setShowAllCats(false)}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-gray-100 dark:bg-[#242424] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700">
+                Show less ↑
+              </button>
+            </>
+          ) : rest.length > 0 && (
+            <button onClick={() => setShowAllCats(true)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700">
+              +{rest.length} more
             </button>
-          ))}
+          )}
+        </div>
+      </div>
+
+      {/* ── LOCATION DENIED BANNER ── */}
+      {locationDenied && (
+        <div className="absolute top-[140px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+          <p className="text-xs text-amber-800 dark:text-amber-300">Location blocked. Showing all services.</p>
+          <Link to="/settings" className="text-xs font-medium text-amber-600 shrink-0">Set address →</Link>
         </div>
       )}
 
-      {/* ── Recently viewed ── */}
-      {!search && !selectedCat && !debouncedCity && recentlyViewed.length > 0 && (
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recently viewed</p>
-            <button onClick={() => { localStorage.removeItem(RECENTLY_VIEWED_KEY); setRecentlyViewed([]); }} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-            {recentlyViewed.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`}
-                className="flex-shrink-0 bg-white dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 rounded-xl px-3 py-2.5 hover:border-gray-300 transition-all min-w-[140px] max-w-[180px]">
-                <p className="text-xs font-medium text-gray-800 dark:text-white line-clamp-2 leading-snug mb-1">{s.title}</p>
-                <p className="text-xs text-gray-400">{fmtPrice(s)}</p>
-              </Link>
-            ))}
-          </div>
+      {/* ── BOTTOM SLIDING PANEL (Google Maps-style) ── */}
+      <div
+        ref={panelRef}
+        className={`absolute bottom-0 left-0 right-0 z-20 bg-white dark:bg-[#1c1c1c] rounded-t-2xl shadow-2xl transition-all duration-300 flex flex-col ${panelHeight}`}
+        onTouchStart={onPanelTouchStart}
+        onTouchEnd={onPanelTouchEnd}
+      >
+        {/* Drag handle */}
+        <div
+          className="flex-shrink-0 flex flex-col items-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing"
+          onClick={() => setPanelState(s => s === 'peek' ? 'half' : s === 'half' ? 'full' : 'peek')}
+        >
+          <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full" />
         </div>
-      )}
 
-      {/* ── Results ── */}
-      {loading ? (
-        <SkeletonGrid count={6} />
-      ) : services.length === 0 ? (
-        <div className="text-center py-16">
-          <h3 className="text-base font-semibold text-gray-700 dark:text-white mb-1">
-            {nearMe ? `Nothing within ${radiusKm > 0 ? (radiusKm < 1 ? `${radiusKm * 1000} m` : `${radiusKm} km`) : 'this area'}` :
-              selectedCat ? `No ${translateCat(categories.find(c => String(c.id) === selectedCat)?.name || '')} listings yet` : 'Nothing here yet'}
-          </h3>
-          <p className="text-gray-400 text-sm mb-5">
-            {nearMe ? 'Try a larger radius or browse all services' : 'Be the first to offer something in this category'}
-          </p>
-          {nearMe ? (
-            <button onClick={() => setRadiusKm(25)}
-              className="inline-block bg-[#1f2937] text-white px-5 py-2.5 rounded-xl text-sm font-medium mr-2">
-              Expand to 25 km
-            </button>
-          ) : null}
-          <Link to="/services/new" className="inline-block bg-gray-100 dark:bg-[#242424] text-gray-700 dark:text-gray-300 px-5 py-2.5 rounded-xl text-sm font-medium">
-            + Offer something
+        {/* Panel header */}
+        <div className="flex-shrink-0 px-4 pb-2 flex items-center justify-between">
+          <div>
+            <span className="text-sm font-semibold dark:text-white">
+              {loading ? 'Loading...' : `${services.length} service${services.length !== 1 ? 's' : ''}`}
+            </span>
+            {userCoords && (
+              <span className="text-xs text-gray-400 ml-2">
+                within {radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}
+              </span>
+            )}
+          </div>
+          <Link to="/services/new" className="text-xs font-semibold text-primary-500 hover:text-primary-600">
+            + Offer a service
           </Link>
         </div>
-      ) : viewMode === 'map' ? (
-        <>
-          <p className="text-sm text-gray-400 mb-4">{services.filter((s: any) => s.provider_latitude && s.provider_longitude).length} {t('browse.onMap')}</p>
-          <MapView services={services} userLat={userCoords?.lat} userLng={userCoords?.lng} radiusKm={nearMe ? radiusKm : undefined} />
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-gray-400 mb-4">
-            {nearMe ? `${services.length} within ${radiusKm > 0 ? (radiusKm < 1 ? `${radiusKm * 1000} m` : `${radiusKm} km`) : 'any distance'}` : `${total} ${t('browse.servicesFound')}`}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {services.map((s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`}
-                onTouchStart={() => { longPressTriggered.current = false; longPressRef.current = setTimeout(() => { longPressTriggered.current = true; setContextMenu({ service: s }); }, 500); }}
-                onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
-                onTouchMove={() => { if (longPressRef.current) clearTimeout(longPressRef.current); }}
-                onClick={(e) => { if (longPressTriggered.current) { e.preventDefault(); longPressTriggered.current = false; return; } saveRecentlyViewed(s); }}
-                className="block bg-white dark:bg-[#1c1c1c] rounded-xl border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 hover:shadow-sm group overflow-hidden transition-all duration-200">
-                {s.image && <img src={s.image} alt={s.title} loading="lazy" className="w-full h-40 object-cover" />}
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2">{s.title}</h3>
-                    {s.is_product && (
-                      <span className="shrink-0 text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded whitespace-nowrap">Item</span>
+
+        {/* Recently viewed strip — shown in peek mode when no search active */}
+        {panelState === 'peek' && recentlyViewed.length > 0 && !search && (
+          <div className="flex-shrink-0 px-4 pb-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-2">
+              {recentlyViewed.map((s: any) => (
+                <Link key={s.id} to={`/services/${s.id}`}
+                  className="flex-shrink-0 bg-gray-50 dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl px-3 py-2 min-w-[130px] max-w-[160px]">
+                  <p className="text-xs font-medium text-gray-800 dark:text-white line-clamp-1">{s.title}</p>
+                  <p className="text-xs text-primary-500 font-semibold mt-0.5">{fmtPrice(s) || 'Contact provider'}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable service list */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">
+                {userCoords ? `Nothing within ${radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}` : 'No services found'}
+              </p>
+              {userCoords && radiusKm < 10 && (
+                <button onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : 10)}
+                  className="text-xs text-primary-500 font-medium hover:underline">
+                  Expand radius →
+                </button>
+              )}
+            </div>
+          ) : (
+            services.map((s: any) => (
+              <Link
+                key={s.id}
+                to={`/services/${s.id}`}
+                onClick={() => saveRecentlyViewed(s)}
+                className="flex items-center gap-3 bg-white dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl p-3 hover:border-gray-300 dark:hover:border-gray-600 transition-all group"
+              >
+                {s.image ? (
+                  <img src={s.image} alt={s.title} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" loading="lazy" />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl flex-shrink-0">
+                    {s.category_icon || '🛠'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1 group-hover:text-primary-600 transition-colors">
+                      {s.title}
+                    </p>
+                    {s.price_eur != null && (
+                      <span className="text-sm font-bold text-primary-600 dark:text-primary-400 shrink-0">
+                        {fmtPrice(s)}
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] font-bold text-gray-500 dark:text-gray-400 shrink-0">
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">
                       {s.provider_name?.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.provider_name}</span>
-                    {/* Distance badge — only shown in nearMe mode */}
-                    {nearMe && s.distance != null ? (
+                    {s.distance != null && (
                       <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
-                    ) : s.provider_city ? (
-                      <span className="text-xs text-gray-300 dark:text-gray-600 shrink-0">· {s.provider_city}</span>
-                    ) : null}
-                    {s.avg_rating && <span className="text-xs text-gray-400 ml-auto shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{fmtPrice(s)}</span>
-                    {user && s.provider_id !== user.id && (
-                      <button onClick={(e) => quickRequest(s.id, e)}
-                        className="text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 px-3 py-1.5 rounded-lg transition-all">
-                        Request
-                      </button>
+                    )}
+                    {s.avg_rating && (
+                      <span className="text-xs text-yellow-500 ml-auto shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>
                     )}
                   </div>
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">{s.category_name}</p>
                 </div>
+                {user && s.provider_id !== user.id && (
+                  <button
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); setRequestConfirm({ service: s }); setRequestMessage(''); }}
+                    className="shrink-0 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 px-2.5 py-1.5 rounded-lg transition-all"
+                  >
+                    Request
+                  </button>
+                )}
               </Link>
-            ))}
-          </div>
-          {totalPages > 1 && !nearMe && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <button onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={page <= 1}
-                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">←</button>
-              <span className="text-sm text-gray-500">{page} / {totalPages}</span>
-              <button onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={page >= totalPages}
-                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">→</button>
-            </div>
+            ))
           )}
-        </>
-      )}
+        </div>
+      </div>
 
-      {/* Back to top */}
-      {showBackToTop && (
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg flex items-center justify-center hover:bg-[#111827] transition-all animate-fade-in"
-          aria-label="Back to top">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" /></svg>
-        </button>
-      )}
-
-      {/* ── Quick request confirmation sheet ── */}
+      {/* ── REQUEST SHEET ── */}
       {requestConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRequestConfirm(null)}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-4 sticky top-0" />
+            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mt-3 mb-4" />
             <div className="px-5 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
 
               {/* Seller info */}
@@ -592,7 +549,7 @@ export default function BrowsePage() {
                   {requestConfirm.service.provider_name?.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold dark:text-white truncate">{requestConfirm.service.provider_name}</p>
+                  <p className="text-sm font-semibold dark:text-white">{requestConfirm.service.provider_name}</p>
                   <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
                     {requestConfirm.service.avg_rating && <span>★ {Number(requestConfirm.service.avg_rating).toFixed(1)}</span>}
                     {requestConfirm.service.provider_city && <span>· {requestConfirm.service.provider_city}</span>}
@@ -604,22 +561,20 @@ export default function BrowsePage() {
                 </Link>
               </div>
 
-              {/* Service title + price */}
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{requestConfirm.service.title}</h3>
               {requestConfirm.service.price_eur != null && (
-                <p className="text-sm font-semibold text-primary-600 mb-4">
+                <p className="text-sm font-bold text-primary-600 mb-4">
                   {requestConfirm.service.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(requestConfirm.service.price_eur))}
-                  <span className="text-xs font-normal text-gray-400 ml-1">per session · held until you confirm delivery</span>
+                  <span className="text-xs font-normal text-gray-400 ml-1">· held until you confirm delivery</span>
                 </p>
               )}
 
-              {/* Message input */}
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Message to provider (optional)</label>
                 <textarea
                   value={requestMessage}
                   onChange={e => setRequestMessage(e.target.value)}
-                  placeholder="e.g. I need this on weekday evenings, I'm in the Vake area..."
+                  placeholder="e.g. I need this on weekday evenings..."
                   rows={3}
                   className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm resize-none bg-white dark:bg-[#2a3942] dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                 />
@@ -636,40 +591,6 @@ export default function BrowsePage() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Long-press context menu ── */}
-      {contextMenu && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setContextMenu(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="w-10 h-1 bg-gray-200 dark:bg-gray-600 rounded-full mx-auto mt-3 mb-2" />
-            <div className="px-4 pb-2">
-              <p className="text-sm font-semibold dark:text-white truncate">{contextMenu.service.title}</p>
-              <p className="text-xs text-gray-400">{contextMenu.service.provider_name} · {fmtPrice(contextMenu.service)}</p>
-            </div>
-            <div className="border-t border-gray-100 dark:border-gray-700">
-              <button onClick={() => { navigator.share?.({ title: contextMenu.service.title, url: `${window.location.origin}/services/${contextMenu.service.id}` }); setContextMenu(null); }}
-                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
-                Share
-              </button>
-              {user && (
-                <Link to={`/messages?to=${contextMenu.service.provider_id}`} onClick={() => setContextMenu(null)}
-                  className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg>
-                  Message provider
-                </Link>
-              )}
-              <Link to={`/services/${contextMenu.service.id}`} onClick={() => setContextMenu(null)}
-                className="w-full text-left px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a3942] flex items-center gap-3">
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                View details
-              </Link>
-            </div>
-            <button onClick={() => setContextMenu(null)} className="w-full py-4 text-sm font-medium text-gray-400 border-t border-gray-100 dark:border-gray-700">Cancel</button>
           </div>
         </div>
       )}
