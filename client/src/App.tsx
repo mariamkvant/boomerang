@@ -36,6 +36,7 @@ const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
 const EditServicePage = lazy(() => import('./pages/EditServicePage'));
+const ServiceHoursPage = lazy(() => import('./pages/ServiceHoursPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const MePage = lazy(() => import('./pages/MePage'));
@@ -315,6 +316,7 @@ export default function App() {
           <Route path="/browse" element={<BrowsePage />} />
           <Route path="/services/new" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <CreateServicePage />) : <Navigate to="/login" />} />
           <Route path="/services/:id/edit" element={user ? <EditServicePage /> : <Navigate to="/login" />} />
+          <Route path="/services/:id/hours" element={user ? <ServiceHoursPage /> : <Navigate to="/login" />} />
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/dashboard" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <DashboardPage />) : <Navigate to="/login" />} />
           <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />

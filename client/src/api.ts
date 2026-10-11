@@ -123,6 +123,8 @@ export const api = {
   getMyAvailability: () => request('/availability/me'),
   setMyAvailability: (slots: any[]) => request('/availability/me', { method: 'PUT', body: JSON.stringify({ slots }) }),
   getUserAvailability: (userId: number) => request(`/availability/user/${userId}`),
+  getServiceAvailability: (serviceId: number) => request(`/availability/service/${serviceId}`),
+  setServiceAvailability: (serviceId: number, slots: any[]) => request(`/availability/service/${serviceId}`, { method: 'PUT', body: JSON.stringify({ slots }) }),
   getAvailableSlots: (serviceId: number, date: string) => request(`/availability/slots?service_id=${serviceId}&date=${date}`),
   bookSlot: (body: any) => request('/availability/book', { method: 'POST', body: JSON.stringify(body) }),
   getBooking: (requestId: number) => request(`/availability/booking/${requestId}`),

@@ -111,7 +111,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
 
 export default function DashboardPage() {
   const { user, refreshUser } = useAuth();
-  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services' | 'schedule'>('incoming');
+  const [tab, setTab] = useState<'incoming' | 'outgoing' | 'services'>('incoming');
   const [incoming, setIncoming] = useState<any[]>([]);
   const [outgoing, setOutgoing] = useState<any[]>([]);
   const [myServices, setMyServices] = useState<any[]>([]);
@@ -275,7 +275,6 @@ export default function DashboardPage() {
     { key: 'incoming' as const, label: t('dashboard.incoming'), count: incoming.filter(r => ['pending','accepted','delivered','disputed'].includes(r.status)).length },
     { key: 'outgoing' as const, label: t('dashboard.myRequests'), count: outgoing.filter(r => !['completed','cancelled'].includes(r.status)).length + myHelpWanted.filter(h => !['completed','closed'].includes(h.status)).length },
     { key: 'services' as const, label: t('dashboard.myServices'), count: myServices.length },
-    { key: 'schedule' as const, label: t('dashboard.schedule'), count: 0 },
   ];
 
   return (
@@ -907,6 +906,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">Edit</Link>
                 <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
+                <Link to={`/services/${s.id}/hours`} className="text-xs text-green-600 hover:text-green-700 font-medium" title="Set available hours for this service">🕐 Hours</Link>
                 {/* Task #18: Boost button */}
                 {!s.boosted_until || new Date(s.boosted_until) < new Date() ? (
                   <button onClick={async () => {
@@ -953,8 +953,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Schedule */}
-      {tab === 'schedule' && <ScheduleTab loaded={scheduleLoaded} slots={availSlots} setSlots={setAvailSlots} onLoad={() => setScheduleLoaded(true)} />}
+      {/* Schedule tab removed — availability is now set per-service */}
 
       {/* Deliver note modal */}
       {deliverNote && (

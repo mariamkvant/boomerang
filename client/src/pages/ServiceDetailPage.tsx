@@ -74,10 +74,10 @@ export default function ServiceDetailPage() {
     api.trackView('service', Number(id));
   }, [id]);
 
-  // Load provider's weekly availability pattern so calendar can show available days
+  // Load service-specific availability (falls back to provider's global schedule if none set)
   useEffect(() => {
     if (service) {
-      api.getUserAvailability(service.provider_id)
+      api.getServiceAvailability(service.id)
         .then(setProviderAvailability)
         .catch(() => {});
     }

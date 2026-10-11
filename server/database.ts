@@ -312,7 +312,9 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // === Stripe Customer ID — for saved payment methods ===
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT'); } catch(e) {}
 
-    // === Archive old requests ===
+    // === Per-service availability (slots linked to a specific service) ===
+    try { await client.query('ALTER TABLE availability ADD COLUMN IF NOT EXISTS service_id INTEGER REFERENCES services(id) ON DELETE CASCADE'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_availability_service ON availability(service_id)'); } catch(e) {}
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS archived_by_requester BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS archived_by_provider BOOLEAN DEFAULT false'); } catch(e) {}
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS bog_payment_order_id TEXT'); } catch(e) {}
