@@ -260,7 +260,7 @@ export default function MapView({
       (marker as any)._priceLabel = lowestPrice;
 
       marker.addTo(map).bindPopup(buildPopupHtml(name, svcs), {
-        maxWidth: 300, minWidth: 240, autoPan: true, closeButton: true,
+        maxWidth: 300, minWidth: 240, autoPan: false, closeButton: false,
         className: 'boomerang-popup',
       });
 
@@ -269,6 +269,10 @@ export default function MapView({
         // Close popup immediately — the in-app sheet handles details
         setTimeout(() => marker.closePopup(), 0);
       });
+
+      // Hover: show popup on mouseover, hide on mouseout (desktop)
+      marker.on('mouseover', () => marker.openPopup());
+      marker.on('mouseout', () => marker.closePopup());
 
       // Permanent name tooltip — visible when zoomed in (zoom ≥ 15)
       marker.bindTooltip(name, {
