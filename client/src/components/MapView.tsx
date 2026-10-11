@@ -268,6 +268,30 @@ export default function MapView({
         if (onMarkerClick) onMarkerClick(providerId);
       });
 
+      // Permanent name tooltip — visible when zoomed in (zoom ≥ 15)
+      marker.bindTooltip(name, {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -8],
+        className: 'boomerang-name-tooltip',
+        opacity: 1,
+      });
+
+      // Show/hide name tooltip based on zoom level
+      const updateTooltipVisibility = () => {
+        const z = map.getZoom();
+        const tt = marker.getTooltip();
+        if (!tt) return;
+        if (z >= 15) {
+          tt.getElement()?.style.setProperty('display', 'block');
+        } else {
+          tt.getElement()?.style.setProperty('display', 'none');
+        }
+      };
+      map.on('zoomend', updateTooltipVisibility);
+      // Set initial state
+      setTimeout(updateTooltipVisibility, 50);
+
       markersRef.current.set(providerId, marker);
     });
 
@@ -300,6 +324,19 @@ export default function MapView({
           font-size: 11px; font-weight: 600; border-radius: 4px; padding: 2px 6px;
         }
         .leaflet-tooltip-clean::before { display: none; }
+        .boomerang-name-tooltip {
+          background: white;
+          border: 1.5px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 2px 7px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #111827;
+          white-space: nowrap;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+          pointer-events: none;
+        }
+        .boomerang-name-tooltip::before { display: none; }
         .leaflet-control-zoom { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; }
         .leaflet-control-zoom a {
           background: white !important; color: #1f2937 !important;

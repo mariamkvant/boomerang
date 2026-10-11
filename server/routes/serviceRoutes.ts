@@ -73,7 +73,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (provider)    { where += ' AND s.provider_id = ?';                              filterParams.push(provider); }
   if (category)    { where += ' AND s.category_id = ?';                              filterParams.push(category); }
   if (subcategory) { where += ' AND s.subcategory_id = ?';                           filterParams.push(subcategory); }
-  if (search)      { where += ' AND (s.title ILIKE ? OR s.description ILIKE ?)';     filterParams.push(`%${search}%`, `%${search}%`); }
+  if (search)      { where += ' AND (s.title ILIKE ? OR s.description ILIKE ? OR u.username ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`, `%${search}%`); }
   if (city)        { where += ' AND u.city ILIKE ?';                                  filterParams.push(`%${city}%`); }
 
   if (is_product === '1') { where += ' AND COALESCE(s.is_product, false) = true'; }

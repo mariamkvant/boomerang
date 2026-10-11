@@ -73,6 +73,8 @@ export default function BrowsePage() {
   // Filters
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchMode, setSearchMode] = useState<'services' | 'people'>('services');
+  const [peopleResults, setPeopleResults] = useState<any[]>([]);
   const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
   const [showAllCats, setShowAllCats] = useState(false);
   const [radiusKm, setRadiusKm] = useState(0.5);
@@ -139,6 +141,7 @@ export default function BrowsePage() {
   // ── Fetch services ───────────────────────────────────────────────────────
 
   useEffect(() => {
+    if (searchMode === 'people') return; // handled separately
     setLoading(true);
     const params = new URLSearchParams();
     if (selectedCat) params.set('category', selectedCat);
@@ -154,7 +157,18 @@ export default function BrowsePage() {
       setServices(Array.isArray(res) ? res : res.services || []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter]);
+  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter, searchMode]);
+
+  // ── People search ─────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (searchMode !== 'people') return;
+    setLoading(true);
+    api.searchPeople(debouncedSearch).then((res: any) => {
+      setPeopleResults(Array.isArray(res) ? res : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [searchMode, debouncedSearch]);
 
   // ── Pin tap → scroll to card ──────────────────────────────────────────────
 
@@ -239,11 +253,24 @@ export default function BrowsePage() {
         {/* Search + view toggle */}
         <div className="pointer-events-auto flex gap-2">
           <div className="relative flex-1">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            <input type="text" placeholder="Search services, items..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+            {/* Mode toggle inside search bar */}
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-10">
+              <button
+                onClick={() => setSearchMode('services')}
+                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors ${searchMode === 'services' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Services
+              </button>
+              <button
+                onClick={() => setSearchMode('people')}
+                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors ${searchMode === 'people' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                People
+              </button>
+            </div>
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder={searchMode === 'services' ? 'Search services, providers...' : 'Search by name, city, skill...'}
+              className="w-full pl-[108px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
               aria-label="Search" />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">
@@ -382,7 +409,9 @@ export default function BrowsePage() {
                 </svg>
               </button>
               <span className="text-sm font-semibold dark:text-white">
-                {loading ? 'Loading...' : `${services.length} service${services.length !== 1 ? 's' : ''}`}
+                {loading ? 'Loading...' : searchMode === 'people'
+                  ? `${peopleResults.length} provider${peopleResults.length !== 1 ? 's' : ''}`
+                  : `${services.length} service${services.length !== 1 ? 's' : ''}`}
               </span>
               {userCoords && (
                 <span className="text-xs text-gray-400">
@@ -418,6 +447,28 @@ export default function BrowsePage() {
               <div className="flex items-center justify-center py-8">
                 <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : searchMode === 'people' ? (
+              // ── People results ──
+              peopleResults.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-500 text-sm">{debouncedSearch ? 'No people found' : 'Search for a provider by name, city or skill'}</p>
+                </div>
+              ) : (
+                peopleResults.map((p: any) => (
+                  <Link key={p.id} to={`/users/${p.id}`}
+                    className="flex items-center gap-3 bg-white dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl p-3 hover:border-gray-300 dark:hover:border-gray-600 transition-all group">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-lg font-bold shrink-0">
+                      {p.username?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 truncate">{p.username}</p>
+                      {p.city && <p className="text-xs text-gray-400 truncate">📍 {p.city}</p>}
+                      {p.bio && <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{p.bio}</p>}
+                    </div>
+                    <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                  </Link>
+                ))
+              )
             ) : services.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
