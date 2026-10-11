@@ -13,14 +13,16 @@ router.get('/categories', async (_req, res: Response) => {
 // Cities that have active services (for the city picker)
 router.get('/cities', async (_req, res: Response) => {
   const cities = await db.all(`
-    SELECT COALESCE(s.city, u.city) as city, COUNT(*) as service_count
+    SELECT
+      SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1) as city,
+      COUNT(*) as service_count
     FROM services s
     JOIN users u ON s.provider_id = u.id
     WHERE s.is_active = 1
       AND s.group_id IS NULL
       AND COALESCE(s.city, u.city) IS NOT NULL
       AND COALESCE(s.city, u.city) != ''
-    GROUP BY COALESCE(s.city, u.city)
+    GROUP BY SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1)
     ORDER BY service_count DESC
     LIMIT 50
   `);

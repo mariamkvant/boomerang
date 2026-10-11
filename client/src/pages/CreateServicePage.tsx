@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
 // ── The 5 core categories always shown + everything else under "Other"
-const CORE_CATEGORY_NAMES = ['Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
+const CORE_CATEGORY_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
 
 // Duration options shown as pills
 const DURATION_OPTIONS = [

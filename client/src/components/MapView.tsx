@@ -30,6 +30,7 @@ interface MapViewProps {
   height?: string;
   selectedProviderId?: number | null;
   onMarkerClick?: (providerId: number) => void;
+  flyToCenter?: { lat: number; lng: number } | null;
 }
 
 function fmtPinPrice(s: Service): string {
@@ -149,11 +150,17 @@ function makeUserIcon(): L.DivIcon {
 
 export default function MapView({
   services, userLat, userLng, radiusKm = 0.5,
-  height = '100%', selectedProviderId, onMarkerClick,
+  height = '100%', selectedProviderId, onMarkerClick, flyToCenter,
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<number, L.Marker>>(new Map());
+
+  // Fly map to a new city center without full remount
+  useEffect(() => {
+    if (!flyToCenter || !mapInstance.current) return;
+    mapInstance.current.flyTo([flyToCenter.lat, flyToCenter.lng], 13, { duration: 1.2 });
+  }, [flyToCenter]);
 
   // Re-render markers when selection changes without destroying the whole map
   const updateMarkerIcons = (selectedId: number | null | undefined) => {

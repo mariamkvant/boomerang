@@ -76,7 +76,7 @@ export default function HomePage() {
               {/* Sample listings — the 5 core categories */}
               <div className="flex flex-wrap gap-2 mb-8">
                 {[
-                  { emoji: '🐾', label: 'Pet Care' },
+                  { emoji: '🌿', label: 'Plants & Pet Care' },
                   { emoji: '👶', label: 'Childcare' },
                   { emoji: '🚗', label: 'Transportation' },
                   { emoji: '📦', label: 'Item Rental' },

@@ -93,11 +93,28 @@ router.get('/outgoing', authMiddleware, async (req: AuthRequest, res: Response) 
 
 // ─── ACCEPT ─────────────────────────────────────────────────────────────────
 router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  const r = await db.get(`
+    SELECT sr.*, s.provider_id, s.duration_minutes
+    FROM service_requests sr
+    JOIN services s ON sr.service_id = s.id
+    WHERE sr.id = ?`, req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'pending') return res.status(400).json({ error: 'Request is not pending' });
   await db.run("UPDATE service_requests SET status = 'accepted' WHERE id = ?", req.params.id);
+
+  // If a booking exists for this request, ensure end_time reflects the service's duration
+  const booking = await db.get('SELECT * FROM bookings WHERE request_id = ?', req.params.id);
+  if (booking && r.duration_minutes) {
+    const [h, m] = booking.start_time.split(':').map(Number);
+    const startMins = h * 60 + m;
+    const endMins = startMins + Number(r.duration_minutes);
+    const endH = Math.floor(endMins / 60) % 24;
+    const endM = endMins % 60;
+    const endTime = `${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+    await db.run('UPDATE bookings SET end_time = ? WHERE request_id = ?', endTime, req.params.id);
+  }
+
   const requester = await db.get('SELECT id, email FROM users WHERE id = ?', r.requester_id);
   if (requester) { await notify({ userId: requester.id, type: 'request_accepted', title: 'Request accepted!', body: 'Your service request has been accepted.', link: '/dashboard' }); }
   res.json({ message: 'Request accepted' });

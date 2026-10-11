@@ -25,7 +25,7 @@ export async function initDatabase() {
     try { await client.query(`ALTER TABLE service_requests ADD CONSTRAINT service_requests_status_check CHECK(status IN ('pending','accepted','delivered','completed','cancelled','disputed'))`); } catch(e) {}
     const cats: [string, string, number][] = [
       ['Cleaning', '\uD83E\uDDF9', 1.0], ['Gardening', '\uD83C\uDF31', 1.0],
-      ['Pet Care', '\uD83D\uDC15', 1.2], ['Transportation', '\uD83D\uDE97', 1.2],
+      ['Pet Care', '\uD83D\uDC15', 1.2],
       ['Sports & Fitness', '\uD83C\uDFF8', 1.3], ['Cooking', '\uD83C\uDF73', 1.3],
       ['Tutoring', '\uD83D\uDCDA', 1.5], ['Languages', '\uD83D\uDDE3\uFE0F', 1.5], ['Music', '\uD83C\uDFB8', 1.5],
       ['Tech Help', '\uD83D\uDCBB', 1.8], ['Home Repair', '\uD83D\uDD27', 2.0], ['Other', '\u2728', 1.0],
@@ -296,7 +296,16 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // Index for service location radius queries
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_lat ON services(service_latitude)'); } catch(e) {}
 
-    // === User interests — saved from onboarding needs selection ===
+    // === Rename Pet Care → Plants & Pet Care, add plant subcategories ===
+    try { await client.query("UPDATE categories SET name = 'Plants & Pet Care', icon = '🌿' WHERE name = 'Pet Care'"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Plant Care & Watering', 'Watering, feeding and caring for indoor/outdoor plants' FROM categories WHERE name = 'Plants & Pet Care' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Plant Sitting', 'Looking after plants while owner is away' FROM categories WHERE name = 'Plants & Pet Care' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Plant Delivery & Moving', 'Moving or delivering potted plants safely' FROM categories WHERE name = 'Plants & Pet Care' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
+    // Plant Watering + Carpooling (added later)
+    try { await client.query("UPDATE categories SET name = 'Plants & Pet Care', icon = '🌿' WHERE name = 'Pet Care'"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Plant Watering', 'Watering indoor and outdoor plants' FROM categories WHERE name = 'Plants & Pet Care' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Plant Care & Maintenance', 'Feeding, pruning and general plant care' FROM categories WHERE name = 'Plants & Pet Care' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
+    try { await client.query("INSERT INTO subcategories (category_id, name, description) SELECT id, 'Carpooling', 'Share a ride to work, school or events' FROM categories WHERE name = 'Transportation' ON CONFLICT (category_id, name) DO NOTHING"); } catch(e) {}
     try { await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS interests TEXT DEFAULT ''"); } catch(e) {}
     // === Last active — updated on every login/auth request ===
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ'); } catch(e) {}

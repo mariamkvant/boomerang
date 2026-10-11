@@ -16,7 +16,7 @@ const RADIUS_OPTIONS = [
   { label: '10 km', value: 10  },
 ];
 
-const PINNED_NAMES = ['Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
+const PINNED_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
 const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
 const MAX_RECENT = 5;
 
@@ -130,6 +130,9 @@ export default function BrowsePage() {
   const [availableCities, setAvailableCities] = useState<{ city: string; service_count: number }[]>([]);
   const [citySearch, setCitySearch] = useState('');
 
+  // Map center override — updated when city is selected from picker
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+
   // Request sheet
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
@@ -242,6 +245,23 @@ export default function BrowsePage() {
     if (val) setSearchParams({ category: val }); else setSearchParams({});
   };
 
+  // Geocode a city name and fly the map to it
+  const selectCity = async (city: string) => {
+    setCityFilter(city);
+    setShowCityPicker(false);
+    setCitySearch('');
+    try {
+      const q = encodeURIComponent(city);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
+        headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' },
+      });
+      const data = await res.json();
+      if (data[0]) {
+        setMapCenter({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      }
+    } catch {}
+  };
+
   const saveRecentSearch = (q: string) => {
     if (!q.trim()) return;
     const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 5);
@@ -297,6 +317,7 @@ export default function BrowsePage() {
             height="100%"
             selectedProviderId={selectedProviderId}
             onMarkerClick={handleMarkerClick}
+            flyToCenter={mapCenter}
           />
         ) : (
           <div className="w-full h-full bg-gray-50 dark:bg-[#111]" />
@@ -468,7 +489,7 @@ export default function BrowsePage() {
                     {filtered.map(c => (
                       <button
                         key={c.city}
-                        onClick={() => { setCityFilter(c.city); setShowCityPicker(false); setCitySearch(''); }}
+                        onClick={() => { selectCity(c.city); }}
                         className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                           cityFilter === c.city
                             ? 'bg-[#1f2937] text-white border-[#1f2937]'
