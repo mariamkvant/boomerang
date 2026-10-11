@@ -56,6 +56,10 @@ export default function ServiceDetailPage() {
   const [cardReady, setCardReady] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const cardMountRef = useRef<HTMLDivElement>(null);
+  // Saved card state — populated after createServiceIntent returns
+  const [savedCardLast4, setSavedCardLast4] = useState<string | null>(null);
+  const [savedCardBrand, setSavedCardBrand] = useState<string | null>(null);
+  const [useSavedCard, setUseSavedCard] = useState(true);
 
   // Review modals (replacing window.prompt / window.confirm)
   const [editReview, setEditReview] = useState<{ id: number; comment: string } | null>(null);
@@ -192,18 +196,36 @@ export default function ServiceDetailPage() {
       if (priceEurRef.current && res.requires_payment) {
         const intentRes: any = await api.createServiceIntent(res.id);
 
-        if (!stripeInstance || !cardElement) {
+        // Populate saved card info for UI
+        if (intentRes.has_saved_card) {
+          setSavedCardLast4(intentRes.saved_card_last4);
+          setSavedCardBrand(intentRes.saved_card_brand);
+        }
+
+        if (!stripeInstance) {
           setStatus('Payment setup error. Please refresh and try again.');
           setRequesting(false);
           return;
         }
 
         // Step 3: Stripe authorises the card but does NOT charge yet — escrow hold
-        const { error, paymentIntent } = await stripeInstance.confirmCardPayment(
-          intentRes.client_secret,
-          { payment_method: { card: cardElement } },
-        );
+        // Use saved payment method if available and user chose to use it
+        let confirmResult;
+        if (intentRes.has_saved_card && useSavedCard) {
+          confirmResult = await stripeInstance.confirmCardPayment(intentRes.client_secret);
+        } else {
+          if (!cardElement) {
+            setStatus('Please enter your card details.');
+            setRequesting(false);
+            return;
+          }
+          confirmResult = await stripeInstance.confirmCardPayment(
+            intentRes.client_secret,
+            { payment_method: { card: cardElement } },
+          );
+        }
 
+        const { error, paymentIntent } = confirmResult;
         if (error) {
           setPaymentError(error.message || 'Card declined. Please try another card.');
           setRequesting(false);
@@ -707,25 +729,51 @@ export default function ServiceDetailPage() {
               {/* ── Stripe CardElement — only shown for paid services ── */}
               {priceEur != null && (
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Card details</label>
-                  {/* Task #15: skeleton while Stripe.js loads */}
-                  {!stripeInstance && (
-                    <div className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] flex items-center gap-3 animate-pulse">
-                      <div className="h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded" />
-                      <div className="h-3 flex-1 bg-gray-200 dark:bg-gray-700 rounded" />
-                      <div className="h-3 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                  {savedCardLast4 ? (
+                    <div className="space-y-2">
+                      {/* Saved card option */}
+                      <button
+                        type="button"
+                        onClick={() => setUseSavedCard(true)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all ${useSavedCard ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-600'}`}
+                      >
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium dark:text-white capitalize">{savedCardBrand} ••••{savedCardLast4}</p>
+                          <p className="text-xs text-gray-400">Saved card</p>
+                        </div>
+                        {useSavedCard && <span className="text-primary-500">✓</span>}
+                      </button>
+                      {/* Use different card */}
+                      <button
+                        type="button"
+                        onClick={() => setUseSavedCard(false)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-sm ${!useSavedCard ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-600 text-gray-500'}`}
+                      >
+                        + Use a different card
+                      </button>
+                      {!useSavedCard && (
+                        <div className="mt-2">
+                          {!stripeInstance && <div className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] animate-pulse" />}
+                          <div ref={cardMountRef} className={`border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] ${!stripeInstance ? 'hidden' : ''}`} />
+                          {paymentError && <p className="text-xs text-red-500 mt-1.5">{paymentError}</p>}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Card details</label>
+                      {!stripeInstance && (
+                        <div className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] flex items-center gap-3 animate-pulse">
+                          <div className="h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded" /><div className="h-3 flex-1 bg-gray-200 dark:bg-gray-700 rounded" /><div className="h-3 w-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                        </div>
+                      )}
+                      <div ref={cardMountRef} className={`border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] ${!stripeInstance ? 'hidden' : ''}`} />
+                      {paymentError && <p className="text-xs text-red-500 mt-1.5">{paymentError}</p>}
                     </div>
                   )}
-                  <div
-                    ref={cardMountRef}
-                    className={`border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] ${!stripeInstance ? 'hidden' : ''}`}
-                  />
-                  {paymentError && (
-                    <p className="text-xs text-red-500 mt-1.5">{paymentError}</p>
-                  )}
                   <div className="flex items-center gap-1.5 mt-2">
-                    <svg className="w-3.5 h-3.5 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1a11 11 0 1 0 0 22A11 11 0 0 0 12 1zm0 2a9 9 0 1 1 0 18A9 9 0 0 1 12 3zm-.5 4v5.5l4.3 2.5.7-1.2-3.5-2V7h-1.5z"/></svg>
-                    <p className="text-[10px] text-gray-300 dark:text-gray-600">Secured by Stripe · card not charged until delivery confirmed</p>
+                    <p className="text-[10px] text-gray-300 dark:text-gray-600">🔒 Secured by Stripe · card not charged until delivery confirmed</p>
                   </div>
                 </div>
               )}
@@ -737,7 +785,7 @@ export default function ServiceDetailPage() {
                 </button>
                 <button
                   onClick={handleRequest}
-                  disabled={requesting || (priceEur != null && !cardReady)}
+                  disabled={requesting || (priceEur != null && !savedCardLast4 && !cardReady)}
                   className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                   {requesting ? (
                     <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>

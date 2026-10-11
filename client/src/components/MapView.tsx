@@ -274,29 +274,14 @@ export default function MapView({
       marker.on('mouseover', () => marker.openPopup());
       marker.on('mouseout', () => marker.closePopup());
 
-      // Permanent name tooltip — visible when zoomed in (zoom ≥ 15)
+      // Always-visible name label below the price pin
       marker.bindTooltip(name, {
         permanent: true,
-        direction: 'top',
-        offset: [0, -8],
+        direction: 'bottom',
+        offset: [0, 4],
         className: 'boomerang-name-tooltip',
         opacity: 1,
       });
-
-      // Show/hide name tooltip based on zoom level
-      const updateTooltipVisibility = () => {
-        const z = map.getZoom();
-        const tt = marker.getTooltip();
-        if (!tt) return;
-        if (z >= 15) {
-          tt.getElement()?.style.setProperty('display', 'block');
-        } else {
-          tt.getElement()?.style.setProperty('display', 'none');
-        }
-      };
-      map.on('zoomend', updateTooltipVisibility);
-      // Set initial state
-      setTimeout(updateTooltipVisibility, 50);
 
       markersRef.current.set(providerId, marker);
     });

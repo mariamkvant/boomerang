@@ -44,6 +44,19 @@ function fmtDist(km: number): string {
   return `${km.toFixed(1)} km`;
 }
 
+function fmtLastActive(ts: string | null | undefined): string | null {
+  if (!ts) return null;
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return 'Active recently';
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `Active ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Active yesterday';
+  if (days < 7) return `Active ${days}d ago`;
+  return null; // too old, don't show
+}
+
 function saveRecentlyViewed(service: any) {
   try {
     const existing: any[] = JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]');
@@ -79,7 +92,7 @@ export default function BrowsePage() {
   const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
   const [showAllCats, setShowAllCats] = useState(false);
   // radiusKm = 0 means no radius filter — show all services regardless of distance
-  // User must explicitly pick a radius pill to activate proximity filtering
+  // Switches to 0.5 (500m) automatically once user location is acquired
   const [radiusKm, setRadiusKm] = useState(0);
   const [cityFilter, setCityFilter] = useState('');
   const [showCityPicker, setShowCityPicker] = useState(false);
@@ -106,6 +119,12 @@ export default function BrowsePage() {
 
   // Personalised suggestions
   const [suggestions, setSuggestions] = useState<any[]>([]);
+
+  // Instant search suggestions state
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bm_recent_searches') || '[]'); } catch { return []; }
+  });
 
   // Cities with active services
   const [availableCities, setAvailableCities] = useState<{ city: string; service_count: number }[]>([]);
@@ -139,12 +158,17 @@ export default function BrowsePage() {
   const acquireLocation = useCallback(() => {
     if (user && (user as any).latitude) {
       setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
+      setRadiusKm(0.5); // default 500m once we have location
       return;
     }
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      pos => { setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocating(false); },
+      pos => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setRadiusKm(0.5); // default 500m once we have location
+        setLocating(false);
+      },
       () => { setLocating(false); setLocationDenied(true); },
       { enableHighAccuracy: false, timeout: 8000 },
     );
@@ -216,6 +240,13 @@ export default function BrowsePage() {
     const val = selectedCat === id ? '' : id;
     setSelectedCat(val);
     if (val) setSearchParams({ category: val }); else setSearchParams({});
+  };
+
+  const saveRecentSearch = (q: string) => {
+    if (!q.trim()) return;
+    const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 5);
+    setRecentSearches(updated);
+    try { localStorage.setItem('bm_recent_searches', JSON.stringify(updated)); } catch {}
   };
 
   // ── Request ──────────────────────────────────────────────────────────────
@@ -294,6 +325,9 @@ export default function BrowsePage() {
               </button>
             </div>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              onFocus={() => setShowSearchSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 150)}
+              onKeyDown={e => { if (e.key === 'Enter' && search.trim()) { saveRecentSearch(search.trim()); setShowSearchSuggestions(false); } }}
               placeholder={searchMode === 'services' ? 'Search services, providers...' : 'Search by name, city, skill...'}
               className="w-full pl-[108px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
               aria-label="Search" />
@@ -301,6 +335,41 @@ export default function BrowsePage() {
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
+            )}
+            {/* Instant search suggestions */}
+            {showSearchSuggestions && !search && (recentSearches.length > 0 || suggestions.length > 0) && (
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-30">
+                {recentSearches.length > 0 && (
+                  <div className="px-3 pt-2.5 pb-1">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Recent searches</p>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {recentSearches.map((q, i) => (
+                        <button key={i} onMouseDown={() => { setSearch(q); setShowSearchSuggestions(false); }}
+                          className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 px-2.5 py-1 rounded-full hover:bg-gray-100 transition-colors">
+                          <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {suggestions.length > 0 && (
+                  <div className="px-3 pb-2.5 border-t border-gray-50 dark:border-gray-800 pt-2">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">✨ Suggested for you</p>
+                    {suggestions.slice(0, 3).map((s: any) => (
+                      <button key={s.id} onMouseDown={() => { setSearch(s.title); setShowSearchSuggestions(false); }}
+                        className="w-full text-left flex items-center gap-2 px-1 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        <span className="text-base">{s.category_icon || '🛠'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-800 dark:text-white truncate">{s.title}</p>
+                          <p className="text-[10px] text-gray-400">{s.provider_name}</p>
+                        </div>
+                        {fmtPrice(s) && <span className="text-xs font-bold text-primary-600 shrink-0">{fmtPrice(s)}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <button onClick={() => setViewMode(v => v === 'map' ? 'list' : 'map')}
@@ -654,6 +723,9 @@ export default function BrowsePage() {
                           {s.distance != null && (
                             <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
                           )}
+                          {fmtLastActive(s.provider_last_active) && (
+                            <span className="text-[10px] text-green-500 font-medium shrink-0 ml-auto">● {fmtLastActive(s.provider_last_active)}</span>
+                          )}
                           {s.avg_rating && (
                             <span className="text-xs text-yellow-500 ml-auto shrink-0">
                               ★ {Number(s.avg_rating).toFixed(1)}
@@ -767,6 +839,9 @@ export default function BrowsePage() {
                     )}
                     {sellerProfile.city && (
                       <p className="text-xs text-gray-400 mt-0.5">📍 {sellerProfile.city}</p>
+                    )}
+                    {fmtLastActive(sellerProfile.last_active_at) && (
+                      <p className="text-xs text-green-500 font-medium mt-0.5">● {fmtLastActive(sellerProfile.last_active_at)}</p>
                     )}
                   </div>
                 </div>

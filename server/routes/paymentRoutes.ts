@@ -17,6 +17,16 @@ function getStripe() {
   return require('stripe')(key);
 }
 
+// ── Helper: get or create a Stripe Customer for this user ─────────────────
+async function getOrCreateStripeCustomer(userId: number, email: string): Promise<string> {
+  const user = await db.get('SELECT stripe_customer_id FROM users WHERE id = ?', userId);
+  if (user?.stripe_customer_id) return user.stripe_customer_id;
+  const stripe = getStripe();
+  const customer = await stripe.customers.create({ email, metadata: { boomerang_user_id: String(userId) } });
+  await db.run('UPDATE users SET stripe_customer_id = ? WHERE id = ?', customer.id, userId);
+  return customer.id;
+}
+
 // ─── STRIPE CONNECT ONBOARDING ───────────────────────────────────────────────
 
 /**
@@ -186,20 +196,29 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
 
   try {
     const stripe = getStripe();
-    const currency = r.currency || 'eur';          // 'gel' for Georgia, 'eur' elsewhere
+    const currency = r.currency || 'eur';
     const amountCents = Math.round(price * 100);
-    const feeCents    = Math.round(amountCents * PLATFORM_FEE_RATE); // 10%
+    const feeCents    = Math.round(amountCents * PLATFORM_FEE_RATE);
+
+    // Get or create Stripe Customer for saved payment methods
+    const customerId = await getOrCreateStripeCustomer(req.userId!, r.requester_email);
+
+    // Check if customer has a saved payment method
+    const paymentMethods = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 });
+    const savedPm = paymentMethods.data[0];
 
     const intent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: currency,
-      capture_method: 'manual',                  // ← ESCROW: authorise only, don't charge yet
+      capture_method: 'manual',
       payment_method_types: ['card'],
+      customer: customerId,
+      payment_method: savedPm?.id || undefined,
+      setup_future_usage: 'on_session', // save card for future use
       receipt_email: r.requester_email || undefined,
       description: `Boomerang: ${r.title}`,
-      // transfer_data: at capture time, Stripe automatically sends 90% to provider
       transfer_data: { destination: provider.stripe_account_id },
-      application_fee_amount: feeCents,          // 10% stays on platform
+      application_fee_amount: feeCents,
       metadata: {
         request_id:   String(request_id),
         service_id:   String(r.service_id),
@@ -230,6 +249,9 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
       amount_eur: price,
       platform_fee_eur: Math.round(price * PLATFORM_FEE_RATE * 100) / 100,
       provider_receives_eur: Math.round(price * (1 - PLATFORM_FEE_RATE) * 100) / 100,
+      has_saved_card: !!savedPm,
+      saved_card_last4: savedPm?.card?.last4 || null,
+      saved_card_brand: savedPm?.card?.brand || null,
     });
   } catch (err: any) {
     console.error('[PAYMENT] Intent creation error:', err.message);

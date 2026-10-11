@@ -298,6 +298,10 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
 
     // === User interests — saved from onboarding needs selection ===
     try { await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS interests TEXT DEFAULT ''"); } catch(e) {}
+    // === Last active — updated on every login/auth request ===
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ'); } catch(e) {}
+    // === Stripe Customer ID — for saved payment methods ===
+    try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT'); } catch(e) {}
 
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }

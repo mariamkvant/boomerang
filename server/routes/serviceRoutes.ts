@@ -132,6 +132,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     u.username as provider_name, u.city as provider_city,
     u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude,
     u.avatar as provider_avatar, sc.name as subcategory_name,
+    u.last_active_at as provider_last_active,
     COALESCE(s.is_product, false) as is_product,
     COALESCE(s.price_eur, NULL) as price_eur,
     (SELECT AVG(r.rating) FROM reviews r

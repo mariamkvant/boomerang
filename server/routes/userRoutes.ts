@@ -124,6 +124,8 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response) => {
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
+  // Update last active timestamp
+  await db.run('UPDATE users SET last_active_at = NOW() WHERE id = ?', user.id);
   const token = generateToken(user.id);
   res.json({ token, user: { id: user.id, username: user.username, email: user.email, points: user.points, bio: user.bio, email_verified: user.email_verified, city: user.city, latitude: user.latitude, longitude: user.longitude, languages_spoken: user.languages_spoken, is_admin: user.is_admin } });
 });
@@ -182,8 +184,10 @@ router.get('/:id/achievements', async (req: AuthRequest, res: Response) => {
 
 // Get current user profile
 router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, notify_email, notify_push, notify_reminders, auto_accept, stripe_account_id, stripe_account_status, created_at FROM users WHERE id = ?', req.userId);
+  const user = await db.get('SELECT id, username, email, bio, points, email_verified, is_admin, city, latitude, longitude, languages_spoken, avatar, notify_email, notify_push, notify_reminders, auto_accept, stripe_account_id, stripe_account_status, stripe_customer_id, last_active_at, interests, created_at FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
+  // Keep last_active fresh — fire-and-forget, don't await
+  db.run('UPDATE users SET last_active_at = NOW() WHERE id = ?', req.userId).catch(() => {});
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.userId);
   res.json({ ...user, avg_rating: avgRating?.avg_rating, review_count: avgRating?.review_count || 0 });
 });
@@ -246,7 +250,7 @@ router.get('/search/people', async (req: AuthRequest, res: Response) => {
 
 // Get any user's public profile
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at, stripe_account_id, stripe_account_status FROM users WHERE id = ?', req.params.id);
+  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at, stripe_account_id, stripe_account_status, last_active_at FROM users WHERE id = ?', req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.params.id);
   const services = await db.all('SELECT s.*, c.name as category_name, c.icon as category_icon FROM services s JOIN categories c ON s.category_id = c.id WHERE s.provider_id = ? AND s.is_active = 1', req.params.id);
