@@ -24,6 +24,7 @@ import adminRoutes from './routes/adminRoutes';
 import digestRoutes from './routes/digestRoutes';
 import leaderboardRoutes from './routes/leaderboardRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import bogPayRoutes from './routes/bogPayRoutes';
 
 import { rateLimit } from './rateLimit';
 
@@ -133,6 +134,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/digest', digestRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/bog', bogPayRoutes);
+
+// BOG Pay webhook needs raw body (same as Stripe)
+app.post('/api/bog/webhook', express.raw({ type: 'application/json' }), (_req, _res, next) => next());
 
 app.get('/api/health', async (_req, res) => {
   try {

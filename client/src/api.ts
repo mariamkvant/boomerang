@@ -239,6 +239,13 @@ export const api = {
   stripeConnectStatus: () => request('/payments/connect/status'),
   stripeConnectDashboard: () => request('/payments/connect/dashboard-link', { method: 'POST' }),
 
+  // BOG Pay — Georgian payment system
+  bogStatus: () => request('/bog/status'),
+  bogCreatePayment: (body: any) => request('/bog/create-payment', { method: 'POST', body: JSON.stringify(body) }),
+  bogPayout: (requestId: number) => request(`/bog/payout/${requestId}`, { method: 'POST' }),
+  bogGetProviderIban: () => request('/bog/provider-iban'),
+  bogSaveProviderIban: (iban: string, bank_name: string) => request('/bog/provider-iban', { method: 'PUT', body: JSON.stringify({ iban, bank_name }) }),
+
   // Review management
   hideReview: (reviewId: number, hidden: boolean) => request(`/requests/reviews/${reviewId}/hide`, { method: 'PUT', body: JSON.stringify({ hidden }) }),
 

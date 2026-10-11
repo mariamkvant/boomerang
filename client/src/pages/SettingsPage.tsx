@@ -29,6 +29,17 @@ export default function SettingsPage() {
   const [connectStatus, setConnectStatus] = useState<{status: string; charges_enabled?: boolean; payouts_enabled?: boolean} | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
 
+  // BOG Pay / IBAN state (for Georgian providers)
+  const [providerIban, setProviderIban] = useState('');
+  const [providerBankName, setProviderBankName] = useState('');
+  const [ibanSaving, setIbanSaving] = useState(false);
+  const [ibanSaved, setIbanSaved] = useState(false);
+  const isGeorgianUser = (user as any)?.city && (
+    ['Tbilisi','Batumi','Kutaisi','Rustavi','Gori'].some((c: string) =>
+      ((user as any).city as string).includes(c)
+    )
+  );
+
   useEffect(() => {
     // Check if returning from Stripe onboarding
     const connect = searchParams.get('connect');
@@ -41,6 +52,10 @@ export default function SettingsPage() {
     } else {
       setConnectStatus({ status: 'none' });
     }
+    // Load BOG IBAN if Georgian user
+    api.bogGetProviderIban().then((r: any) => {
+      if (r.iban) { setProviderIban(r.iban); setProviderBankName(r.bank_name || ''); }
+    }).catch(() => {});
   }, [user]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,7 +296,7 @@ export default function SettingsPage() {
         <Link to="/availability" className="text-sm text-primary-600 hover:text-primary-700 font-medium">{t('settings.manageSchedule')} →</Link>
       </div>
 
-      {/* ── Payouts (Stripe Connect) ── */}
+      {/* ── Payouts (Stripe Connect for EU, BOG Pay IBAN for Georgia) ── */}
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Payouts</h3>
 
@@ -374,6 +389,68 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* ── BOG Pay — Georgian bank account (IBAN) for GEL payouts ── */}
+      {isGeorgianUser && (
+        <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
+          <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Georgian Bank Account (BOG Pay)</h3>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg px-3 py-2.5 mb-4 text-xs text-blue-700 dark:text-blue-300">
+            <p className="font-semibold mb-0.5">How it works for Georgia</p>
+            <p>Buyers pay via Bank of Georgia payment gateway. When they confirm delivery, <strong>80% is sent directly to your IBAN</strong> within 1–2 business days. Platform keeps 20%.</p>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Your IBAN <span className="text-gray-400 font-normal">(Georgian bank account)</span>
+              </label>
+              <input
+                type="text"
+                value={providerIban}
+                onChange={e => setProviderIban(e.target.value.replace(/\s/g, '').toUpperCase())}
+                placeholder="GE12BG0000000123456789"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              />
+              <p className="text-xs text-gray-400 mt-1">Format: GE + 2 digits + 16 characters (e.g. GE29NB0000000101904917)</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                Account holder name <span className="text-gray-400 font-normal">(as on bank card)</span>
+              </label>
+              <input
+                type="text"
+                value={providerBankName}
+                onChange={e => setProviderBankName(e.target.value)}
+                placeholder="e.g. Mariam Kvantidze"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              />
+            </div>
+            <button
+              disabled={ibanSaving || !providerIban}
+              onClick={async () => {
+                setIbanSaving(true);
+                try {
+                  await api.bogSaveProviderIban(providerIban, providerBankName);
+                  setIbanSaved(true);
+                  setTimeout(() => setIbanSaved(false), 3000);
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save. Please check your IBAN format.');
+                }
+                setIbanSaving(false);
+              }}
+              className="flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-gray-800 transition-colors"
+            >
+              {ibanSaving ? (
+                <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+              )}
+              {ibanSaved ? '✓ Saved' : 'Save bank account'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('settings.invite')}</h3>

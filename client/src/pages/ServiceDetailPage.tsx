@@ -87,6 +87,11 @@ export default function ServiceDetailPage() {
     // Check if provider can receive payments (has active Stripe Connect account)
     // Only relevant for paid services — fetch provider's public profile which includes stripe_account_status
     if (service && service.price_eur && user && user.id !== service.provider_id) {
+      // For GEL services, skip Stripe Connect check — BOG Pay handles Georgian payments
+      if (service.currency === 'gel') {
+        setProviderConnectStatus('ok');
+        return;
+      }
       api.getUser(service.provider_id).then((p: any) => {
         if (!p.stripe_account_id) setProviderConnectStatus('not_connected');
         else if (p.stripe_account_status !== 'active') setProviderConnectStatus('not_active');
@@ -204,6 +209,19 @@ export default function ServiceDetailPage() {
 
       // Step 2: If service has EUR price, authorise card (Vinted-style hold)
       if (priceEurRef.current && res.requires_payment) {
+        // GEL services use BOG Pay (Bank of Georgia), not Stripe
+        if (currency === 'gel') {
+          const bogRes: any = await api.bogCreatePayment({ request_id: res.id });
+          if (bogRes.checkout_url) {
+            // Redirect to BOG checkout page
+            window.location.href = bogRes.checkout_url;
+            return; // page will redirect — no further state updates needed
+          } else {
+            setStatus('Failed to create BOG payment. Please try again.');
+            setRequesting(false);
+            return;
+          }
+        }
         const intentRes: any = await api.createServiceIntent(res.id);
 
         // Populate saved card info for UI
@@ -736,8 +754,8 @@ export default function ServiceDetailPage() {
                 )}
               </div>
 
-              {/* ── Stripe CardElement — only shown for paid services ── */}
-              {priceEur != null && (
+              {/* ── Stripe CardElement — only shown for paid EUR services ── */}
+              {priceEur != null && currency !== 'gel' && (
                 <div className="mb-4">
                   {savedCardLast4 ? (
                     <div className="space-y-2">
@@ -788,6 +806,18 @@ export default function ServiceDetailPage() {
                 </div>
               )}
 
+              {/* BOG Pay notice for GEL services */}
+              {priceEur != null && currency === 'gel' && (
+                <div className="mb-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-base">🏦</span>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Pay via Bank of Georgia</p>
+                  </div>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    You'll be redirected to BOG's secure payment page to pay ₾{priceEur}. After payment, funds are held until you confirm delivery — then released to the provider automatically.
+                  </p>
+                </div>
+              )}
               <div className="flex gap-3">
                 <button onClick={() => setShowConfirm(false)}
                   className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#2a3942]">
@@ -795,7 +825,7 @@ export default function ServiceDetailPage() {
                 </button>
                 <button
                   onClick={handleRequest}
-                  disabled={requesting || (priceEur != null && !savedCardLast4 && !cardReady)}
+                  disabled={requesting || (priceEur != null && currency !== 'gel' && !savedCardLast4 && !cardReady)}
                   className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                   {requesting ? (
                     <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>
