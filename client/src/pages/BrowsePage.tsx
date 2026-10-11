@@ -97,6 +97,8 @@ export default function BrowsePage() {
   const [cityFilter, setCityFilter] = useState('');
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [countryFilter, setCountryFilter] = useState('');
+  const [availableToday, setAvailableToday] = useState(false);
+  const [instantBook, setInstantBook] = useState(false);
 
   // Location
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -200,11 +202,13 @@ export default function BrowsePage() {
       params.set('lng', String(userCoords.lng));
       params.set('radius', String(radiusKm));
     }
+    if (availableToday) params.set('available_today', '1');
+    if (instantBook) params.set('instant_book', '1');
     api.getServices(params.toString()).then((res: any) => {
       setServices(Array.isArray(res) ? res : res.services || []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter, searchMode]);
+  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter, searchMode, availableToday, instantBook]);
 
   // ── People search ─────────────────────────────────────────────────────────
 
@@ -432,6 +436,19 @@ export default function BrowsePage() {
               Locate me
             </button>
           )}
+          {/* Available Today + Instant Book filter pills */}
+          <button onClick={() => setAvailableToday(v => !v)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
+              availableToday ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+            }`}>
+            📅 Today
+          </button>
+          <button onClick={() => setInstantBook(v => !v)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
+              instantBook ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+            }`}>
+            ⚡ Instant
+          </button>
           {/* See all services button — removed, replaced by persistent floating button below */}
         </div>
 
@@ -741,6 +758,16 @@ export default function BrowsePage() {
                             {s.provider_name?.charAt(0).toUpperCase()}
                           </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.provider_name}</span>
+                          {/* Verified badge */}
+                          {Number(s.completed_count) >= 3 && (
+                            <span title="Verified community member" className="shrink-0">
+                              <svg className="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
+                            </span>
+                          )}
+                          {/* Instant book */}
+                          {s.provider_auto_accept && (
+                            <span className="text-[9px] font-bold text-amber-500 shrink-0">⚡</span>
+                          )}
                           {s.distance != null && (
                             <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
                           )}

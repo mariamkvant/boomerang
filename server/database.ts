@@ -312,7 +312,20 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // === Stripe Customer ID — for saved payment methods ===
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT'); } catch(e) {}
 
-    // === Per-service availability (slots linked to a specific service) ===
+    // === Instant book / response time support ===
+    try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()'); } catch(e) {}
+    // Auto-update updated_at on status changes
+    try { await client.query(`
+      CREATE OR REPLACE FUNCTION update_request_updated_at()
+      RETURNS TRIGGER AS $$
+      BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+      $$ language 'plpgsql'
+    `); } catch(e) {}
+    try { await client.query(`
+      DROP TRIGGER IF EXISTS set_request_updated_at ON service_requests;
+      CREATE TRIGGER set_request_updated_at BEFORE UPDATE ON service_requests
+      FOR EACH ROW EXECUTE PROCEDURE update_request_updated_at()
+    `); } catch(e) {}
     try { await client.query('ALTER TABLE availability ADD COLUMN IF NOT EXISTS service_id INTEGER REFERENCES services(id) ON DELETE CASCADE'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_availability_service ON availability(service_id)'); } catch(e) {}
     try { await client.query('ALTER TABLE service_requests ADD COLUMN IF NOT EXISTS archived_by_requester BOOLEAN DEFAULT false'); } catch(e) {}

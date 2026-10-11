@@ -776,7 +776,12 @@ export default function DashboardPage() {
                       className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Edit Review</button>
                   )}
                   {r.status === 'completed' && (
-                    <Link to={`/services/${r.service_id}`} className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}>Request again</Link>
+                    <Link
+                      to={`/services/${r.service_id}?rehire=1&prev_message=${encodeURIComponent(r.message || '')}`}
+                      className={`text-xs px-3 py-2 rounded-lg font-medium ${btnGhost}`}
+                      title="Book this service again with the same details">
+                      Book again
+                    </Link>
                   )}
                   {/* Archive button — for completed or cancelled requests */}
                   {['completed', 'cancelled'].includes(r.status) && (

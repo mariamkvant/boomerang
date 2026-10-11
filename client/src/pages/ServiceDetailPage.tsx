@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import ShareCard from '../components/ShareCard';
@@ -30,11 +30,14 @@ function InlineModal({ title, children, onClose }: { title: string; children: Re
 // ── component ────────────────────────────────────────────────────────────────
 export default function ServiceDetailPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Pre-fill message for re-hire flow (?rehire=1&prev_message=...)
+  const rehireMessage = searchParams.get('prev_message');
   const [service, setService] = useState<any>(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(rehireMessage || '');
   const [status, setStatus] = useState('');
   const [requesting, setRequesting] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
@@ -387,14 +390,30 @@ export default function ServiceDetailPage() {
                 {service.provider_name?.charAt(0).toUpperCase()}
               </div>
               <div>
-                <div className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600">{service.provider_name}</div>
-                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                <div className="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 flex items-center gap-2">
+                  {service.provider_name}
+                  {/* Verified badge — email verified + has avatar + 3+ completions */}
+                  {service.provider_stats?.completed >= 3 && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full" title="Verified community member">
+                      <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
+                      Verified
+                    </span>
+                  )}
+                  {/* Instant book badge */}
+                  {service.auto_accept && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full" title="Instantly accepted">
+                      ⚡ Instant
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                   <span>View profile →</span>
                   {service.provider_stats?.completed > 0 && (
-                    <span>{Math.round((service.provider_stats.completed / Math.max(1, service.provider_stats.total)) * 100)}% completion</span>
+                    <span>✓ {service.provider_stats.completed} task{service.provider_stats.completed !== 1 ? 's' : ''} done</span>
                   )}
-                  {service.provider_stats?.avg_hours && Number(service.provider_stats.avg_hours) > 0 && (
-                    <span>~{Number(service.provider_stats.avg_hours) < 24 ? Math.round(Number(service.provider_stats.avg_hours)) + 'h' : Math.round(Number(service.provider_stats.avg_hours) / 24) + 'd'} avg</span>
+                  {/* Response time */}
+                  {service.provider_stats?.avg_response_hours != null && Number(service.provider_stats.avg_response_hours) > 0 && (
+                    <span>⏱ Responds in ~{Number(service.provider_stats.avg_response_hours) < 1 ? '&lt;1h' : Number(service.provider_stats.avg_response_hours) < 24 ? Math.round(Number(service.provider_stats.avg_response_hours)) + 'h' : Math.round(Number(service.provider_stats.avg_response_hours) / 24) + 'd'}</span>
                   )}
                 </div>
               </div>
@@ -513,6 +532,7 @@ export default function ServiceDetailPage() {
                 : 'Send request'}
             </button>
             <p className="text-xs text-gray-400 mt-2">Payment will be arranged directly with the provider.</p>
+            <p className="text-xs text-gray-400 mt-1">✓ Cancel anytime before the service starts · Payment held securely until you confirm delivery</p>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
           </div>
         )}
@@ -719,6 +739,8 @@ export default function ServiceDetailPage() {
               {requesting ? 'Sending...' : selectedDate && selectedSlot ? `Book ${new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })} · ${selectedSlot.start_time}` : selectedDate ? `Request for ${displayPrice} (no time selected)` : `Request for ${displayPrice}`}
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
+            <p className="text-xs text-gray-400 mt-2">🔒 Cancel anytime before service starts · Payment released only after you confirm delivery</p>
+            {service.auto_accept && <p className="text-xs text-amber-600 mt-1">⚡ This provider uses instant booking — your request will be auto-accepted</p>}
           </div>
         )}
 

@@ -96,8 +96,9 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const {
     category, subcategory, search, provider,
     page = '1', sort, city,
-    lat, lng, radius,           // radius in km — now actually wired up
+    lat, lng, radius,
     is_product, min_price, max_price,
+    available_today, instant_book,
   } = req.query;
 
   const limit = 20;
@@ -147,6 +148,21 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     filterParams.push(parseFloat(max_price as string));
   }
 
+  // Available today filter
+  if (available_today === '1') {
+    where += ` AND EXISTS (
+      SELECT 1 FROM availability av
+      WHERE av.user_id = u.id
+        AND av.day_of_week = EXTRACT(DOW FROM NOW())::int
+        AND (av.service_id IS NULL OR av.service_id = s.id)
+    )`;
+  }
+
+  // Instant book filter (provider has auto_accept on)
+  if (instant_book === '1') {
+    where += ' AND u.auto_accept = true';
+  }
+
   // Proximity filter — prefers service's own location, falls back to provider home address
   if (lat && lng && radius) {
     const latNum = parseFloat(lat as string);
@@ -174,11 +190,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     u.id as provider_user_id, u.latitude as provider_latitude, u.longitude as provider_longitude,
     u.avatar as provider_avatar, sc.name as subcategory_name,
     u.last_active_at as provider_last_active,
+    u.email_verified as provider_email_verified,
+    u.auto_accept as provider_auto_accept,
     COALESCE(s.is_product, false) as is_product,
     COALESCE(s.price_eur, NULL) as price_eur,
     (SELECT AVG(r.rating) FROM reviews r
      JOIN service_requests sr ON r.request_id = sr.id
-     WHERE sr.service_id = s.id) as avg_rating `;
+     WHERE sr.service_id = s.id) as avg_rating,
+    (SELECT COUNT(*) FROM service_requests sr2
+     WHERE sr2.service_id = s.id AND sr2.status = 'completed') as completed_count,
+    (SELECT COUNT(*) FROM availability av
+     WHERE av.user_id = u.id AND av.day_of_week = EXTRACT(DOW FROM NOW())::int
+       AND (av.service_id IS NULL OR av.service_id = s.id)) as available_today `;
 
   const services = await db.all(
     selectCols + baseFrom + where + orderBy + ' LIMIT ? OFFSET ?',
@@ -220,7 +243,10 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     SELECT
       COUNT(CASE WHEN sr.status = 'completed' THEN 1 END) as completed,
       COUNT(sr.id) as total,
-      AVG(EXTRACT(EPOCH FROM (sr.completed_at - sr.created_at)) / 3600) as avg_hours
+      AVG(EXTRACT(EPOCH FROM (sr.completed_at - sr.created_at)) / 3600) as avg_hours,
+      -- Response time: avg hours from request created to accepted
+      AVG(CASE WHEN sr.status IN ('accepted','delivered','completed')
+        THEN EXTRACT(EPOCH FROM (sr.updated_at - sr.created_at)) / 3600 END) as avg_response_hours
     FROM service_requests sr
     JOIN services s ON sr.service_id = s.id
     WHERE s.provider_id = ?`, service.provider_id);
