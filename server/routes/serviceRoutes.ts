@@ -118,19 +118,19 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   if (subcategory) { where += ' AND s.subcategory_id = ?';                           filterParams.push(subcategory); }
   if (search)      { where += ' AND (s.title ILIKE ? OR s.description ILIKE ? OR u.username ILIKE ?)'; filterParams.push(`%${search}%`, `%${search}%`, `%${search}%`); }
   if (city) {
+    const cityStr = String(city);
     // For Tbilisi: match all district variants stored without the "Tbilisi" prefix
-    if (city.toLowerCase() === 'tbilisi') {
+    if (cityStr.toLowerCase() === 'tbilisi') {
       const tbilisiDistricts = ['Saburtalo','Vake','Mtatsminda','Isani','Samgori','Gldani','Didube','Nadzaladevi','Chugureti','Avlabari','Ortachala','Varketili','Dighomi'];
       const likeTerms = tbilisiDistricts.map(() => 'u.city ILIKE ?').join(' OR ');
       where += ` AND (u.city ILIKE ? OR ${likeTerms})`;
       filterParams.push('%Tbilisi%', ...tbilisiDistricts.map(d => `%${d}%`));
-    } else if (city.toLowerCase() === 'luxembourg city' || city.toLowerCase() === 'luxembourg') {
-      // Match both "Luxembourg" and "Luxembourg City"
+    } else if (cityStr.toLowerCase() === 'luxembourg city' || cityStr.toLowerCase() === 'luxembourg') {
       where += ' AND (u.city ILIKE ? OR u.city ILIKE ?)';
       filterParams.push('%Luxembourg City%', '%Luxembourg%');
     } else {
       where += ' AND u.city ILIKE ?';
-      filterParams.push(`%${city}%`);
+      filterParams.push(`%${cityStr}%`);
     }
   }
 
