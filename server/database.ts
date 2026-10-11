@@ -35,6 +35,9 @@ export async function initDatabase() {
       ['Listening & Support', '\uD83D\uDC9C', 1.0],
       ['Beauty & Skincare', '\uD83D\uDC85', 1.3],
       ['Photography & Video', '\uD83D\uDCF7', 1.5],
+      // ── Core marketplace categories (always shown in browse) ──────────────
+      ['Item Rental', '\uD83D\uDCE6', 1.2],
+      ['Courier Services', '\uD83D\uDE9A', 1.5],
     ];
     for (const [name, icon, mult] of cats) {
       await client.query('INSERT INTO categories (name, icon, multiplier) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING', [name, icon, mult]);
@@ -135,6 +138,23 @@ export async function initDatabase() {
       ['Photography & Video','Photo Retouching','Editing, color correction, restoration'],
       ['Photography & Video','Other Photography','Other photography and video services'],
       ['Cleaning','Other Cleaning','Other cleaning services'],
+      // ── Item Rental subcategories ────────────────────────────────────────
+      ['Item Rental','Tools & Equipment','Power tools, hand tools, ladders, etc.'],
+      ['Item Rental','Sports & Outdoor Gear','Bikes, camping, sports equipment'],
+      ['Item Rental','Baby & Kids Gear','Strollers, car seats, highchairs, toys'],
+      ['Item Rental','Electronics','Cameras, projectors, gaming, audio gear'],
+      ['Item Rental','Party & Event Supplies','Tables, chairs, decorations, marquees'],
+      ['Item Rental','Vehicles','Cars, vans, bikes, scooters'],
+      ['Item Rental','Home Appliances','Vacuums, steam cleaners, pressure washers'],
+      ['Item Rental','Other Rentals','Other items available for rent'],
+      // ── Courier Services subcategories ──────────────────────────────────
+      ['Courier Services','Same-Day Delivery','Deliver items within the city today'],
+      ['Courier Services','Package Drop-off','Drop a parcel at a post office or shop'],
+      ['Courier Services','Grocery & Shopping Run','Pick up groceries or shopping items'],
+      ['Courier Services','Document Delivery','Deliver important papers or contracts'],
+      ['Courier Services','Food Pickup','Pick up a takeaway or meal order'],
+      ['Courier Services','Airport / Station Drop-off','Take luggage or items to transport hubs'],
+      ['Courier Services','Other Courier','Other delivery and courier tasks'],
     ];
     for (const [catName, subName, desc] of subs) {
       const catRes = await client.query('SELECT id FROM categories WHERE name = $1', [catName]);
