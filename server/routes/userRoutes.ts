@@ -87,12 +87,21 @@ router.post('/forgot-password', authLimiter, async (req: AuthRequest, res: Respo
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
+  // Always return the same message to prevent email enumeration
   if (!user) return res.json({ message: 'If that email exists, a reset code has been sent' });
   const code = generateCode();
   const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
   await db.run('UPDATE users SET reset_code = ?, reset_expires = ? WHERE id = ?', code, expires, user.id);
   const sent = await sendEmail(email, 'Reset your Boomerang password', resetPasswordHtml(code));
-  if (!sent) console.error(`[RESET] Failed to send email to ${email}`);
+  if (!sent) {
+    console.error(`[RESET] Failed to send email to ${email}`);
+    // In production with a custom domain, return an error so the user knows
+    // In dev (no FROM_EMAIL set), still return success to avoid confusion
+    const isTestMode = (process.env.FROM_EMAIL || '').includes('onboarding@resend.dev') || !process.env.FROM_EMAIL;
+    if (!isTestMode) {
+      return res.status(500).json({ error: 'Failed to send reset email. Please try again or contact support.' });
+    }
+  }
   res.json({ message: 'If that email exists, a reset code has been sent' });
 });
 

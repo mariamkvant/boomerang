@@ -2,10 +2,16 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Boomerang <onboarding@resend.dev>';
 
+// Resend's test address only delivers to verified addresses — warn loudly if still using it
+const IS_TEST_SENDER = FROM_EMAIL.includes('onboarding@resend.dev');
+
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) {
-    console.log(`[EMAIL SKIPPED - No API key] To: ${to}, Subject: ${subject}`);
-    return true;
+    console.log(`[EMAIL SKIPPED - No RESEND_API_KEY] To: ${to}, Subject: ${subject}`);
+    return false; // return false so callers know it didn't actually send
+  }
+  if (IS_TEST_SENDER) {
+    console.warn(`[EMAIL WARNING] FROM_EMAIL is still using Resend test address (onboarding@resend.dev). Emails will ONLY deliver to addresses verified in your Resend dashboard. Set FROM_EMAIL in Railway env vars to your custom domain address (e.g. noreply@boomerang.fyi) to send to anyone.`);
   }
   try {
     console.log(`[EMAIL SENDING] To: ${to}, Subject: ${subject}, From: ${FROM_EMAIL}`);
@@ -16,10 +22,10 @@ export async function sendEmail(to: string, subject: string, html: string) {
     });
     const data: any = await res.json();
     if (!res.ok) {
-      console.error(`[EMAIL FAILED] Status: ${res.status}`, data);
+      console.error(`[EMAIL FAILED] Status: ${res.status}`, JSON.stringify(data));
       return false;
     }
-    console.log(`[EMAIL SENT] ID: ${data.id}`);
+    console.log(`[EMAIL SENT] ID: ${data.id} → ${to}`);
     return true;
   } catch (err) {
     console.error('[EMAIL ERROR]', err);

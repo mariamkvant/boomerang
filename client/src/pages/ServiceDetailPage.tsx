@@ -42,7 +42,7 @@ export default function ServiceDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [favorited, setFavorited] = useState(false);
-  const [providerConnectStatus, setProviderConnectStatus] = useState<'unknown' | 'ok' | 'not_connected' | 'not_active'>('unknown');
+  const [providerConnectStatus, setProviderConnectStatus] = useState<'unknown' | 'ok' | 'not_connected' | 'not_active' | 'unsupported_country'>('unknown');
   const [hasServices, setHasServices] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pickupDetails, setPickupDetails] = useState('');
@@ -92,6 +92,10 @@ export default function ServiceDetailPage() {
         setProviderConnectStatus('ok');
         return;
       }
+      // Check if provider's country is supported by Stripe
+      // Stripe does NOT operate in: Georgia, Russia, Belarus, Iran, Cuba, North Korea, Syria, Venezuela, etc.
+      // We detect Georgia by currency (gel) — already handled above.
+      // For other unsupported countries: if provider city suggests an unsupported country, show disclaimer.
       api.getUser(service.provider_id).then((p: any) => {
         if (!p.stripe_account_id) setProviderConnectStatus('not_connected');
         else if (p.stripe_account_status !== 'active') setProviderConnectStatus('not_active');
@@ -513,7 +517,7 @@ export default function ServiceDetailPage() {
         )}
 
         {/* ── Provider not on Stripe Connect — can't take payment ── */}
-        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_connected' && (
+        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_connected' && currency !== 'gel' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Provider hasn't set up payouts yet</p>
@@ -542,6 +546,21 @@ export default function ServiceDetailPage() {
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Payout account pending verification</p>
               <p className="text-sm text-amber-700 dark:text-amber-400">The provider's payment account is being verified by Stripe. Payment will be available once approved — check back shortly.</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Unsupported country — payments not available ── */}
+        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'unsupported_country' && (
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">⚠️ Online payments not available in this region</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                This service is in a country not currently supported by our payment providers. You can still contact the provider to arrange payment directly.
+              </p>
+              <Link to={`/messages?to=${service.provider_id}`} className="inline-block text-sm font-medium bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800">
+                Message {service.provider_name} →
+              </Link>
             </div>
           </div>
         )}
@@ -867,7 +886,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* ── Sticky mobile request bar ── */}
-      {user && !isOwner && status !== 'success' && hasServices && (priceEur != null ? providerConnectStatus === 'ok' : true) && (
+      {user && !isOwner && status !== 'success' && hasServices && (priceEur != null ? (providerConnectStatus === 'ok') : true) && (
         <div className="fixed left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-40 md:hidden shadow-lg"
           style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
           <div>

@@ -297,6 +297,8 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Payouts (Stripe Connect for EU, BOG Pay IBAN for Georgia) ── */}
+      {/* Show Stripe Connect for non-Georgian providers; BOG Pay section shown separately below */}
+      {!isGeorgianUser && (
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Payouts</h3>
 
@@ -389,6 +391,7 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      )}  {/* end !isGeorgianUser */}
 
       {/* ── BOG Pay — Georgian bank account (IBAN) for GEL payouts ── */}
       {isGeorgianUser && (
