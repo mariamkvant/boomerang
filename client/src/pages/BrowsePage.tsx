@@ -161,7 +161,7 @@ export default function BrowsePage() {
   const acquireLocation = useCallback(() => {
     if (user && (user as any).latitude) {
       setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
-      // Don't auto-activate radius — map centers on user but shows all services
+      setRadiusKm(0.5); // default 500m once we have location
       return;
     }
     if (!navigator.geolocation) return;
@@ -169,7 +169,7 @@ export default function BrowsePage() {
     navigator.geolocation.getCurrentPosition(
       pos => {
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        // Don't auto-activate radius — user picks it explicitly from pills
+        setRadiusKm(0.5); // default 500m once we have location
         setLocating(false);
       },
       () => { setLocating(false); setLocationDenied(true); },
