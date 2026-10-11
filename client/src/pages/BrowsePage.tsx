@@ -344,7 +344,7 @@ export default function BrowsePage() {
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Recent searches</p>
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       {recentSearches.map((q, i) => (
-                        <button key={i} onMouseDown={() => { setSearch(q); setShowSearchSuggestions(false); }}
+                        <button key={i} onPointerDown={() => { setSearch(q); saveRecentSearch(q); setShowSearchSuggestions(false); }}
                           className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 px-2.5 py-1 rounded-full hover:bg-gray-100 transition-colors">
                           <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                           {q}
@@ -357,7 +357,7 @@ export default function BrowsePage() {
                   <div className="px-3 pb-2.5 border-t border-gray-50 dark:border-gray-800 pt-2">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">✨ Suggested for you</p>
                     {suggestions.slice(0, 3).map((s: any) => (
-                      <button key={s.id} onMouseDown={() => { setSearch(s.title); setShowSearchSuggestions(false); }}
+                      <button key={s.id} onPointerDown={() => { setSearch(s.title); saveRecentSearch(s.title); setShowSearchSuggestions(false); }}
                         className="w-full text-left flex items-center gap-2 px-1 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                         <span className="text-base">{s.category_icon || '🛠'}</span>
                         <div className="flex-1 min-w-0">

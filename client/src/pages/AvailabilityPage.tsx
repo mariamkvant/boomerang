@@ -37,6 +37,13 @@ export default function AvailabilityPage() {
   };
 
   const save = async () => {
+    // Validate: end_time must be after start_time
+    for (const s of slots) {
+      if (s.end_time <= s.start_time) {
+        toast(`End time must be after start time (${s.start_time} → ${s.end_time})`, 'error');
+        return;
+      }
+    }
     try { await api.setMyAvailability(slots); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     catch (err: any) { toast(err.message, 'error'); }
   };

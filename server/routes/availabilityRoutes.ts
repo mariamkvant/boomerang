@@ -60,9 +60,9 @@ router.post('/book', authMiddleware, async (req: AuthRequest, res: Response) => 
   if (!request_id || !booked_date || !start_time || !end_time) return res.status(400).json({ error: 'All fields required' });
 
   if (is_recurring && recurrence && recurrence_end) {
-    // Create multiple bookings for recurring schedule
-    const start = new Date(booked_date);
-    const end = new Date(recurrence_end);
+    // Parse with noon to avoid UTC midnight off-by-one in negative-offset timezones
+    const start = new Date(booked_date + 'T12:00:00');
+    const end = new Date(recurrence_end + 'T12:00:00');
     const intervalDays = recurrence === 'weekly' ? 7 : recurrence === 'biweekly' ? 14 : 30;
     let current = new Date(start);
     let count = 0;

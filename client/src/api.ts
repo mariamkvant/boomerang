@@ -92,6 +92,7 @@ export const api = {
   getStats: () => cachedRequest('/services/stats'),
   getSuggestions: () => request('/services/suggestions'),
   getServiceCities: () => cachedRequest('/services/cities'),
+  getSavedCard: () => request('/payments/saved-card'),
 
   // Requests
   createRequest: (body: any) => request('/requests', { method: 'POST', body: JSON.stringify(body) }),

@@ -19,6 +19,13 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (!service) return res.status(404).json({ error: 'Service not found' });
   if (service.provider_id === req.userId) return res.status(400).json({ error: 'Cannot request your own service' });
 
+  // Check neither party has blocked the other
+  const blocked = await db.get(
+    'SELECT id FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)',
+    req.userId, service.provider_id, service.provider_id, req.userId
+  );
+  if (blocked) return res.status(403).json({ error: 'Unable to send this request' });
+
   const priceEur = service.price_eur ? parseFloat(service.price_eur) : null;
 
   // Create the request record — payment happens separately via /payments/create-service-intent

@@ -27,6 +27,21 @@ async function getOrCreateStripeCustomer(userId: number, email: string): Promise
   return customer.id;
 }
 
+// ── GET /payments/saved-card — returns the saved card for the logged-in user (if any) ──
+router.get('/saved-card', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await db.get('SELECT stripe_customer_id, email FROM users WHERE id = ?', req.userId);
+    if (!user?.stripe_customer_id) return res.json({ has_saved_card: false });
+    const stripe = getStripe();
+    const pms = await stripe.paymentMethods.list({ customer: user.stripe_customer_id, type: 'card', limit: 1 });
+    const pm = pms.data[0];
+    if (!pm) return res.json({ has_saved_card: false });
+    res.json({ has_saved_card: true, last4: pm.card?.last4, brand: pm.card?.brand });
+  } catch {
+    res.json({ has_saved_card: false });
+  }
+});
+
 // ─── STRIPE CONNECT ONBOARDING ───────────────────────────────────────────────
 
 /**
@@ -214,7 +229,8 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
       payment_method_types: ['card'],
       customer: customerId,
       payment_method: savedPm?.id || undefined,
-      setup_future_usage: 'on_session', // save card for future use
+      // setup_future_usage is NOT compatible with capture_method:'manual' (Stripe API error)
+      // Card saving is handled separately via PaymentMethod attachment after capture
       receipt_email: r.requester_email || undefined,
       description: `Boomerang: ${r.title}`,
       transfer_data: { destination: provider.stripe_account_id },
@@ -284,6 +300,14 @@ router.post('/capture/:requestId', authMiddleware, async (req: AuthRequest, res:
 
     if (intent.status === 'requires_capture') {
       await stripe.paymentIntents.capture(r.stripe_payment_intent_id);
+      // After capture, attach the PaymentMethod to the customer so it's available for future payments
+      if (intent.payment_method && intent.customer) {
+        try {
+          await stripe.paymentMethods.attach(intent.payment_method as string, { customer: intent.customer as string });
+        } catch {
+          // Ignore — already attached or not a card PM
+        }
+      }
     } else if (!['succeeded', 'processing'].includes(intent.status)) {
       return res.status(400).json({ error: `Payment cannot be captured (status: ${intent.status})` });
     }

@@ -128,9 +128,9 @@ function makePricePin(label: string, selected: boolean): L.DivIcon {
       transition:all 0.15s;
     ">${label}</div>`,
     className: '',
-    iconSize: undefined,
-    iconAnchor: [0, 0],
-    popupAnchor: [0, -10],
+    iconSize: [60, 28],       // approximate pill size — centers the anchor
+    iconAnchor: [30, 14],     // center of the pill, so tooltip direction:'bottom' positions correctly
+    popupAnchor: [0, -18],
   });
 }
 
@@ -278,7 +278,7 @@ export default function MapView({
       marker.bindTooltip(name, {
         permanent: true,
         direction: 'bottom',
-        offset: [0, 4],
+        offset: [0, 6],
         className: 'boomerang-name-tooltip',
         opacity: 1,
       });

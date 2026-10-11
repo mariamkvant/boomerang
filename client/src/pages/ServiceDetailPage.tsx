@@ -56,7 +56,7 @@ export default function ServiceDetailPage() {
   const [cardReady, setCardReady] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const cardMountRef = useRef<HTMLDivElement>(null);
-  // Saved card state — populated after createServiceIntent returns
+  // Saved card state — pre-fetched when service loads, so confirm sheet shows correct UI immediately
   const [savedCardLast4, setSavedCardLast4] = useState<string | null>(null);
   const [savedCardBrand, setSavedCardBrand] = useState<string | null>(null);
   const [useSavedCard, setUseSavedCard] = useState(true);
@@ -101,6 +101,15 @@ export default function ServiceDetailPage() {
     if (user) api.isFavorited(Number(id)).then(r => setFavorited(r.favorited)).catch(() => {});
   }, [id, user]);
 
+  // Pre-fetch saved card so confirm sheet shows correct UI on open
+  useEffect(() => {
+    if (user) {
+      api.getSavedCard().then((r: any) => {
+        if (r.has_saved_card) { setSavedCardLast4(r.last4); setSavedCardBrand(r.brand); }
+      }).catch(() => {});
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       api.getServices(`provider=${user.id}`).then((res: any) => {
@@ -131,10 +140,11 @@ export default function ServiceDetailPage() {
     }).catch(() => {});
   }, []);
 
-  // Mount CardElement when confirm sheet opens and service has a EUR price
+  // Mount CardElement when confirm sheet opens, service has a EUR price, and user isn't using a saved card
   useEffect(() => {
     if (!showConfirm || !stripeInstance || !priceEurRef.current) return;
     if (cardElement) return; // already mounted
+    if (savedCardLast4 && useSavedCard) return; // using saved card — no need to mount input
     // Small delay so the sheet is fully rendered before mounting
     const t = setTimeout(() => {
       if (!cardMountRef.current) return;
@@ -591,7 +601,7 @@ export default function ServiceDetailPage() {
                       const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
                       const isPast = date < today;
                       const isTooFar = date > maxDate;
-                      const isProviderAvail = availDays.has(date.getDay());
+                      const isProviderAvail = availDays.size === 0 || availDays.has(date.getDay());
                       const isDisabled = isPast || isTooFar || !isProviderAvail;
                       const isSelected = selectedDate === dateStr;
                       const isToday = date.getTime() === today.getTime();
@@ -827,7 +837,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* ── Sticky mobile request bar ── */}
-      {user && !isOwner && status !== 'success' && hasServices && priceEur != null && providerConnectStatus === 'ok' && (
+      {user && !isOwner && status !== 'success' && hasServices && (priceEur != null ? providerConnectStatus === 'ok' : true) && (
         <div className="fixed left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-40 md:hidden shadow-lg"
           style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
           <div>
