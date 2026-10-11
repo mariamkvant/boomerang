@@ -9,6 +9,7 @@ import { translateCat } from '../i18n';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const RADIUS_OPTIONS = [
+  { label: 'All',   value: 0   },
   { label: '500 m', value: 0.5 },
   { label: '1 km',  value: 1   },
   { label: '5 km',  value: 5   },
@@ -77,7 +78,9 @@ export default function BrowsePage() {
   const [peopleResults, setPeopleResults] = useState<any[]>([]);
   const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
   const [showAllCats, setShowAllCats] = useState(false);
-  const [radiusKm, setRadiusKm] = useState(0.5);
+  // radiusKm = 0 means no radius filter — show all services regardless of distance
+  // User must explicitly pick a radius pill to activate proximity filtering
+  const [radiusKm, setRadiusKm] = useState(0);
   const [cityFilter, setCityFilter] = useState('');
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [countryFilter, setCountryFilter] = useState('');
@@ -165,7 +168,7 @@ export default function BrowsePage() {
     if (debouncedSearch) params.set('search', debouncedSearch);
     if (cityFilter) params.set('city', cityFilter);
     if (countryFilter) params.set('country', countryFilter);
-    if (userCoords) {
+    if (userCoords && radiusKm > 0) {
       params.set('lat', String(userCoords.lat));
       params.set('lng', String(userCoords.lng));
       params.set('radius', String(radiusKm));
@@ -485,7 +488,7 @@ export default function BrowsePage() {
                   ? `${peopleResults.length} provider${peopleResults.length !== 1 ? 's' : ''}`
                   : `${services.length} service${services.length !== 1 ? 's' : ''}`}
               </span>
-              {userCoords && (
+              {userCoords && radiusKm > 0 && (
                 <span className="text-xs text-gray-400">
                   within {radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}
                 </span>
@@ -527,7 +530,9 @@ export default function BrowsePage() {
                 {[1,2,3].map(i => <div key={i} className="flex-shrink-0 w-48 h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />)}
               </div>
             ) : services.length === 0 ? (
-              <p className="text-xs text-gray-400 py-1">No services found nearby — try expanding the radius</p>
+              <p className="text-xs text-gray-400 py-1">
+                {radiusKm > 0 ? `No services within ${radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`} — try a larger radius` : 'No services found'}
+              </p>
             ) : (
               <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                 {services.slice(0, 8).map((s: any) => (
