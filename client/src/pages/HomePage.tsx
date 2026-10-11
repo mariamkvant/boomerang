@@ -73,19 +73,20 @@ export default function HomePage() {
               </h1>
               <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-lg">{t('hero.subtitle')}</p>
 
-              {/* Sample listings — inline, no box */}
+              {/* Sample listings — the 5 core categories */}
               <div className="flex flex-wrap gap-2 mb-8">
                 {[
-                  { emoji: '🎸', label: 'Guitar lessons' },
-                  { emoji: '🐕', label: 'Dog walking' },
-                  { emoji: '💻', label: 'Excel help' },
-                  { emoji: '🌱', label: 'Gardening' },
-                  { emoji: '🚗', label: 'Airport rides' },
-                  { emoji: '🍳', label: 'Cooking classes' },
+                  { emoji: '🐾', label: 'Pet Care' },
+                  { emoji: '👶', label: 'Childcare' },
+                  { emoji: '🚗', label: 'Transportation' },
+                  { emoji: '📦', label: 'Item Rental' },
+                  { emoji: '🚚', label: 'Courier Services' },
+                  { emoji: '✨', label: '+ more' },
                 ].map((s, i) => (
-                  <span key={i} className="inline-flex items-center gap-1.5 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 text-xs px-3 py-1.5 rounded-full">
+                  <Link key={i} to={`/browse`}
+                    className="inline-flex items-center gap-1.5 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
                     {s.emoji} {s.label}
-                  </span>
+                  </Link>
                 ))}
               </div>
 
