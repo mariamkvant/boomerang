@@ -376,4 +376,115 @@ router.get('/trending/popular', async (_req, res: Response) => {
   res.json(services);
 });
 
+// ─── PERSONALISED SUGGESTIONS ────────────────────────────────────────────────
+// Returns services based on user's interests + past request categories.
+// Falls back to popular/recent services for users with no history.
+router.get('/suggestions', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const limit = 12;
+  const user = await db.get('SELECT id, interests, city, latitude, longitude FROM users WHERE id = ?', req.userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  // Build candidate category names from:
+  // 1. User interests saved from onboarding
+  // 2. Category names of services the user has previously requested
+  const categoryNames: Set<string> = new Set();
+
+  if (user.interests) {
+    const interestList: string[] = (user.interests as string).split(',').map((s: string) => s.trim()).filter(Boolean);
+    for (const interest of interestList) {
+      // Map need labels → category names
+      const mapping: Record<string, string> = {
+        'Fix something at home': 'Home Repair',
+        'Learn a language': 'Languages',
+        'Learn an instrument': 'Music',
+        'Tech help': 'Tech Help',
+        'Garden help': 'Gardening',
+        'Tutoring': 'Tutoring',
+        'Pet care': 'Pet Care',
+        'Someone to talk to': 'Listening & Support',
+      };
+      const catName = mapping[interest] || interest;
+      categoryNames.add(catName);
+    }
+  }
+
+  // Pull category names from past requests
+  const pastRequests = await db.all(`
+    SELECT DISTINCT c.name as category_name
+    FROM service_requests sr
+    JOIN services s ON sr.service_id = s.id
+    JOIN categories c ON s.category_id = c.id
+    WHERE sr.requester_id = ? AND sr.status IN ('completed', 'accepted', 'delivered')
+    LIMIT 5`, req.userId);
+
+  for (const r of pastRequests) {
+    if (r.category_name) categoryNames.add(r.category_name);
+  }
+
+  let suggestions: any[] = [];
+
+  if (categoryNames.size > 0) {
+    // Build parameterised IN clause
+    const names = Array.from(categoryNames);
+    const placeholders = names.map((_, i) => `$${i + 1}`).join(',');
+    const params: any[] = [...names];
+
+    let locationFilter = '';
+    if (user.latitude && user.longitude) {
+      locationFilter = `
+        AND COALESCE(s.service_latitude, u.latitude) IS NOT NULL
+        AND (6371 * acos(LEAST(1.0,
+          cos(radians($${params.length + 1})) * cos(radians(COALESCE(s.service_latitude, u.latitude)))
+          * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians($${params.length + 2}))
+          + sin(radians($${params.length + 1})) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
+        ))) < 50`;
+      params.push(user.latitude, user.longitude);
+    }
+
+    suggestions = await db.all(`
+      SELECT s.*, c.name as category_name, c.icon as category_icon,
+        u.username as provider_name, u.city as provider_city,
+        u.latitude as provider_latitude, u.longitude as provider_longitude,
+        COALESCE(s.service_latitude, NULL) as service_latitude,
+        COALESCE(s.service_longitude, NULL) as service_longitude,
+        (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
+      FROM services s
+      JOIN categories c ON s.category_id = c.id
+      JOIN users u ON s.provider_id = u.id
+      WHERE s.is_active = 1
+        AND s.group_id IS NULL
+        AND s.provider_id != $${params.length + 1}
+        AND c.name IN (${placeholders})
+        ${locationFilter}
+      ORDER BY avg_rating DESC NULLS LAST, s.created_at DESC
+      LIMIT $${params.length + 2}`,
+      ...params, req.userId, limit,
+    );
+  }
+
+  // Fallback: if not enough suggestions, pad with recent popular services
+  if (suggestions.length < 6) {
+    const exclude = suggestions.map(s => s.id);
+    const excludeClause = exclude.length > 0
+      ? `AND s.id NOT IN (${exclude.map((_, i) => `$${i + 2}`).join(',')})` : '';
+    const fallback = await db.all(`
+      SELECT s.*, c.name as category_name, c.icon as category_icon,
+        u.username as provider_name, u.city as provider_city,
+        u.latitude as provider_latitude, u.longitude as provider_longitude,
+        (SELECT AVG(r.rating) FROM reviews r JOIN service_requests sr ON r.request_id = sr.id WHERE sr.service_id = s.id) as avg_rating
+      FROM services s
+      JOIN categories c ON s.category_id = c.id
+      JOIN users u ON s.provider_id = u.id
+      WHERE s.is_active = 1 AND s.group_id IS NULL AND s.provider_id != $1
+        ${excludeClause}
+      ORDER BY s.created_at DESC
+      LIMIT ${limit - suggestions.length}`,
+      req.userId, ...exclude,
+    );
+    suggestions = [...suggestions, ...fallback];
+  }
+
+  res.json(suggestions);
+});
+
 export default router;

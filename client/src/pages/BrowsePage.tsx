@@ -22,7 +22,7 @@ const MAX_RECENT = 5;
 // Panel height per state
 const PANEL_HEIGHTS: Record<string, string> = {
   collapsed: '32px',
-  peek:      '180px',
+  peek:      '220px',
   half:      '50vh',
   full:      '85vh',
 };
@@ -101,6 +101,9 @@ export default function BrowsePage() {
   const [sellerProfile, setSellerProfile] = useState<any>(null);
   const [sellerLoading, setSellerLoading] = useState(false);
 
+  // Personalised suggestions
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+
   // Request sheet
   const [requestConfirm, setRequestConfirm] = useState<{ service: any } | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
@@ -117,6 +120,10 @@ export default function BrowsePage() {
     setRecentlyViewed(getRecentlyViewed());
     api.getCategories().then(setCategories).catch(() => {});
     acquireLocation();
+    // Load personalised suggestions for logged-in users
+    if (user) {
+      api.getSuggestions().then((res: any) => setSuggestions(Array.isArray(res) ? res : [])).catch(() => {});
+    }
   }, []);
 
   // ── Location ─────────────────────────────────────────────────────────────
@@ -327,16 +334,7 @@ export default function BrowsePage() {
               Locate me
             </button>
           )}
-          {/* See all services button — expands panel to show full list */}
-          {userCoords && (
-            <button
-              onClick={() => { setPanelState('half'); }}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 flex items-center gap-1"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
-              List view
-            </button>
-          )}
+          {/* See all services button — removed, replaced by persistent floating button below */}
         </div>
 
         {/* City picker */}
@@ -453,23 +451,40 @@ export default function BrowsePage() {
 
         {/* Peek state — horizontal card strip (Google Maps style) */}
         {panelState === 'peek' && (
-          <div className="flex-1 overflow-hidden px-4 pb-3">
+          <div className="flex-1 overflow-hidden px-4 pb-3 space-y-2">
+            {/* For You suggestions — shown when user has interests/history */}
+            {user && suggestions.length > 0 && (
+              <div>
+                <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-wider mb-1.5">✨ For you</p>
+                <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                  {suggestions.slice(0, 5).map((s: any) => (
+                    <button key={s.id} onClick={() => setPanelState('half')}
+                      className="flex-shrink-0 w-40 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl p-2.5 text-left">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-base">{s.category_icon || '🛠'}</span>
+                        <p className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-1">{s.title}</p>
+                      </div>
+                      <p className="text-[10px] text-gray-400 truncate">{s.provider_name}</p>
+                      {s.price_eur != null && (
+                        <p className="text-xs font-bold text-primary-600 mt-0.5">{s.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(s.price_eur))}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Nearby services strip */}
             {loading ? (
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                 {[1,2,3].map(i => <div key={i} className="flex-shrink-0 w-48 h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />)}
               </div>
             ) : services.length === 0 ? (
-              <button onClick={() => setPanelState('half')} className="text-xs text-gray-400 py-2">
-                No services found — tap to see options
-              </button>
+              <p className="text-xs text-gray-400 py-1">No services found nearby — try expanding the radius</p>
             ) : (
               <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                 {services.slice(0, 8).map((s: any) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setPanelState('half')}
-                    className="flex-shrink-0 w-44 bg-white dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl p-3 text-left hover:border-gray-300 transition-all"
-                  >
+                  <button key={s.id} onClick={() => setPanelState('half')}
+                    className="flex-shrink-0 w-44 bg-white dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl p-3 text-left hover:border-gray-300 transition-all">
                     <div className="flex items-center gap-2 mb-1.5">
                       <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-base shrink-0">
                         {s.category_icon || '🛠'}
@@ -485,11 +500,8 @@ export default function BrowsePage() {
                     </div>
                   </button>
                 ))}
-                {/* Show all card */}
-                <button
-                  onClick={() => setPanelState('half')}
-                  className="flex-shrink-0 w-20 bg-gray-50 dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-all"
-                >
+                <button onClick={() => setPanelState('half')}
+                  className="flex-shrink-0 w-20 bg-gray-50 dark:bg-[#242424] border border-gray-100 dark:border-gray-800 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:bg-gray-100 transition-all">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                   <span className="text-[10px] font-medium">All {services.length}</span>
                 </button>
@@ -624,7 +636,21 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* ── "EXPAND RADIUS" floating button — shown when very few results ── */}
+      {/* ── PERSISTENT "LIST VIEW" FLOATING BUTTON — always visible on map ── */}
+      {viewMode === 'map' && panelState !== 'half' && panelState !== 'full' && (
+        <div className="absolute z-20 pointer-events-auto"
+          style={{ bottom: `calc(${PANEL_HEIGHTS[panelState]} + 12px)`, left: '50%', transform: 'translateX(-50%)' }}>
+          <button
+            onClick={() => setPanelState('half')}
+            className="bg-[#1f2937] text-white shadow-xl px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-[#111827] transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            {services.length > 0 ? `${services.length} services` : 'List view'}
+          </button>
+        </div>
+      )}
       {userCoords && radiusKm <= 1 && services.length < 5 && panelState !== 'half' && panelState !== 'full' && (
         <div className="absolute bottom-[196px] left-1/2 -translate-x-1/2 z-20">
           <button

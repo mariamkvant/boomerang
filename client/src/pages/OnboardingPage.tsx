@@ -107,11 +107,15 @@ export default function OnboardingPage() {
   const toggleNeed = (s: string) => setSelectedNeeds(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   const handleFinish = async () => {
-    if (bio) await api.updateProfile({ bio });
-    else if (selectedSkills.length > 0) await api.updateProfile({ bio: `Skills: ${selectedSkills.join(', ')}` });
+    // Save bio (or auto-generate from skills if no bio entered)
+    const finalBio = bio || (selectedSkills.length > 0 ? `I offer: ${selectedSkills.join(', ')}` : '');
+    if (finalBio) await api.updateProfile({ bio: finalBio });
+    // Save needs as interests — used for personalized service suggestions
+    if (selectedNeeds.length > 0) {
+      await api.updateProfile({ interests: selectedNeeds.join(',') });
+    }
     localStorage.setItem('onboarding_done', 'true');
     await refreshUser();
-    // Send them straight to create a service — first action they should take
     navigate('/services/new');
   };
 

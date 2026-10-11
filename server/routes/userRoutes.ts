@@ -211,13 +211,13 @@ router.post('/change-password', authMiddleware, async (req: AuthRequest, res: Re
 
 // Update profile
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { bio, username, city, latitude, longitude, languages_spoken, avatar } = req.body;
+  const { bio, username, city, latitude, longitude, languages_spoken, avatar, interests } = req.body;
   if (avatar !== undefined) {
     if (avatar && avatar.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
     const avatarUrl = avatar ? await uploadAvatar(avatar) : null;
     await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatarUrl, req.userId);
   }
-  await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, req.userId);
+  await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken), interests = COALESCE(?, interests) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, interests ?? null, req.userId);
   // Update notification preferences if provided
   const { notify_email, notify_push, notify_reminders, auto_accept } = req.body;
   if (notify_email !== undefined || notify_push !== undefined || notify_reminders !== undefined) {

@@ -296,6 +296,9 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     // Index for service location radius queries
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_lat ON services(service_latitude)'); } catch(e) {}
 
+    // === User interests — saved from onboarding needs selection ===
+    try { await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS interests TEXT DEFAULT ''"); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }
