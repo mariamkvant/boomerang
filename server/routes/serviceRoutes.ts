@@ -168,11 +168,20 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     const latNum = parseFloat(lat as string);
     const lngNum = parseFloat(lng as string);
     const radiusKm = parseFloat(radius as string);
-    where += ` AND COALESCE(s.service_latitude, u.latitude) IS NOT NULL
-      AND (6371 * acos(LEAST(1.0,
-        cos(radians(?)) * cos(radians(COALESCE(s.service_latitude, u.latitude))) * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians(?))
-        + sin(radians(?)) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
-      ))) < ?`;
+    where += ` AND (
+      -- Services with GPS: use haversine distance
+      (COALESCE(s.service_latitude, u.latitude) IS NOT NULL
+        AND (6371 * acos(LEAST(1.0,
+          cos(radians(?)) * cos(radians(COALESCE(s.service_latitude, u.latitude))) * cos(radians(COALESCE(s.service_longitude, u.longitude)) - radians(?))
+          + sin(radians(?)) * sin(radians(COALESCE(s.service_latitude, u.latitude)))
+        ))) < ?
+      )
+      OR
+      -- Services without GPS but in the same city (city-based fallback)
+      (COALESCE(s.service_latitude, u.latitude) IS NULL
+        AND u.city IS NOT NULL AND u.city != ''
+      )
+    )`;
     filterParams.push(latNum, lngNum, latNum, radiusKm);
   }
 
@@ -202,6 +211,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     (SELECT COUNT(*) FROM availability av
      WHERE av.user_id = u.id AND av.day_of_week = EXTRACT(DOW FROM NOW())::int
        AND (av.service_id IS NULL OR av.service_id = s.id)) as available_today `;
+
 
   const services = await db.all(
     selectCols + baseFrom + where + orderBy + ' LIMIT ? OFFSET ?',

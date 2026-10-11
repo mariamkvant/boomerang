@@ -701,15 +701,26 @@ export default function BrowsePage() {
               )
             ) : services.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                  {userCoords ? `Nothing within ${radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}` : 'No services found'}
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">
+                  {userCoords && radiusKm > 0 ? `Nothing with GPS within ${radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}` : 'No services found'}
                 </p>
-                {userCoords && radiusKm < 10 && (
-                  <button onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : 10)}
-                    className="text-xs bg-[#1f2937] text-white px-4 py-2 rounded-lg font-medium">
-                    Expand radius →
-                  </button>
-                )}
+                <p className="text-xs text-gray-400 mb-3">
+                  Some providers may not have set their GPS location yet. Try expanding the radius or browsing all services.
+                </p>
+                <div className="flex gap-2 justify-center flex-wrap">
+                  {userCoords && radiusKm > 0 && radiusKm < 10 && (
+                    <button onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : 10)}
+                      className="text-xs bg-[#1f2937] text-white px-4 py-2 rounded-lg font-medium">
+                      Expand to {radiusKm === 0.5 ? '1km' : radiusKm === 1 ? '5km' : '10km'} →
+                    </button>
+                  )}
+                  {userCoords && radiusKm > 0 && (
+                    <button onClick={() => setRadiusKm(0)}
+                      className="text-xs border border-gray-300 text-gray-600 px-4 py-2 rounded-lg font-medium">
+                      Show all services
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               services.map((s: any) => {
