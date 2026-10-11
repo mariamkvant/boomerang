@@ -28,13 +28,23 @@ interface MapViewProps {
   userLng?: number | null;
   radiusKm?: number;
   height?: string;
+  selectedProviderId?: number | null;
   onMarkerClick?: (providerId: number) => void;
 }
 
-function fmtPrice(s: Service): string {
+function fmtPinPrice(s: Service): string {
   if (s.price_eur != null && Number(s.price_eur) > 0) {
     const sym = s.currency === 'gel' ? '₾' : '€';
     return `${sym}${Math.round(Number(s.price_eur))}`;
+  }
+  return '···';
+}
+
+function fmtPopupPrice(s: Service): string {
+  if (s.price_eur != null && Number(s.price_eur) > 0) {
+    const sym = s.currency === 'gel' ? '₾' : '€';
+    const n = Number(s.price_eur);
+    return `${sym}${Math.round(n)}`;
   }
   return 'Contact provider';
 }
@@ -59,7 +69,7 @@ function buildPopupHtml(providerName: string, svcs: Service[]): string {
         ${s.category_icon || ''} ${s.title}
       </span>
       <span style="font-size:12px; font-weight:700; color:#f97316; white-space:nowrap; flex-shrink:0;">
-        ${fmtPrice(s)}
+        ${fmtPopupPrice(s)}
       </span>
     </a>
   `).join('');
@@ -101,28 +111,26 @@ function buildPopupHtml(providerName: string, svcs: Service[]): string {
   `;
 }
 
-function makeProviderIcon(count: number): L.DivIcon {
-  const badge = count > 1 ? `<div style="
-    position:absolute; top:-4px; right:-4px;
-    background:#f97316; color:white; border-radius:50%;
-    width:16px; height:16px; font-size:9px; font-weight:700;
-    display:flex; align-items:center; justify-content:center;
-    border:1.5px solid white; line-height:1;
-  ">${count}</div>` : '';
-
+// Price-label pin (Airbnb-style) — selected state is larger with orange fill
+function makePricePin(label: string, selected: boolean): L.DivIcon {
+  const bg = selected ? '#f97316' : '#1f2937';
+  const scale = selected ? 'transform:scale(1.15);' : '';
   return L.divIcon({
-    html: `<div style="position:relative; display:inline-block;">
-      <svg width="30" height="38" viewBox="0 0 30 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 23 15 23S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="#1f2937"/>
-        <circle cx="15" cy="14" r="7" fill="white" fill-opacity="0.95"/>
-        <text x="15" y="18" text-anchor="middle" font-size="9" fill="#1f2937" font-weight="700" font-family="system-ui">★</text>
-      </svg>
-      ${badge}
-    </div>`,
+    html: `<div style="
+      ${scale}
+      background:${bg}; color:white;
+      padding:5px 9px; border-radius:20px;
+      font-size:12px; font-weight:700;
+      white-space:nowrap;
+      box-shadow:0 2px 8px rgba(0,0,0,0.25);
+      border:2px solid white;
+      cursor:pointer;
+      transition:all 0.15s;
+    ">${label}</div>`,
     className: '',
-    iconSize: [30, 38],
-    iconAnchor: [15, 38],
-    popupAnchor: [0, -40],
+    iconSize: undefined,
+    iconAnchor: [0, 0],
+    popupAnchor: [0, -10],
   });
 }
 
@@ -139,9 +147,25 @@ function makeUserIcon(): L.DivIcon {
   });
 }
 
-export default function MapView({ services, userLat, userLng, radiusKm = 0.5, height = '100%', onMarkerClick }: MapViewProps) {
+export default function MapView({
+  services, userLat, userLng, radiusKm = 0.5,
+  height = '100%', selectedProviderId, onMarkerClick,
+}: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const markersRef = useRef<Map<number, L.Marker>>(new Map());
+
+  // Re-render markers when selection changes without destroying the whole map
+  const updateMarkerIcons = (selectedId: number | null | undefined) => {
+    markersRef.current.forEach((marker, providerId) => {
+      const label = (marker as any)._priceLabel as string;
+      marker.setIcon(makePricePin(label, providerId === selectedId));
+    });
+  };
+
+  useEffect(() => {
+    updateMarkerIcons(selectedProviderId);
+  }, [selectedProviderId]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -150,11 +174,20 @@ export default function MapView({ services, userLat, userLng, radiusKm = 0.5, he
       mapInstance.current.remove();
       mapInstance.current = null;
     }
+    markersRef.current.clear();
 
-    let center: [number, number] = [49.6, 6.13];
-    if (userLat && userLng) center = [userLat, userLng];
+    // ── Center & zoom ───────────────────────────────────────────────────────
+    // Always start at street level (zoom 15) when we have user location.
+    // Only fitBounds when there's no user location.
+    const hasLocation = !!(userLat && userLng);
+    let center: [number, number] = [49.6, 6.13]; // Luxembourg fallback
+    if (hasLocation) center = [userLat!, userLng!];
 
-    const map = L.map(mapRef.current, { center, zoom: 15, zoomControl: false });
+    const map = L.map(mapRef.current, {
+      center,
+      zoom: hasLocation ? 15 : 13,
+      zoomControl: false,
+    });
     mapInstance.current = map;
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -164,55 +197,91 @@ export default function MapView({ services, userLat, userLng, radiusKm = 0.5, he
       maxZoom: 19,
     }).addTo(map);
 
-    if (userLat && userLng) {
-      L.marker([userLat, userLng], { icon: makeUserIcon() })
+    // User location dot + radius circle
+    if (hasLocation) {
+      L.marker([userLat!, userLng!], { icon: makeUserIcon() })
         .addTo(map)
         .bindTooltip('You', { permanent: false, direction: 'top', className: 'leaflet-tooltip-clean' });
 
       if (radiusKm > 0) {
-        L.circle([userLat, userLng], {
+        L.circle([userLat!, userLng!], {
           radius: radiusKm * 1000,
           color: '#3b82f6', fillColor: '#3b82f6',
-          fillOpacity: 0.05, weight: 1.5, dashArray: '4 4',
+          fillOpacity: 0.05, weight: 1.5, dashArray: '5 5',
         }).addTo(map);
       }
     }
 
-    const providerMap = new Map<string, { lat: number; lng: number; name: string; services: Service[]; providerId: number }>();
+    // ── Group services by location ──────────────────────────────────────────
+    const providerMap = new Map<string, {
+      lat: number; lng: number;
+      name: string; services: Service[];
+      providerId: number;
+      lowestPrice: string;
+    }>();
+
     for (const s of services) {
       const lat = s.service_latitude ?? s.provider_latitude;
       const lng = s.service_longitude ?? s.provider_longitude;
       if (!lat || !lng) continue;
       const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       if (!providerMap.has(key)) {
-        providerMap.set(key, { lat, lng, name: s.provider_name || 'Provider', services: [], providerId: s.provider_id || s.provider_user_id || 0 });
+        providerMap.set(key, {
+          lat, lng,
+          name: s.provider_name || 'Provider',
+          services: [],
+          providerId: s.provider_id || s.provider_user_id || 0,
+          lowestPrice: fmtPinPrice(s),
+        });
       }
-      providerMap.get(key)!.services.push(s);
+      const entry = providerMap.get(key)!;
+      entry.services.push(s);
+      // Show the lowest price on the pin
+      if (s.price_eur != null && Number(s.price_eur) > 0) {
+        const current = entry.lowestPrice;
+        const currentNum = current === '···' ? Infinity : parseFloat(current.replace(/[^0-9.]/g, ''));
+        if (Number(s.price_eur) < currentNum) {
+          entry.lowestPrice = fmtPinPrice(s);
+        }
+      }
     }
 
     const allPoints: L.LatLng[] = [];
-    if (userLat && userLng) allPoints.push(L.latLng(userLat, userLng));
+    if (hasLocation) allPoints.push(L.latLng(userLat!, userLng!));
 
-    providerMap.forEach(({ lat, lng, name, services: svcs, providerId }) => {
+    providerMap.forEach(({ lat, lng, name, services: svcs, providerId, lowestPrice }) => {
       allPoints.push(L.latLng(lat, lng));
-      const marker = L.marker([lat, lng], { icon: makeProviderIcon(svcs.length) });
+      const isSelected = providerId === selectedProviderId;
+      const marker = L.marker([lat, lng], {
+        icon: makePricePin(lowestPrice, isSelected),
+        zIndexOffset: isSelected ? 1000 : 0,
+      });
+      // Store label for icon updates
+      (marker as any)._priceLabel = lowestPrice;
+
       marker.addTo(map).bindPopup(buildPopupHtml(name, svcs), {
         maxWidth: 300, minWidth: 240, autoPan: true, closeButton: true,
         className: 'boomerang-popup',
       });
-      if (onMarkerClick) {
-        marker.on('click', () => onMarkerClick(providerId));
-      }
+
+      marker.on('click', () => {
+        if (onMarkerClick) onMarkerClick(providerId);
+      });
+
+      markersRef.current.set(providerId, marker);
     });
 
-    if (allPoints.length > 1) {
+    // ── Only fitBounds when no user location ───────────────────────────────
+    if (!hasLocation && allPoints.length > 1) {
       map.fitBounds(L.latLngBounds(allPoints), { padding: [40, 40], maxZoom: 15 });
-    } else if (allPoints.length === 1) {
+    } else if (!hasLocation && allPoints.length === 1) {
       map.setView(allPoints[0], 15);
     }
+    // When user has location, keep the zoom at 15 centred on them
 
     return () => {
       if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; }
+      markersRef.current.clear();
     };
   }, [services, userLat, userLng, radiusKm]);
 

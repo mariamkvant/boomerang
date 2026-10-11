@@ -37,7 +37,7 @@ router.get('/slots', async (req: AuthRequest, res: Response) => {
   const service = await db.get('SELECT s.*, u.id as provider_id FROM services s JOIN users u ON s.provider_id = u.id WHERE s.id = ?', service_id);
   if (!service) return res.status(404).json({ error: 'Service not found' });
 
-  const dayOfWeek = new Date(date as string).getDay();
+  const dayOfWeek = new Date((date as string) + 'T12:00:00').getDay();
   const availSlots = await db.all('SELECT start_time, end_time FROM availability WHERE user_id = ? AND day_of_week = ? ORDER BY start_time', service.provider_id, dayOfWeek);
 
   const bookedQuery = `SELECT b.start_time, b.end_time FROM bookings b
