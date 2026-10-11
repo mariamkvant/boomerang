@@ -354,49 +354,68 @@ export default function CreateServicePage() {
                 <svg className={`w-4 h-4 text-gray-400 transition-transform ${showSlotPicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
               </button>
               {showSlotPicker && (
-                <div className="px-4 py-3 space-y-3 bg-white dark:bg-[#202c33]">
-                  <p className="text-xs text-gray-400">Add the days and times you're available for this service. Buyers will book from these slots.</p>
-                  {serviceSlots.length === 0 && (
-                    <p className="text-xs text-gray-400 italic">No slots added yet — click a day to add one.</p>
-                  )}
-                  {/* Quick add buttons per day */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setServiceSlots(s => [...s, { day_of_week: idx, start_time: '09:00', end_time: '10:00' }])}
-                        className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 transition-colors"
-                      >
-                        + {day}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Slot list */}
-                  {serviceSlots.map((slot, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-500 w-8">{['Su','Mo','Tu','We','Th','Fr','Sa'][slot.day_of_week]}</span>
-                      <select
-                        value={slot.start_time}
-                        onChange={e => setServiceSlots(s => s.map((x, j) => j === i ? { ...x, start_time: e.target.value } : x))}
-                        className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 text-xs outline-none dark:bg-[#2a3942] dark:text-white"
-                        aria-label="Start time"
-                      >
-                        {Array.from({ length: 28 }, (_, k) => { const h = Math.floor(k/2)+7; const m = k%2===0?'00':'30'; return `${String(h).padStart(2,'0')}:${m}`; }).map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <span className="text-xs text-gray-400">to</span>
-                      <select
-                        value={slot.end_time}
-                        onChange={e => setServiceSlots(s => s.map((x, j) => j === i ? { ...x, end_time: e.target.value } : x))}
-                        className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 text-xs outline-none dark:bg-[#2a3942] dark:text-white"
-                        aria-label="End time"
-                      >
-                        {Array.from({ length: 28 }, (_, k) => { const h = Math.floor(k/2)+7; const m = k%2===0?'00':'30'; return `${String(h).padStart(2,'0')}:${m}`; }).map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <button type="button" onClick={() => setServiceSlots(s => s.filter((_, j) => j !== i))}
-                        className="text-red-400 hover:text-red-600 text-sm ml-1">✕</button>
-                    </div>
-                  ))}
+                <div className="px-4 py-3 space-y-4 bg-white dark:bg-[#202c33]">
+                  <p className="text-xs text-gray-400">Add multiple time slots per day — buyers can book any available slot.</p>
+
+                  {/* Day-grouped slot picker */}
+                  {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((dayName, dayIdx) => {
+                    const daySlots = serviceSlots.map((s, i) => ({ ...s, idx: i })).filter(s => s.day_of_week === dayIdx);
+                    const TIMES_LIST = Array.from({ length: 28 }, (_, k) => { const h = Math.floor(k/2)+7; const m = k%2===0?'00':'30'; return `${String(h).padStart(2,'0')}:${m}`; });
+                    return (
+                      <div key={dayIdx} className={`rounded-xl border transition-all ${daySlots.length > 0 ? 'border-primary-200 dark:border-primary-800 bg-primary-50/30 dark:bg-primary-900/10' : 'border-gray-100 dark:border-gray-700'}`}>
+                        {/* Day header */}
+                        <div className="flex items-center justify-between px-3 py-2.5">
+                          <span className={`text-sm font-semibold ${daySlots.length > 0 ? 'text-primary-700 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                            {dayName}
+                            {daySlots.length > 0 && <span className="ml-2 text-xs font-normal text-primary-500">{daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}</span>}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setServiceSlots(s => [...s, { day_of_week: dayIdx, start_time: '09:00', end_time: '10:00' }])}
+                            className="text-xs text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 flex items-center gap-1"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                            Add slot
+                          </button>
+                        </div>
+
+                        {/* Slots for this day */}
+                        {daySlots.length > 0 && (
+                          <div className="px-3 pb-3 space-y-2 border-t border-gray-100 dark:border-gray-700 pt-2">
+                            {daySlots.map(slot => (
+                              <div key={slot.idx} className="flex items-center gap-2 flex-wrap">
+                                <select
+                                  value={slot.start_time}
+                                  onChange={e => setServiceSlots(s => s.map((x, j) => j === slot.idx ? { ...x, start_time: e.target.value } : x))}
+                                  className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 text-xs outline-none dark:bg-[#2a3942] dark:text-white focus:ring-1 focus:ring-primary-500"
+                                  aria-label="Start time"
+                                >
+                                  {TIMES_LIST.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                                <span className="text-xs text-gray-400">→</span>
+                                <select
+                                  value={slot.end_time}
+                                  onChange={e => setServiceSlots(s => s.map((x, j) => j === slot.idx ? { ...x, end_time: e.target.value } : x))}
+                                  className="border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 text-xs outline-none dark:bg-[#2a3942] dark:text-white focus:ring-1 focus:ring-primary-500"
+                                  aria-label="End time"
+                                >
+                                  {TIMES_LIST.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() => setServiceSlots(s => s.filter((_, j) => j !== slot.idx))}
+                                  className="text-gray-300 hover:text-red-400 transition-colors ml-1"
+                                  aria-label="Remove slot"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
