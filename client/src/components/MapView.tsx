@@ -188,11 +188,19 @@ export default function MapView({
     // Only fitBounds when there's no user location.
     const hasLocation = !!(userLat && userLng);
     let center: [number, number] = [49.6, 6.13]; // Luxembourg fallback
-    if (hasLocation) center = [userLat!, userLng!];
+    let zoom = 13;
+    if (flyToCenter) {
+      // City was explicitly selected — centre on it
+      center = [flyToCenter.lat, flyToCenter.lng];
+      zoom = 13;
+    } else if (hasLocation) {
+      center = [userLat!, userLng!];
+      zoom = 15;
+    }
 
     const map = L.map(mapRef.current, {
       center,
-      zoom: hasLocation ? 15 : 13,
+      zoom,
       zoomControl: false,
     });
     mapInstance.current = map;
@@ -305,7 +313,7 @@ export default function MapView({
       if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; }
       markersRef.current.clear();
     };
-  }, [services, userLat, userLng, radiusKm]);
+  }, [services, userLat, userLng, radiusKm, flyToCenter]);
 
   return (
     <>
