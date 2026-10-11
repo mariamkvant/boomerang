@@ -254,6 +254,9 @@ export default function BrowsePage() {
     setCityFilter(city);
     setShowCityPicker(false);
     setCitySearch('');
+    // When selecting a different city, clear the radius filter
+    // (user's GPS coords are in Luxembourg, not Tbilisi)
+    setRadiusKm(0);
     try {
       const q = encodeURIComponent(city);
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
@@ -313,16 +316,25 @@ export default function BrowsePage() {
       {/* ── MAP ── */}
       <div className="absolute inset-0 z-0">
         {viewMode === 'map' ? (
-          <MapView
-            services={mappable}
-            userLat={userCoords?.lat}
-            userLng={userCoords?.lng}
-            radiusKm={radiusKm}
-            height="100%"
-            selectedProviderId={selectedProviderId}
-            onMarkerClick={handleMarkerClick}
-            flyToCenter={mapCenter}
-          />
+          <>
+            <MapView
+              services={mappable}
+              userLat={userCoords?.lat}
+              userLng={userCoords?.lng}
+              radiusKm={radiusKm}
+              height="100%"
+              selectedProviderId={selectedProviderId}
+              onMarkerClick={handleMarkerClick}
+              flyToCenter={mapCenter}
+            />
+            {/* No-pins hint when services exist but none have GPS */}
+            {!loading && services.length > 0 && mappable.length === 0 && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-[#1c1c1c]/90 rounded-xl px-4 py-3 shadow-lg text-center max-w-[240px] pointer-events-none">
+                <p className="text-sm font-medium text-gray-700 dark:text-white mb-1">📍 {services.length} service{services.length !== 1 ? 's' : ''} in this area</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Providers haven't set GPS yet — see them in the list below</p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="w-full h-full bg-gray-50 dark:bg-[#111]" />
         )}
