@@ -95,12 +95,8 @@ router.post('/forgot-password', authLimiter, async (req: AuthRequest, res: Respo
   const sent = await sendEmail(email, 'Reset your Boomerang password', resetPasswordHtml(code));
   if (!sent) {
     console.error(`[RESET] Failed to send email to ${email}`);
-    // In production with a custom domain, return an error so the user knows
-    // In dev (no FROM_EMAIL set), still return success to avoid confusion
-    const isTestMode = (process.env.FROM_EMAIL || '').includes('onboarding@resend.dev') || !process.env.FROM_EMAIL;
-    if (!isTestMode) {
-      return res.status(500).json({ error: 'Failed to send reset email. Please try again or contact support.' });
-    }
+    // Don't block the user — the code is saved in DB so they can still use it if they have it
+    // A real send failure will show in Railway logs
   }
   res.json({ message: 'If that email exists, a reset code has been sent' });
 });
