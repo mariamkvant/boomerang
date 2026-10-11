@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
@@ -8,6 +9,24 @@ import { ConfirmProvider } from './components/ConfirmModal';
 import { InstallProvider } from './components/InstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
+
+// ── Sentry — only initialises when DSN env var is set (safe in dev without it) ──
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    environment: import.meta.env.MODE, // 'production' | 'development'
+    // Only send 10% of performance traces to stay on the free tier
+    tracesSampleRate: 0.1,
+    // Ignore noisy browser errors that aren't real bugs
+    ignoreErrors: [
+      'ResizeObserver loop limit exceeded',
+      'Non-Error exception captured',
+      'Network request failed',
+      'Load failed',
+    ],
+  });
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

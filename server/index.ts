@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
 import path from 'path';
+import * as Sentry from '@sentry/node';
 import { initDatabase } from './database';
 import db from './database';
 import { initWebSocket } from './ws';
@@ -29,6 +30,15 @@ import { rateLimit } from './rateLimit';
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// ── Sentry — only initialises when DSN is set (safe to omit in dev) ──────────
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 0.1,
+  });
+}
 
 // Trust proxy (Railway runs behind a reverse proxy)
 app.set('trust proxy', 1);
@@ -143,7 +153,8 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
-// Global error handler
+// Global error handler — Sentry captures first, then we send the response
+app.use(Sentry.expressErrorHandler());
 app.use((err: any, _req: any, res: any, _next: any) => {
   console.error('[ERROR]', err.message || err);
   if (err.message === 'Not allowed by CORS') {
