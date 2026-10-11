@@ -30,6 +30,7 @@ export default function CreateServicePage() {
   const [serviceAddressSearching, setServiceAddressSearching] = useState(false);
   const [serviceAddressSet, setServiceAddressSet] = useState(false);
   const [serviceLatLng, setServiceLatLng] = useState<{lat: number; lng: number} | null>(null);
+  const [showLocationOverride, setShowLocationOverride] = useState(false);
   const addrDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Pre-fill city/country from user profile when available
@@ -89,12 +90,12 @@ export default function CreateServicePage() {
     e.preventDefault();
     setError(''); setLoading(true);
 
-    const price = parseFloat(form.price_eur);
-    if (!price || price <= 0) {
-      setError('Please enter a price greater than €0');
+    const price = form.price_eur ? parseFloat(form.price_eur) : null;
+    if (price !== null && price <= 0) {
+      setError('Price must be greater than €0 — or leave it blank to arrange payment via message');
       setLoading(false); return;
     }
-    if (price > 9999) {
+    if (price !== null && price > 9999) {
       setError('Price cannot exceed €9,999');
       setLoading(false); return;
     }
@@ -350,73 +351,113 @@ export default function CreateServicePage() {
           </div>
         )}
 
-        {/* ── Service location (defaults to home, can be different e.g. for carpool pickup) ── */}
+        {/* ── Service location (defaults to home address) ── */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             Service location
-            <span className="ml-1 text-xs font-normal text-gray-400">(where you'll meet / deliver)</span>
           </label>
-          <div className="relative">
-            <input
-              value={serviceAddress}
-              onChange={e => {
-                setServiceAddress(e.target.value);
-                setServiceAddressSet(false);
-                setServiceLatLng(null);
-                if (addrDebounceRef.current) clearTimeout(addrDebounceRef.current);
-                if (e.target.value.length < 3) { setServiceAddressSuggestions([]); return; }
-                setServiceAddressSearching(true);
-                addrDebounceRef.current = setTimeout(async () => {
-                  try {
-                    const q = encodeURIComponent(e.target.value);
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1`, {
-                      headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' }
-                    });
-                    const data = await res.json();
-                    setServiceAddressSuggestions(data);
-                  } catch {}
-                  setServiceAddressSearching(false);
-                }, 500);
-              }}
-              placeholder="Your home address, or a different meeting point..."
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white pr-8"
-            />
-            {serviceAddressSearching && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2">
-                <span className="inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />
-              </span>
-            )}
-            {serviceAddressSuggestions.length > 0 && !serviceAddressSet && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden">
-                {serviceAddressSuggestions.map((s: any, i: number) => (
-                  <button key={i} type="button"
-                    onClick={() => {
-                      setServiceAddress(s.display_name);
-                      setServiceLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
-                      setServiceAddressSuggestions([]);
-                      setServiceAddressSet(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#374151] border-b border-gray-100 dark:border-gray-700 last:border-0">
-                    <p className="font-medium truncate">{s.display_name.split(',').slice(0,2).join(',')}</p>
-                    <p className="text-xs text-gray-400 truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
-                  </button>
-                ))}
+
+          {/* Default: home address pill — shown when not overriding */}
+          {!showLocationOverride ? (
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3">
+              <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              </svg>
+              <div className="flex-1 min-w-0">
+                {serviceLatLng ? (
+                  <>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                      {serviceAddress || 'Home address'}
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400">✓ GPS location set — buyers can find you in radius searches</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No home address set</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">Set your address in Settings to appear in radius searches</p>
+                  </>
+                )}
               </div>
-            )}
-          </div>
-          {serviceAddressSet && serviceLatLng && (
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
-              Location set — buyers within 500m will find this service
-            </p>
-          )}
-          {!serviceAddressSet && !serviceLatLng && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-              ⚠ No location set — buyers won't find this in radius searches. Type an address above.
-            </p>
+              <button
+                type="button"
+                onClick={() => setShowLocationOverride(true)}
+                className="text-xs text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 shrink-0"
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            /* Override: address search input */
+            <div>
+              <div className="relative">
+                <input
+                  value={serviceAddress}
+                  onChange={e => {
+                    setServiceAddress(e.target.value);
+                    setServiceAddressSet(false);
+                    setServiceLatLng(null);
+                    if (addrDebounceRef.current) clearTimeout(addrDebounceRef.current);
+                    if (e.target.value.length < 3) { setServiceAddressSuggestions([]); return; }
+                    setServiceAddressSearching(true);
+                    addrDebounceRef.current = setTimeout(async () => {
+                      try {
+                        const q = encodeURIComponent(e.target.value);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1`, {
+                          headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' }
+                        });
+                        const data = await res.json();
+                        setServiceAddressSuggestions(data);
+                      } catch {}
+                      setServiceAddressSearching(false);
+                    }, 500);
+                  }}
+                  placeholder="Search for a different location..."
+                  autoFocus
+                  className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white pr-8"
+                />
+                {serviceAddressSearching && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <span className="inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />
+                  </span>
+                )}
+                {serviceAddressSuggestions.length > 0 && !serviceAddressSet && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden">
+                    {serviceAddressSuggestions.map((s: any, i: number) => (
+                      <button key={i} type="button"
+                        onClick={() => {
+                          setServiceAddress(s.display_name);
+                          setServiceLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
+                          setServiceAddressSuggestions([]);
+                          setServiceAddressSet(true);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#374151] border-b border-gray-100 dark:border-gray-700 last:border-0">
+                        <p className="font-medium truncate">{s.display_name.split(',').slice(0,2).join(',')}</p>
+                        <p className="text-xs text-gray-400 truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button type="button" onClick={() => {
+                // Revert to home address
+                if (user && (user as any).latitude) {
+                  setServiceLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
+                  setServiceAddress((user as any).city || 'Home address');
+                  setServiceAddressSet(true);
+                }
+                setShowLocationOverride(false);
+              }} className="text-xs text-gray-400 hover:text-gray-600 mt-1.5">
+                ← Use home address instead
+              </button>
+              {serviceAddressSet && serviceLatLng && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
+                  Custom location set
+                </p>
+              )}
+            </div>
           )}
         </div>
-
         {/* ── Price (EUR or GEL depending on country) ── */}
         {(() => {
           const isGel = form.country === 'Georgia';
@@ -426,15 +467,16 @@ export default function CreateServicePage() {
             <div>
               <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Your price <span className="text-gray-400 font-normal">({currencyName})</span>
+                <span className="ml-2 text-xs font-normal text-gray-400">optional</span>
               </label>
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3 mb-3 text-xs text-blue-700 dark:text-blue-300">
-                You keep <span className="font-semibold">80%</span> — Boomerang takes a 20% platform fee when payment is released.
+                You keep <span className="font-semibold">80%</span> — Boomerang takes a 20% platform fee. Leave blank to arrange payment via message.
               </div>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">{currencySymbol}</span>
-                <input id="price_eur" type="number" min="1" max="99999" step="0.01" required
+                <input id="price_eur" type="number" min="1" max="99999" step="0.01"
                   value={form.price_eur} onChange={set('price_eur')}
-                  placeholder="0.00"
+                  placeholder="Leave blank to arrange via message"
                   className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none dark:bg-[#2a3942] dark:text-white" />
               </div>
               {form.price_eur && parseFloat(form.price_eur) > 0 && (
