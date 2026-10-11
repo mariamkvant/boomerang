@@ -492,7 +492,7 @@ export default function ServiceDetailPage() {
                     {availableSlots.map((s: any, i: number) => (
                       <button key={i} type="button" onClick={() => setSelectedSlot(s)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${selectedSlot?.start_time === s.start_time ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-                        {s.start_time}
+                        {s.start_time}{s.end_time ? ` – ${s.end_time}` : ''}
                       </button>
                     ))}
                   </div>
@@ -692,7 +692,7 @@ export default function ServiceDetailPage() {
                     {availableSlots.map((s: any, i: number) => (
                       <button key={i} type="button" onClick={() => setSelectedSlot(s)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${selectedSlot?.start_time === s.start_time ? 'bg-primary-500 text-white border-primary-500' : 'bg-white dark:bg-[#2a3942] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-primary-300'}`}>
-                        {s.start_time}
+                        {s.start_time}{s.end_time ? ` – ${s.end_time}` : ''}
                       </button>
                     ))}
                   </div>

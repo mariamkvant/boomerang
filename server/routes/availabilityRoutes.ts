@@ -67,6 +67,7 @@ router.put('/service/:serviceId', authMiddleware, async (req: AuthRequest, res: 
 });
 
 // Get available slots for a specific service on a specific date
+// Generates duration-based slots from availability windows and filters out booked ones
 router.get('/slots', async (req: AuthRequest, res: Response) => {
   const { service_id, date } = req.query;
   if (!service_id || !date) return res.status(400).json({ error: 'service_id and date required' });
@@ -74,28 +75,67 @@ router.get('/slots', async (req: AuthRequest, res: Response) => {
   const service = await db.get('SELECT s.*, u.id as provider_id FROM services s JOIN users u ON s.provider_id = u.id WHERE s.id = ?', service_id);
   if (!service) return res.status(404).json({ error: 'Service not found' });
 
+  const durationMins: number = Number(service.duration_minutes) || 60;
   const dayOfWeek = new Date((date as string) + 'T12:00:00').getDay();
-  // Prefer service-specific slots, fall back to provider's global schedule
-  let availSlots = await db.all(
+
+  // Prefer service-specific windows, fall back to provider's global schedule
+  let windows = await db.all(
     'SELECT start_time, end_time FROM availability WHERE service_id = ? AND day_of_week = ? ORDER BY start_time',
     service_id, dayOfWeek,
   );
-  if (availSlots.length === 0) {
-    availSlots = await db.all(
+  if (windows.length === 0) {
+    windows = await db.all(
       'SELECT start_time, end_time FROM availability WHERE user_id = ? AND service_id IS NULL AND day_of_week = ? ORDER BY start_time',
       service.provider_id, dayOfWeek,
     );
   }
 
+  // Helper: convert "HH:MM" to minutes since midnight
+  const toMins = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+  // Helper: convert minutes to "HH:MM"
+  const toTime = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
+  // Generate all possible slots from windows (duration-sized steps)
+  const generatedSlots: { start_time: string; end_time: string }[] = [];
+  for (const w of windows) {
+    const windowStart = toMins(w.start_time);
+    const windowEnd   = toMins(w.end_time);
+    let cursor = windowStart;
+    while (cursor + durationMins <= windowEnd) {
+      generatedSlots.push({
+        start_time: toTime(cursor),
+        end_time:   toTime(cursor + durationMins),
+      });
+      cursor += durationMins;
+    }
+  }
+
+  // Get all bookings for this provider on this date that block time
+  // Block on: pending (buyer reserved), accepted, delivered, completed
   const bookedQuery = `SELECT b.start_time, b.end_time FROM bookings b
     JOIN service_requests sr ON b.request_id = sr.id
     JOIN services s ON sr.service_id = s.id
     WHERE s.provider_id = ? AND b.booked_date = ?
-    AND sr.status IN ('accepted', 'delivered', 'completed')`;
+    AND sr.status IN ('pending', 'accepted', 'delivered', 'completed')`;
   const booked = await db.all(bookedQuery, service.provider_id, date);
 
-  const available = availSlots.filter((slot: any) => {
-    return !booked.some((b: any) => b.start_time === slot.start_time);
+  // Filter out slots that overlap with any booking
+  const available = generatedSlots.filter(slot => {
+    const slotStart = toMins(slot.start_time);
+    const slotEnd   = toMins(slot.end_time);
+    return !booked.some((b: any) => {
+      const bStart = toMins(b.start_time);
+      const bEnd   = toMins(b.end_time);
+      // Overlap: slot starts before booking ends AND slot ends after booking starts
+      return slotStart < bEnd && slotEnd > bStart;
+    });
   });
 
   res.json(available);
@@ -104,7 +144,23 @@ router.get('/slots', async (req: AuthRequest, res: Response) => {
 // Book a slot when creating a request (supports recurring)
 router.post('/book', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { request_id, booked_date, start_time, end_time, is_recurring, recurrence, recurrence_end } = req.body;
-  if (!request_id || !booked_date || !start_time || !end_time) return res.status(400).json({ error: 'All fields required' });
+  if (!request_id || !booked_date || !start_time) return res.status(400).json({ error: 'request_id, booked_date and start_time required' });
+
+  // Compute end_time from service duration if not provided
+  let finalEndTime = end_time;
+  if (!finalEndTime) {
+    const r = await db.get(`
+      SELECT s.duration_minutes FROM service_requests sr
+      JOIN services s ON sr.service_id = s.id
+      WHERE sr.id = ?`, request_id);
+    if (r?.duration_minutes) {
+      const [h, m] = start_time.split(':').map(Number);
+      const endMins = h * 60 + m + Number(r.duration_minutes);
+      finalEndTime = `${String(Math.floor(endMins / 60)).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}`;
+    } else {
+      finalEndTime = start_time; // fallback
+    }
+  }
 
   if (is_recurring && recurrence && recurrence_end) {
     // Parse with noon to avoid UTC midnight off-by-one in negative-offset timezones
@@ -116,13 +172,13 @@ router.post('/book', authMiddleware, async (req: AuthRequest, res: Response) => 
     while (current <= end && count < 52) {
       const dateStr = current.toISOString().split('T')[0];
       await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time, is_recurring, recurrence, recurrence_end) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        request_id, dateStr, start_time, end_time, true, recurrence, recurrence_end);
+        request_id, dateStr, start_time, finalEndTime, true, recurrence, recurrence_end);
       current.setDate(current.getDate() + intervalDays);
       count++;
     }
     res.status(201).json({ message: `${count} recurring bookings created` });
   } else {
-    await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time) VALUES (?, ?, ?, ?)', request_id, booked_date, start_time, end_time);
+    await db.run('INSERT INTO bookings (request_id, booked_date, start_time, end_time) VALUES (?, ?, ?, ?)', request_id, booked_date, start_time, finalEndTime);
     res.status(201).json({ message: 'Slot booked' });
   }
 });
