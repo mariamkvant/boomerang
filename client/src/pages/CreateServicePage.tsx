@@ -337,9 +337,9 @@ export default function CreateServicePage() {
                 <p className="text-xs font-medium text-primary-800 dark:text-primary-300">Set your schedule</p>
                 <p className="text-xs text-primary-600 dark:text-primary-400">Buyers will see available slots in your service calendar</p>
               </div>
-              <Link to="/availability" className="text-xs font-semibold text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 whitespace-nowrap shrink-0">
-                Set hours →
-              </Link>
+              <a href="/availability" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 whitespace-nowrap shrink-0">
+                Set hours ↗
+              </a>
             </div>
           </div>
         )}
