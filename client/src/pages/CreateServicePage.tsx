@@ -20,6 +20,7 @@ const ITEM_CATEGORIES = [
   { icon: '🎨', name: 'Arts & Crafts', desc: 'Art supplies, handmade items, decor' },
   { icon: '🏠', name: 'Home & Kitchen', desc: 'Appliances, cookware, decor' },
   { icon: '🚲', name: 'Sports & Outdoors', desc: 'Bikes, camping gear, sports equipment' },
+  { icon: '🔑', name: 'Item Rental', desc: 'Lend your item for a daily/weekly fee' },
   { icon: '✨', name: 'Other Items', desc: 'Anything else you want to give or sell' },
 ];
 
@@ -50,6 +51,7 @@ export default function CreateServicePage() {
     district: '',
   });
   const [isGiveaway, setIsGiveaway] = useState(false);
+  const [isRental, setIsRental] = useState(false);
   const [itemCategory, setItemCategory] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -346,19 +348,28 @@ export default function CreateServicePage() {
         {form.is_product && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Listing type</label>
-            <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
-              <button type="button" onClick={() => { setIsGiveaway(false); setForm(f => ({ ...f, price_eur: '' })); }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${!isGiveaway ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            <div className="flex gap-1.5 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
+              <button type="button" onClick={() => { setIsGiveaway(false); setIsRental(false); setForm(f => ({ ...f, price_eur: '' })); }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${!isGiveaway && !isRental ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
                 💰 For sale
               </button>
-              <button type="button" onClick={() => { setIsGiveaway(true); setForm(f => ({ ...f, price_eur: '0' })); }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${isGiveaway ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-                🎁 Free giveaway
+              <button type="button" onClick={() => { setIsGiveaway(false); setIsRental(true); setForm(f => ({ ...f, price_eur: '' })); }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${isRental ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                🔑 Rental
+              </button>
+              <button type="button" onClick={() => { setIsGiveaway(true); setIsRental(false); setForm(f => ({ ...f, price_eur: '0' })); }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${isGiveaway ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                🎁 Free
               </button>
             </div>
             {isGiveaway && (
               <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                This item is free — the requester just pays for pickup/delivery if needed.
+                This item is free — the requester just arranges pickup/delivery with you.
+              </p>
+            )}
+            {isRental && (
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                Set a rental price (daily or weekly) — you keep ownership, item is returned after use.
               </p>
             )}
           </div>
@@ -597,7 +608,7 @@ export default function CreateServicePage() {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
             <input id="price_eur" type="number" min="1" max="99999" step="0.01"
               value={form.price_eur} onChange={set('price_eur')}
-              placeholder={form.is_product ? 'How much are you asking?' : 'Leave blank to arrange via message'}
+              placeholder={form.is_product ? (isRental ? 'Daily or weekly rental price' : 'How much are you asking?') : 'Leave blank to arrange via message'}
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
           </div>
           {form.price_eur && parseFloat(form.price_eur) > 0 && !form.is_product && (
@@ -620,7 +631,7 @@ export default function CreateServicePage() {
         <button type="submit" disabled={loading}
           className="w-full bg-primary-500 text-white py-3.5 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 transition-all text-sm">
           {loading ? 'Publishing...' : form.is_product
-            ? (isGiveaway ? '🎁 List as free giveaway' : '💰 List item for sale')
+            ? (isGiveaway ? '🎁 List as free giveaway' : isRental ? '🔑 List for rental' : '💰 List item for sale')
             : 'Publish Service'}
         </button>
       </form>
