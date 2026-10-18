@@ -4,8 +4,24 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 
-// ── The 5 core categories always shown + everything else under "Other"
-const CORE_CATEGORY_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
+// ── The 5 core service categories always shown + everything else under "Other"
+const CORE_CATEGORY_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Courier Services'];
+
+// ── Item categories — separate from service categories
+const ITEM_CATEGORIES = [
+  { icon: '📱', name: 'Electronics', desc: 'Phones, laptops, cameras, gadgets' },
+  { icon: '🪑', name: 'Furniture', desc: 'Tables, chairs, shelves, sofas' },
+  { icon: '👕', name: 'Clothes & Accessories', desc: 'Clothing, shoes, bags, jewellery' },
+  { icon: '📚', name: 'Books & Media', desc: 'Books, magazines, DVDs, games' },
+  { icon: '🌱', name: 'Plants & Garden', desc: 'Potted plants, seeds, tools' },
+  { icon: '🍎', name: 'Food & Drinks', desc: 'Homemade goods, produce, snacks' },
+  { icon: '👶', name: 'Baby & Kids', desc: 'Toys, strollers, clothes, gear' },
+  { icon: '🔧', name: 'Tools & Equipment', desc: 'Power tools, hand tools, equipment' },
+  { icon: '🎨', name: 'Arts & Crafts', desc: 'Art supplies, handmade items, decor' },
+  { icon: '🏠', name: 'Home & Kitchen', desc: 'Appliances, cookware, decor' },
+  { icon: '🚲', name: 'Sports & Outdoors', desc: 'Bikes, camping gear, sports equipment' },
+  { icon: '✨', name: 'Other Items', desc: 'Anything else you want to give or sell' },
+];
 
 // Duration options shown as pills
 const DURATION_OPTIONS = [
@@ -28,11 +44,13 @@ export default function CreateServicePage() {
 
   const [form, setForm] = useState({
     title: '', description: '', category_id: '', subcategory_id: '',
-    price_eur: '', duration_minutes: '60',           // default 1 hour
+    price_eur: '', duration_minutes: '60',
     is_bundle: false, sessions_count: '1', bundle_discount: '10',
     city: '', country: 'Luxembourg', is_product: false, quantity: '1',
     district: '',
   });
+  const [isGiveaway, setIsGiveaway] = useState(false);
+  const [itemCategory, setItemCategory] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [createdServiceId, setCreatedServiceId] = useState<number | null>(null);
@@ -186,9 +204,11 @@ export default function CreateServicePage() {
 
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
-      <h2 className="text-2xl font-bold mb-1 dark:text-white">Offer a Service</h2>
+      <h2 className="text-2xl font-bold mb-1 dark:text-white">{form.is_product ? 'List an Item' : 'Offer a Service'}</h2>
       <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-        {groupId ? 'This will be posted to your community only' : 'Share what you\'re good at'}
+        {form.is_product
+          ? (groupId ? 'List an item in your community' : 'Give away or sell something to your neighbours')
+          : (groupId ? 'This will be posted to your community only' : 'Share what you\'re good at')}
       </p>
 
       {/* Address gate */}
@@ -210,72 +230,96 @@ export default function CreateServicePage() {
 
         {/* ── Service / Item toggle ── */}
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
-          <button type="button" onClick={() => setForm(f => ({ ...f, is_product: false }))}
+          <button type="button" onClick={() => { setForm(f => ({ ...f, is_product: false })); setItemCategory(''); setIsGiveaway(false); }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            Service
+            🛠 Service
           </button>
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-            Item / Rental
+            📦 Item
           </button>
         </div>
 
-        {/* ── Category pill picker ── */}
+        {/* ── Category — different sets for service vs item ── */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Category</label>
-          <div className="flex flex-wrap gap-2">
-            {coreCategories.map((c: any) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' }))}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                  form.category_id === String(c.id)
-                    ? 'bg-[#1f2937] text-white border-[#1f2937]'
-                    : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                {c.icon} {c.name}
-              </button>
-            ))}
-            {/* Other bucket */}
-            {showOtherCategories ? (
-              <>
-                {otherCategories.map((c: any) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => { setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' })); setShowOtherCategories(false); }}
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                      form.category_id === String(c.id)
-                        ? 'bg-[#1f2937] text-white border-[#1f2937]'
-                        : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    {c.icon} {c.name}
-                  </button>
-                ))}
-                <button type="button" onClick={() => setShowOtherCategories(false)}
-                  className="px-4 py-2 rounded-full text-sm font-medium border bg-gray-100 dark:bg-[#2a3942] text-gray-500 border-gray-200 dark:border-gray-600">
-                  Show less ↑
-                </button>
-              </>
-            ) : (
-              <button type="button" onClick={() => setShowOtherCategories(true)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                  form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
-                    ? 'bg-[#1f2937] text-white border-[#1f2937]'
-                    : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
-                }`}>
-                {form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
-                  ? `${selectedCat?.icon} ${selectedCat?.name}`
-                  : `+ More categories`}
-              </button>
-            )}
-          </div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            {form.is_product ? 'Item type' : 'Category'}
+          </label>
 
-          {/* Subcategory pills — shown when a category is selected */}
-          {subcategories.length > 0 && (
+          {form.is_product ? (
+            /* ── Item categories ── */
+            <div className="flex flex-wrap gap-2">
+              {ITEM_CATEGORIES.map(cat => (
+                <button
+                  key={cat.name}
+                  type="button"
+                  onClick={() => setItemCategory(cat.name)}
+                  title={cat.desc}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                    itemCategory === cat.name
+                      ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                      : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {cat.icon} {cat.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            /* ── Service categories ── */
+            <div className="flex flex-wrap gap-2">
+              {coreCategories.map((c: any) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' }))}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                    form.category_id === String(c.id)
+                      ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                      : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {c.icon} {c.name}
+                </button>
+              ))}
+              {showOtherCategories ? (
+                <>
+                  {otherCategories.map((c: any) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' })); setShowOtherCategories(false); }}
+                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                        form.category_id === String(c.id)
+                          ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                          : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      {c.icon} {c.name}
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => setShowOtherCategories(false)}
+                    className="px-4 py-2 rounded-full text-sm font-medium border bg-gray-100 dark:bg-[#2a3942] text-gray-500 border-gray-200 dark:border-gray-600">
+                    Show less ↑
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => setShowOtherCategories(true)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                    form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
+                      ? 'bg-[#1f2937] text-white border-[#1f2937]'
+                      : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
+                  }`}>
+                  {form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
+                    ? `${selectedCat?.icon} ${selectedCat?.name}`
+                    : `+ More categories`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Subcategory pills — service mode only */}
+          {!form.is_product && subcategories.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-gray-400 mb-2">Specify further (optional)</p>
               <div className="flex flex-wrap gap-1.5">
@@ -298,11 +342,35 @@ export default function CreateServicePage() {
           )}
         </div>
 
+        {/* ── Giveaway toggle — item mode only ── */}
+        {form.is_product && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Listing type</label>
+            <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
+              <button type="button" onClick={() => { setIsGiveaway(false); setForm(f => ({ ...f, price_eur: '' })); }}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${!isGiveaway ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                💰 For sale
+              </button>
+              <button type="button" onClick={() => { setIsGiveaway(true); setForm(f => ({ ...f, price_eur: '0' })); }}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${isGiveaway ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                🎁 Free giveaway
+              </button>
+            </div>
+            {isGiveaway && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                This item is free — the requester just pays for pickup/delivery if needed.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* ── Title ── */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {form.is_product ? 'Item name' : 'Title'}
+          </label>
           <input id="title" required value={form.title} onChange={set('title')}
-            placeholder="e.g. Dog walking in the park"
+            placeholder={form.is_product ? 'e.g. IKEA bookshelf, iPhone 12, homemade jam...' : 'e.g. Dog walking in the park'}
             className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
         </div>
 
@@ -519,24 +587,26 @@ export default function CreateServicePage() {
           )}
         </div>
 
-        {/* ── Price ── */}
+        {/* ── Price — hidden for giveaway items ── */}
+        {!isGiveaway && (
         <div>
           <label htmlFor="price_eur" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Price <span className="text-gray-400 font-normal text-xs">({isGel ? '₾ GEL' : '€ EUR'}) — optional</span>
+            Price <span className="text-gray-400 font-normal text-xs">({isGel ? '₾ GEL' : '€ EUR'}){!form.is_product ? ' — optional' : ''}</span>
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
             <input id="price_eur" type="number" min="1" max="99999" step="0.01"
               value={form.price_eur} onChange={set('price_eur')}
-              placeholder="Leave blank to arrange via message"
+              placeholder={form.is_product ? 'How much are you asking?' : 'Leave blank to arrange via message'}
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary-500 outline-none dark:bg-[#2a3942] dark:text-white" />
           </div>
-          {form.price_eur && parseFloat(form.price_eur) > 0 && (
+          {form.price_eur && parseFloat(form.price_eur) > 0 && !form.is_product && (
             <p className="text-xs text-gray-400 mt-1.5">
               You'll receive <span className="font-semibold text-green-600">{currencySymbol}{(parseFloat(form.price_eur) * 0.8).toFixed(2)}</span> after the 20% platform fee
             </p>
           )}
         </div>
+        )}
 
         {/* ── Quantity — items only ── */}
         {form.is_product && (
@@ -549,7 +619,9 @@ export default function CreateServicePage() {
 
         <button type="submit" disabled={loading}
           className="w-full bg-primary-500 text-white py-3.5 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 transition-all text-sm">
-          {loading ? 'Publishing...' : form.is_product ? 'List Item' : 'Publish Service'}
+          {loading ? 'Publishing...' : form.is_product
+            ? (isGiveaway ? '🎁 List as free giveaway' : '💰 List item for sale')
+            : 'Publish Service'}
         </button>
       </form>
     </div>

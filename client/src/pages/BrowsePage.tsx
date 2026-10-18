@@ -16,7 +16,7 @@ const RADIUS_OPTIONS = [
   { label: '10 km', value: 10  },
 ];
 
-const PINNED_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Item Rental', 'Courier Services'];
+const PINNED_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Courier Services'];
 const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
 const MAX_RECENT = 5;
 
