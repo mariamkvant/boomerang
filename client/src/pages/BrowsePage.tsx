@@ -8,13 +8,6 @@ import { translateCat } from '../i18n';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const RADIUS_OPTIONS = [
-  { label: 'All',   value: 0   },
-  { label: '500 m', value: 0.5 },
-  { label: '1 km',  value: 1   },
-  { label: '5 km',  value: 5   },
-  { label: '10 km', value: 10  },
-];
 
 const PINNED_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Courier Services'];
 const RECENTLY_VIEWED_KEY = 'bm_recently_viewed';
@@ -98,7 +91,6 @@ export default function BrowsePage() {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [countryFilter, setCountryFilter] = useState('');
   const [availableToday, setAvailableToday] = useState(false);
-  const [instantBook, setInstantBook] = useState(false);
 
   // Location
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -203,12 +195,11 @@ export default function BrowsePage() {
       params.set('radius', String(radiusKm));
     }
     if (availableToday) params.set('available_today', '1');
-    if (instantBook) params.set('instant_book', '1');
     api.getServices(params.toString()).then((res: any) => {
       setServices(Array.isArray(res) ? res : res.services || []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter, searchMode, availableToday, instantBook]);
+  }, [userCoords, radiusKm, selectedCat, debouncedSearch, cityFilter, countryFilter, searchMode, availableToday]);
 
   // ── People search ─────────────────────────────────────────────────────────
 
@@ -421,14 +412,19 @@ export default function BrowsePage() {
 
         {/* Radius + city + locate */}
         <div className="pointer-events-auto flex gap-1.5 items-center flex-wrap">
-          {RADIUS_OPTIONS.map(opt => (
-            <button key={opt.value} onClick={() => setRadiusKm(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
-                radiusKm === opt.value
-                  ? 'bg-[#1f2937] text-white border-[#1f2937]'
-                  : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
-              }`}>{opt.label}</button>
-          ))}
+          {/* Current radius pill — shows active radius, tap to expand */}
+          <button
+            onClick={() => {
+              // Cycle: 0.5 → 1 → 5 → 0 (all) → 0.5
+              setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : r === 5 ? 0 : 0.5);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937]"
+          >
+            {radiusKm === 0 ? 'All' : radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}
+            <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
           <button onClick={() => setShowCityPicker(p => !p)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
               cityFilter || countryFilter
@@ -454,12 +450,6 @@ export default function BrowsePage() {
               availableToday ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             }`}>
             📅 Today
-          </button>
-          <button onClick={() => setInstantBook(v => !v)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
-              instantBook ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
-            }`}>
-            ⚡ Instant
           </button>
           {/* See all services button — removed, replaced by persistent floating button below */}
         </div>
