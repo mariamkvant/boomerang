@@ -45,6 +45,12 @@ export default function CreateServicePage() {
   const [reqDescription, setReqDescription] = useState('');
   const [reqCategoryId, setReqCategoryId] = useState('');
   const [reqBudget, setReqBudget] = useState('');
+  const [reqCity, setReqCity] = useState('');
+  const [reqLatLng, setReqLatLng] = useState<{ lat: number; lng: number } | null>(null);
+  const [reqAddressLabel, setReqAddressLabel] = useState('');
+  const [reqAddressSuggestions, setReqAddressSuggestions] = useState<any[]>([]);
+  const [reqAddressSearching, setReqAddressSearching] = useState(false);
+  const reqAddrDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const [reqSubmitting, setReqSubmitting] = useState(false);
   const [reqDone, setReqDone] = useState(false);
 
@@ -93,6 +99,13 @@ export default function CreateServicePage() {
         setServiceLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
         setServiceAddress(userCity || 'Home address');
         setServiceAddressSet(true);
+        // Pre-fill request location from profile too
+        setReqLatLng({ lat: (user as any).latitude, lng: (user as any).longitude });
+        setReqAddressLabel(userCity || 'Home address');
+        setReqCity(userCity.split(' — ')[0].trim());
+      } else if (userCity) {
+        setReqCity(userCity.split(' — ')[0].trim());
+        setReqAddressLabel(userCity);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,6 +253,22 @@ export default function CreateServicePage() {
 
   // ── Request form (when postType === 'request') ───────────────────────────
   if (postType === 'request') {
+    const handleReqAddressChange = (val: string) => {
+      setReqAddressLabel(val);
+      setReqLatLng(null);
+      if (reqAddrDebounceRef.current) clearTimeout(reqAddrDebounceRef.current);
+      if (val.length < 3) { setReqAddressSuggestions([]); return; }
+      setReqAddressSearching(true);
+      reqAddrDebounceRef.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5&addressdetails=1`, { headers: { 'User-Agent': 'Boomerang/1.0 (boomerang.fyi)' } });
+          const data = await res.json();
+          setReqAddressSuggestions(data);
+        } catch { setReqAddressSuggestions([]); }
+        setReqAddressSearching(false);
+      }, 400);
+    };
+
     const handleReqSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!reqTitle.trim() || !reqDescription.trim() || !reqCategoryId) {
@@ -252,6 +281,9 @@ export default function CreateServicePage() {
           description: reqDescription.trim(),
           category_id: parseInt(reqCategoryId),
           budget_eur: reqBudget ? parseFloat(reqBudget) : null,
+          city: reqCity || null,
+          latitude: reqLatLng?.lat || null,
+          longitude: reqLatLng?.lng || null,
         });
         setReqDone(true);
       } catch (err: any) {
@@ -278,7 +310,17 @@ export default function CreateServicePage() {
         <h2 className="text-2xl font-bold mb-1 dark:text-white">Post a Request</h2>
         <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Let providers know what you need done</p>
 
+        {/* Address gate — same as offer form */}
+        {!(user as any)?.latitude && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 mb-6">
+            <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">Set your home address first</p>
+            <p className="text-sm text-amber-700 dark:text-amber-400 mb-3">Your address helps providers nearby find your request.</p>
+            <a href="/settings" className="inline-block bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-600">Go to Settings →</a>
+          </div>
+        )}
+
         <form onSubmit={handleReqSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">What do you need? <span className="text-red-500">*</span></label>
             <input type="text" value={reqTitle} onChange={e => setReqTitle(e.target.value)}
@@ -287,6 +329,8 @@ export default function CreateServicePage() {
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
               required />
           </div>
+
+          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Details <span className="text-red-500">*</span></label>
             <textarea value={reqDescription} onChange={e => setReqDescription(e.target.value)}
@@ -295,6 +339,8 @@ export default function CreateServicePage() {
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white resize-none"
               required />
           </div>
+
+          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
             <select value={reqCategoryId} onChange={e => setReqCategoryId(e.target.value)}
@@ -306,6 +352,47 @@ export default function CreateServicePage() {
               ))}
             </select>
           </div>
+
+          {/* Location — defaults to profile address */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Location
+              {reqLatLng && <span className="ml-2 text-[11px] text-green-600 font-normal">📍 GPS set</span>}
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={reqAddressLabel}
+                onChange={e => handleReqAddressChange(e.target.value)}
+                placeholder="Where do you need this done?"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              />
+              {reqAddressSearching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <span className="inline-block w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              {reqAddressSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-30">
+                  {reqAddressSuggestions.map((s: any, i: number) => (
+                    <button key={i} type="button"
+                      onPointerDown={() => {
+                        setReqAddressLabel(s.display_name);
+                        setReqLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
+                        setReqCity(s.address?.city || s.address?.town || s.address?.village || s.address?.county || '');
+                        setReqAddressSuggestions([]);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#242424] border-b border-gray-50 dark:border-gray-800 last:border-0">
+                      {s.display_name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Pre-filled from your profile — change if the task is elsewhere</p>
+          </div>
+
+          {/* Budget */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Budget <span className="text-gray-400 font-normal text-xs">— optional</span></label>
             <div className="relative">
@@ -316,6 +403,7 @@ export default function CreateServicePage() {
                 className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white" />
             </div>
           </div>
+
           <button type="submit" disabled={reqSubmitting}
             className="w-full bg-amber-500 text-white py-3.5 rounded-xl hover:bg-amber-600 font-semibold disabled:opacity-50 transition-all text-sm">
             {reqSubmitting ? 'Posting...' : '📋 Post Request'}
