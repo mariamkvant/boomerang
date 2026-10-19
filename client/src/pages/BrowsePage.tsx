@@ -143,27 +143,32 @@ export default function BrowsePage() {
     setRecentlyViewed(getRecentlyViewed());
     api.getCategories().then(setCategories).catch(() => {});
     api.getServiceCities().then((res: any) => setAvailableCities(Array.isArray(res) ? res : [])).catch(() => {});
-    acquireLocation();
-    // Load personalised suggestions for logged-in users
+  }, []);
+
+  // Run acquireLocation whenever user loads — prefer profile home coords, fall back to GPS
+  useEffect(() => {
+    if (user !== undefined) acquireLocation();
     if (user) {
       api.getSuggestions().then((res: any) => setSuggestions(Array.isArray(res) ? res : [])).catch(() => {});
     }
-  }, []);
+  }, [user]);
 
   // ── Location ─────────────────────────────────────────────────────────────
 
   const acquireLocation = useCallback(() => {
+    // Priority 1: profile home address (always set if user has address in settings)
     if (user && (user as any).latitude) {
       setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
-      setRadiusKm(0.5); // default 500m once we have location
+      setRadiusKm(prev => prev === 0 ? 0.5 : prev); // only set default 500m if not already chosen
       return;
     }
+    // Priority 2: device GPS — only request if we don't have coords yet
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       pos => {
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setRadiusKm(0.5); // default 500m once we have location
+        setRadiusKm(0.5);
         setLocating(false);
       },
       () => { setLocating(false); setLocationDenied(true); },

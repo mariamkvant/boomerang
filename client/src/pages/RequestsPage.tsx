@@ -220,11 +220,13 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
   // ── Acquire location ────────────────────────────────────────────────────
 
   const acquireLocation = useCallback(() => {
+    // Priority 1: profile home address
     if (user && (user as any).latitude) {
       setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
-      setRadiusKm(0.5);
+      setRadiusKm(prev => prev === 0 ? 0.5 : prev);
       return;
     }
+    // Priority 2: device GPS
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -234,8 +236,8 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
     );
   }, [user]);
 
-  // Auto-locate on mount
-  useEffect(() => { acquireLocation(); }, []);
+  // Auto-locate on mount and whenever user loads — prefer profile coords, fall back to GPS
+  useEffect(() => { if (user !== undefined) acquireLocation(); }, [user]);
 
   // ── Debounce search ─────────────────────────────────────────────────────
 
