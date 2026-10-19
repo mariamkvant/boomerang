@@ -783,10 +783,6 @@ export default function BrowsePage() {
                               <svg className="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
                             </span>
                           )}
-                          {/* Instant book */}
-                          {s.provider_auto_accept && (
-                            <span className="text-[9px] font-bold text-amber-500 shrink-0">⚡</span>
-                          )}
                           {s.distance != null && (
                             <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
                           )}

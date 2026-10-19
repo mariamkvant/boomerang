@@ -20,7 +20,6 @@ export default function SettingsPage() {
   const [addressSet, setAddressSet] = useState(!!(user as any)?.latitude);
   const addressDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const [languagesSpoken, setLanguagesSpoken] = useState(user?.languages_spoken || '');
-  const [autoAccept, setAutoAccept] = useState((user as any)?.auto_accept || false);
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -72,7 +71,7 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken, auto_accept: autoAccept }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -249,22 +248,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
-        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Request preferences</h3>
-        <label className="flex items-center justify-between cursor-pointer">
-          <div>
-            <p className="text-sm font-medium dark:text-white">Auto-accept requests</p>
-            <p className="text-xs text-gray-400 mt-0.5">New requests go straight to "In progress" without manual approval</p>
-          </div>
-          <button onClick={() => setAutoAccept(!autoAccept)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${autoAccept ? 'bg-gray-900' : 'bg-gray-200 dark:bg-gray-600'}`}>
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoAccept ? 'translate-x-5' : ''}`} />
-          </button>
-        </label>
-        <button onClick={async () => { await api.updateProfile({ auto_accept: autoAccept }); await refreshUser(); toast('Saved'); }}
-          className="mt-3 text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium">Save preference</button>
-      </div>
-
-      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Appearance</h3>
         <div className="flex items-center justify-between">
           <div>
@@ -288,12 +271,6 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
-        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">{t('settings.availability')}</h3>
-        <p className="text-xs text-gray-400 mb-3">{t('settings.availabilityDesc')}</p>
-        <Link to="/availability" className="text-sm text-primary-600 hover:text-primary-700 font-medium">{t('settings.manageSchedule')} →</Link>
       </div>
 
       {/* ── Payouts (Stripe Connect for EU, BOG Pay IBAN for Georgia) ── */}

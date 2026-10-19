@@ -88,9 +88,9 @@ function Navbar() {
         {/* Desktop nav — primary items */}
         <div className="hidden lg:flex items-center gap-1">
           {navLink('/browse', 'Explore Offers')}
+          {user && navLink('/services/new', 'Add Offer/Request')}
           {navLink('/requests', 'Explore Requests')}
           {user && navLink('/groups', 'Communities')}
-          {user && navLink('/services/new', t('nav.offer'))}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
 

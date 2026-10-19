@@ -399,13 +399,7 @@ export default function ServiceDetailPage() {
                       Verified
                     </span>
                   )}
-                  {/* Instant book badge */}
-                  {service.auto_accept && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full" title="Instantly accepted">
-                      ⚡ Instant
-                    </span>
-                  )}
-                </div>
+                                  </div>
                 <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                   <span>View profile →</span>
                   {service.provider_stats?.completed > 0 && (
@@ -740,7 +734,6 @@ export default function ServiceDetailPage() {
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}
             <p className="text-xs text-gray-400 mt-2">🔒 Cancel anytime before service starts · Payment released only after you confirm delivery</p>
-            {service.auto_accept && <p className="text-xs text-amber-600 mt-1">⚡ This provider uses instant booking — your request will be auto-accepted</p>}
           </div>
         )}
 
