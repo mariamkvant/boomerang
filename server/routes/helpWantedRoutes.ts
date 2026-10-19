@@ -18,21 +18,45 @@ router.get('/user/helping', authMiddleware, async (req: AuthRequest, res: Respon
 });
 
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { title, description, category_id, points_budget } = req.body;
+  const { title, description, category_id, points_budget, budget_eur, latitude, longitude, city } = req.body;
   if (!title || !description || !category_id) return res.status(400).json({ error: 'Title, description, and category required' });
-  const result = await db.run('INSERT INTO help_wanted (requester_id, category_id, title, description, points_budget) VALUES (?, ?, ?, ?, ?)',
-    req.userId, category_id, title, description, points_budget || 10);
+  const result = await db.run(
+    'INSERT INTO help_wanted (requester_id, category_id, title, description, points_budget, budget_eur, latitude, longitude, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    req.userId, category_id, title, description, points_budget || 10,
+    budget_eur || null, latitude || null, longitude || null, city || null
+  );
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 router.get('/', async (req: AuthRequest, res: Response) => {
-  const { category, search, include_completed } = req.query;
+  const { category, search, include_completed, lat, lng, radius, city } = req.query;
   const statusClause = include_completed ? "hw.status IN ('open','accepted','delivered','completed')" : "hw.status = 'open'";
-  const requests = await db.all(`SELECT hw.*, c.name as category_name, c.icon as category_icon, u.username as requester_name, u.city as requester_city,
-    h.username as helper_name
-    FROM help_wanted hw JOIN categories c ON hw.category_id = c.id JOIN users u ON hw.requester_id = u.id
+
+  // Build WHERE clauses
+  const conditions: string[] = [statusClause];
+  if (city) conditions.push(`(hw.city ILIKE '%${String(city).replace(/'/g, "''")}%' OR u.city ILIKE '%${String(city).replace(/'/g, "''")}%')`);
+  if (search) conditions.push(`(hw.title ILIKE '%${String(search).replace(/'/g, "''")}%' OR hw.description ILIKE '%${String(search).replace(/'/g, "''")}%')`);
+
+  // Location-based proximity filter
+  let distanceExpr = 'NULL::real as distance';
+  if (lat && lng && radius) {
+    const latN = parseFloat(String(lat));
+    const lngN = parseFloat(String(lng));
+    const radN = parseFloat(String(radius));
+    distanceExpr = `(6371 * acos(cos(radians(${latN})) * cos(radians(COALESCE(hw.latitude, u.latitude))) * cos(radians(COALESCE(hw.longitude, u.longitude)) - radians(${lngN})) + sin(radians(${latN})) * sin(radians(COALESCE(hw.latitude, u.latitude))))) as distance`;
+    conditions.push(`COALESCE(hw.latitude, u.latitude) IS NOT NULL`);
+    conditions.push(`(6371 * acos(GREATEST(-1, LEAST(1, cos(radians(${latN})) * cos(radians(COALESCE(hw.latitude, u.latitude))) * cos(radians(COALESCE(hw.longitude, u.longitude)) - radians(${lngN})) + sin(radians(${latN})) * sin(radians(COALESCE(hw.latitude, u.latitude))))))) <= ${radN}`);
+  }
+
+  const whereClause = conditions.join(' AND ');
+  const requests = await db.all(`SELECT hw.*, c.name as category_name, c.icon as category_icon,
+    u.username as requester_name, u.city as requester_city, u.avatar as requester_avatar,
+    h.username as helper_name, ${distanceExpr}
+    FROM help_wanted hw
+    JOIN categories c ON hw.category_id = c.id
+    JOIN users u ON hw.requester_id = u.id
     LEFT JOIN users h ON hw.accepted_by = h.id
-    WHERE ${statusClause}
+    WHERE ${whereClause}
     ORDER BY CASE WHEN hw.status = 'open' THEN 0 ELSE 1 END, hw.created_at DESC LIMIT 50`);
   res.json(requests);
 });

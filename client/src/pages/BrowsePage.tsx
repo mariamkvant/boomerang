@@ -351,13 +351,19 @@ export default function BrowsePage() {
               >
                 People
               </button>
+              <Link
+                to="/requests"
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+              >
+                Requests
+              </Link>
             </div>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               onFocus={() => setShowSearchSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 150)}
               onKeyDown={e => { if (e.key === 'Enter' && search.trim()) { saveRecentSearch(search.trim()); setShowSearchSuggestions(false); } }}
               placeholder={searchMode === 'services' ? 'Search services, providers...' : 'Search by name, city, skill...'}
-              className="w-full pl-[108px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              className="w-full pl-[148px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
               aria-label="Search" />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">

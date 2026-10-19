@@ -43,6 +43,7 @@ const MePage = lazy(() => import('./pages/MePage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const BuyBoomerangsPage = lazy(() => import('./pages/BuyBoomerangsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const RequestsPage = lazy(() => import('./pages/RequestsPage'));
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -87,6 +88,7 @@ function Navbar() {
         {/* Desktop nav — 3 primary items only */}
         <div className="hidden lg:flex items-center gap-1">
           {navLink('/browse', t('nav.browse'))}
+          {user && navLink('/requests', 'Requests')}
           {user && navLink('/services/new', t('nav.offer'))}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
@@ -122,7 +124,7 @@ function Navbar() {
                     {/* Discover */}
                     <div className="py-1">
                       <p className="px-4 pt-1.5 pb-0.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Discover</p>
-                      <Link to="/help-wanted" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#242424]">
+                      <Link to="/requests" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#242424]">
                         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>
                         Requests
                       </Link>
@@ -208,6 +210,7 @@ function Navbar() {
             {/* Primary */}
             {user && navLink('/dashboard', t('nav.dashboard'))}
             {navLink('/browse', t('nav.browse'))}
+            {user && navLink('/requests', 'Requests')}
             {user && navLink('/services/new', t('nav.offer'))}
 
             {/* Discover */}
@@ -325,6 +328,8 @@ export default function App() {
           <Route path="/groups/:id" element={<GroupDetailPage />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/help-wanted/:id" element={<HelpWantedPage />} />
+          <Route path="/requests" element={<RequestsPage />} />
+          <Route path="/requests/new" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <RequestsPage postMode />) : <Navigate to="/login" />} />
           <Route path="/people" element={<PeoplePage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/onboarding" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <OnboardingPage />) : <Navigate to="/login" />} />

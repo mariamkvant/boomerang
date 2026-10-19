@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
 import { api } from '../api';
@@ -8,9 +8,11 @@ import { t } from '../i18n';
 export default function BottomNav() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname;
   const [unreadDMs, setUnreadDMs] = useState(0);
   const [pendingActions, setPendingActions] = useState(0);
+  const [showPostSheet, setShowPostSheet] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -29,6 +31,43 @@ export default function BottomNav() {
   const isActive = (paths: string[]) => paths.some(p => p === path || (p !== '/' && path.startsWith(p)));
 
   return (
+    <>
+    {/* Post action sheet */}
+    {showPostSheet && (
+      <div className="fixed inset-0 z-[60] flex flex-col justify-end" onClick={() => setShowPostSheet(false)}>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+        <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl shadow-2xl px-4 pt-3 pb-6"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+          onClick={e => e.stopPropagation()}>
+          {/* Handle */}
+          <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-5" />
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider text-center mb-4">What would you like to post?</p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => { setShowPostSheet(false); navigate('/services/new'); }}
+              className="flex items-center gap-4 bg-gray-50 dark:bg-[#242424] hover:bg-primary-50 dark:hover:bg-primary-900/20 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 text-left transition-colors group">
+              <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-2xl shrink-0">🛠</div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary-600">Offer a service</p>
+                <p className="text-xs text-gray-400 mt-0.5">List something you can do for others</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-300 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+            </button>
+            <button
+              onClick={() => { setShowPostSheet(false); navigate('/requests?post=1'); }}
+              className="flex items-center gap-4 bg-gray-50 dark:bg-[#242424] hover:bg-amber-50 dark:hover:bg-amber-900/20 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 text-left transition-colors group">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-2xl shrink-0">📋</div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-amber-600">Post a request</p>
+                <p className="text-xs text-gray-400 mt-0.5">Ask the community for help with a task</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-300 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-100 dark:border-gray-700 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-[60px] max-w-lg mx-auto">
 
@@ -48,15 +87,15 @@ export default function BottomNav() {
           <span className="text-[11px] font-medium leading-none">Explore</span>
         </Link>
 
-        {/* Center: Offer button */}
-        <Link to="/services/new" className="flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1">
+        {/* Center: Post action button (Offer or Request) */}
+        <button onClick={() => setShowPostSheet(true)} className="flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1">
           <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center -mt-5 shadow-lg shadow-primary-500/30">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </div>
-          <span className="text-[11px] font-medium text-primary-500 leading-none">{t('nav.offer2')}</span>
-        </Link>
+          <span className="text-[11px] font-medium text-primary-500 leading-none">Post</span>
+        </button>
 
         {/* Dashboard (was Chat) — pending requests badge + unread DMs */}
         <Link to="/dashboard" className={`flex flex-col items-center justify-center flex-1 min-h-[44px] h-full gap-1 transition-colors ${isActive(['/dashboard']) ? 'text-primary-500' : 'text-gray-400'}`}>
@@ -100,5 +139,6 @@ export default function BottomNav() {
 
       </div>
     </nav>
+    </>
   );
 }

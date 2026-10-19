@@ -335,6 +335,14 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_iban TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_bank_name TEXT'); } catch(e) {}
 
+    // === help_wanted — paid Requests feature (budget + location) ===
+    try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS budget_eur NUMERIC(10,2)'); } catch(e) {}
+    try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS latitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS longitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS city TEXT'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_city ON help_wanted(city)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_budget ON help_wanted(budget_eur)'); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

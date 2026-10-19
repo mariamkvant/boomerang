@@ -160,9 +160,12 @@ export const api = {
   inviteToGroup: (id: number, username: string) => request(`/groups/${id}/invite`, { method: 'POST', body: JSON.stringify({ username }) }),
   removeMember: (groupId: number, userId: number) => request(`/groups/${groupId}/members/${userId}`, { method: 'DELETE' }),
 
-  // Help Wanted
+  // Help Wanted / Requests (paid reverse marketplace)
   postHelpWanted: (body: any) => request('/help-wanted', { method: 'POST', body: JSON.stringify(body) }),
   getHelpWanted: (params?: string) => request(`/help-wanted${params ? `?${params}` : ''}`),
+  // Alias: getRequests / postRequest — same endpoint, used by RequestsPage
+  getRequests: (params?: string) => request(`/help-wanted${params ? `?${params}` : ''}`),
+  postRequest: (body: any) => request('/help-wanted', { method: 'POST', body: JSON.stringify(body) }),
   getHelpWantedDetail: (id: number) => request(`/help-wanted/${id}`),
   offerHelp: (id: number) => request(`/help-wanted/${id}/offer`, { method: 'PUT' }),
   deliverHelp: (id: number) => request(`/help-wanted/${id}/deliver`, { method: 'PUT' }),
