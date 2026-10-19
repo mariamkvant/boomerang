@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-
 // ── The 5 core service categories always shown + everything else under "Other"
 const CORE_CATEGORY_NAMES = ['Plants & Pet Care', 'Childcare & Education', 'Transportation', 'Courier Services'];
 
@@ -38,6 +37,16 @@ export default function CreateServicePage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('group');
+
+  // Top-level mode: posting an offer (service/item) or a request
+  const [postType, setPostType] = useState<'offer' | 'request'>('offer');
+  // Request-specific fields
+  const [reqTitle, setReqTitle] = useState('');
+  const [reqDescription, setReqDescription] = useState('');
+  const [reqCategoryId, setReqCategoryId] = useState('');
+  const [reqBudget, setReqBudget] = useState('');
+  const [reqSubmitting, setReqSubmitting] = useState(false);
+  const [reqDone, setReqDone] = useState(false);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -187,6 +196,10 @@ export default function CreateServicePage() {
               className="w-full border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800">
               View service
             </button>
+            <button onClick={() => navigate('/browse')}
+              className="w-full border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-800">
+              View on Explore Offers map
+            </button>
             <button onClick={() => navigate('/dashboard')}
               className="w-full text-sm text-gray-400 py-2">
               Go to dashboard
@@ -204,8 +217,128 @@ export default function CreateServicePage() {
   const isGel = form.country === 'Georgia';
   const currencySymbol = isGel ? '₾' : '€';
 
+  // ── Request success screen ───────────────────────────────────────────────
+  if (reqDone) {
+    return (
+      <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
+        <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-sm text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-3xl">📋</div>
+          <h2 className="text-xl font-bold dark:text-white mb-2">Request posted!</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Providers will see your request and can offer to help.</p>
+          <div className="space-y-3">
+            <button onClick={() => navigate('/requests')}
+              className="w-full bg-amber-500 text-white py-3 rounded-xl font-semibold hover:bg-amber-600">
+              View all requests →
+            </button>
+            <button onClick={() => navigate('/dashboard')}
+              className="w-full text-sm text-gray-400 py-2">Go to dashboard</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Request form (when postType === 'request') ───────────────────────────
+  if (postType === 'request') {
+    const handleReqSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!reqTitle.trim() || !reqDescription.trim() || !reqCategoryId) {
+        toast('Please fill in all required fields', 'error'); return;
+      }
+      setReqSubmitting(true);
+      try {
+        await api.postRequest({
+          title: reqTitle.trim(),
+          description: reqDescription.trim(),
+          category_id: parseInt(reqCategoryId),
+          budget_eur: reqBudget ? parseFloat(reqBudget) : null,
+        });
+        setReqDone(true);
+      } catch (err: any) {
+        toast(err.message || 'Failed to post request', 'error');
+      } finally {
+        setReqSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
+        {/* Offer / Request toggle */}
+        <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl mb-6">
+          <button type="button" onClick={() => setPostType('offer')}
+            className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
+            🛠 Offer
+          </button>
+          <button type="button" onClick={() => setPostType('request')}
+            className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
+            📋 Request
+          </button>
+        </div>
+
+        <h2 className="text-2xl font-bold mb-1 dark:text-white">Post a Request</h2>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Let providers know what you need done</p>
+
+        <form onSubmit={handleReqSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">What do you need? <span className="text-red-500">*</span></label>
+            <input type="text" value={reqTitle} onChange={e => setReqTitle(e.target.value)}
+              placeholder="e.g. Need help moving furniture this weekend"
+              maxLength={120}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Details <span className="text-red-500">*</span></label>
+            <textarea value={reqDescription} onChange={e => setReqDescription(e.target.value)}
+              placeholder="Describe what you need, when, any specifics..."
+              rows={4}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white resize-none"
+              required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
+            <select value={reqCategoryId} onChange={e => setReqCategoryId(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              required>
+              <option value="">Select a category</option>
+              {categories.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Budget <span className="text-gray-400 font-normal text-xs">— optional</span></label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">€</span>
+              <input type="number" value={reqBudget} onChange={e => setReqBudget(e.target.value)}
+                placeholder="Leave blank if flexible"
+                min="0" step="1"
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl pl-8 pr-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white" />
+            </div>
+          </div>
+          <button type="submit" disabled={reqSubmitting}
+            className="w-full bg-amber-500 text-white py-3.5 rounded-xl hover:bg-amber-600 font-semibold disabled:opacity-50 transition-all text-sm">
+            {reqSubmitting ? 'Posting...' : '📋 Post Request'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
+      {/* Offer / Request top toggle */}
+      <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl mb-6">
+        <button type="button" onClick={() => setPostType('offer')}
+          className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
+          🛠 Offer
+        </button>
+        <button type="button" onClick={() => setPostType('request')}
+          className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
+          📋 Request
+        </button>
+      </div>
+
       <h2 className="text-2xl font-bold mb-1 dark:text-white">{form.is_product ? 'List an Item' : 'Offer a Service'}</h2>
       <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
         {form.is_product

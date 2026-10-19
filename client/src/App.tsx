@@ -85,10 +85,11 @@ function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop nav — 3 primary items only */}
+        {/* Desktop nav — primary items */}
         <div className="hidden lg:flex items-center gap-1">
-          {navLink('/browse', t('nav.browse'))}
-          {user && navLink('/requests', 'Requests')}
+          {navLink('/browse', 'Explore Offers')}
+          {navLink('/requests', 'Explore Requests')}
+          {user && navLink('/groups', 'Communities')}
           {user && navLink('/services/new', t('nav.offer'))}
           {user && navLink('/dashboard', t('nav.dashboard'))}
         </div>
@@ -209,8 +210,9 @@ function Navbar() {
           <div className="flex flex-col">
             {/* Primary */}
             {user && navLink('/dashboard', t('nav.dashboard'))}
-            {navLink('/browse', t('nav.browse'))}
-            {user && navLink('/requests', 'Requests')}
+            {navLink('/browse', 'Explore Offers')}
+            {navLink('/requests', 'Explore Requests')}
+            {navLink('/groups', t('nav.communities'))}
             {user && navLink('/services/new', t('nav.offer'))}
 
             {/* Discover */}
