@@ -56,12 +56,12 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
       {/* Sage green full-width background */}
       <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
-      {/* Illustration fills the entire hero — positioned as background */}
+      {/* Illustration — positioned right, contained so full scene is visible */}
       <img
         src="/hero-illustration.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover object-center"
+        className="absolute inset-0 w-full h-full object-contain object-right"
         style={{ opacity: 0.97 }}
       />
 
@@ -79,10 +79,10 @@ export default function HomePage() {
         <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-16 md:pt-28 md:pb-32">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-10 pb-8 md:pt-20 md:pb-16" style={{ minHeight: '540px' }}>
         <div className="flex flex-col gap-8 md:gap-12">
-          {/* Text on the left — white card for readability over illustration */}
-          <div className="max-w-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl px-7 py-8 md:px-10 md:py-10 shadow-xl">
+          {/* Text on the left — white card */}
+          <div className="max-w-lg bg-white/90 rounded-3xl px-7 py-8 md:px-10 md:py-10 shadow-lg" style={{ backdropFilter: 'none' }}>
             <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
               Now live in Europe & Georgia
             </div>
