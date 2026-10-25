@@ -66,30 +66,27 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#b5c99a' }} />
 
-        {/* Right side: 3 illustrations in a grid, no backgrounds */}
-        <div className="absolute right-0 top-0 bottom-0 flex items-center" style={{ width: '55%', paddingRight: '2%', paddingTop: '16px', paddingBottom: '16px' }}>
-          <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-3">
-
-            {/* Top-left: dog walker */}
-            <div className="flex items-end justify-center">
-              <img src="/illustration3.png" alt="Dog walking service" className="w-full h-auto object-contain"  />
+        {/* Right side: 3 illustrations in a clean flex column, strictly contained */}
+        <div className="absolute right-0 top-0 bottom-0" style={{ width: '55%', padding: '20px 16px 20px 0' }}>
+          <div className="w-full flex flex-col gap-3 h-full">
+            {/* Top row: two equal-width images */}
+            <div className="flex gap-3" style={{ flex: '1', minHeight: 0 }}>
+              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                <img src="/illustration3.png" alt="Dog walking service" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'bottom' }} />
+              </div>
+              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                <img src="/illustration2.png" alt="Neighbours helping" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'bottom' }} />
+              </div>
             </div>
-
-            {/* Top-right: neighbours passing */}
-            <div className="flex items-end justify-center">
-              <img src="/illustration2.png" alt="Neighbours helping" className="w-full h-auto object-contain"  />
+            {/* Bottom row: main scene full width */}
+            <div style={{ flex: '1', minHeight: 0, overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+              <img src="/hero-illustration.png" alt="Community neighbours" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'bottom' }} />
             </div>
-
-            {/* Bottom: main plant exchange — spans full width */}
-            <div className="col-span-2 flex items-end justify-center">
-              <img src="/hero-illustration.png" alt="Community neighbours" className="w-full h-auto object-contain"  />
-            </div>
-
           </div>
         </div>
 
-        {/* Gradient fade from text area into illustration area */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, #b5c99a 40%, rgba(181,201,154,0.6) 45%, transparent 50%)' }} />
+        {/* Gradient fade */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, #b5c99a 40%, rgba(181,201,154,0.5) 44%, transparent 49%)' }} />
 
         {/* Text — left half, aligned to same grid as rest of page */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '700px' }}>
