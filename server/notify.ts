@@ -12,20 +12,35 @@ interface NotifyOptions {
   email?: { to: string; subject: string; html: string };
 }
 
+// HTML-escape helper to prevent XSS in email templates
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function notify(opts: NotifyOptions) {
-  // Check user notification preferences
+  // Guard: if user not found, skip push (prevents push to non-existent users)
   const prefs = await db.get('SELECT notify_email, notify_push, notify_reminders FROM users WHERE id = ?', opts.userId);
+  if (!prefs) return; // user deleted or not found — skip silently
   const isReminder = opts.type === 'reminder' || opts.type === 'nudge' || opts.type === 'booking_reminder';
   if (isReminder && prefs?.notify_reminders === false) return;
 
-  // Save in-app notification (always)
-  const result = await db.run(
-    'INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
-    opts.userId, opts.type, opts.title, opts.body, opts.link || null
-  );
+  try {
+    await db.run(
+      'INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
+      opts.userId, opts.type, opts.title, opts.body, opts.link || null
+    );
+  } catch (err: any) {
+    console.error('[NOTIFY] Failed to insert notification:', err.message);
+  }
   // Push real-time via WebSocket
+  const notifId = await db.get('SELECT id FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 1', opts.userId);
   sendToUser(opts.userId, 'notification', {
-    id: result.lastInsertRowid,
+    id: notifId?.id,
     notificationType: opts.type,
     title: opts.title,
     body: opts.body,
@@ -43,13 +58,16 @@ export async function notify(opts: NotifyOptions) {
 }
 
 export function notificationEmailHtml(title: string, body: string, link?: string): string {
+  // Validate link — only allow relative paths or boomerang.fyi URLs
+  const safeLink = link && (link.startsWith('/') || link.startsWith('https://www.boomerang.fyi') || link.startsWith('https://boomerang.fyi'))
+    ? link : undefined;
   return `<div style="font-family:sans-serif;max-width:450px;margin:0 auto;padding:20px">
     <div style="text-align:center;margin-bottom:20px">
       <span style="font-size:24px;font-weight:300;color:#f97316;letter-spacing:2px">boomerang</span>
     </div>
-    <h2 style="color:#1f2937;font-size:18px;margin-bottom:8px">${title}</h2>
-    <p style="color:#6b7280;font-size:14px;line-height:1.6">${body}</p>
-    ${link ? `<a href="${link}" style="display:inline-block;margin-top:16px;background:#f97316;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500">View Details</a>` : ''}
+    <h2 style="color:#1f2937;font-size:18px;margin-bottom:8px">${escapeHtml(title)}</h2>
+    <p style="color:#6b7280;font-size:14px;line-height:1.6">${escapeHtml(body)}</p>
+    ${safeLink ? `<a href="${escapeHtml(safeLink)}" style="display:inline-block;margin-top:16px;background:#f97316;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500">View Details</a>` : ''}
     <p style="color:#9ca3af;font-size:12px;margin-top:24px;border-top:1px solid #f3f4f6;padding-top:16px">What you give, comes back.</p>
   </div>`;
 }

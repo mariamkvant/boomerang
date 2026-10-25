@@ -105,7 +105,7 @@ app.post('/api/track', (req, res) => {
     try {
       if (ip && ip !== '::1' && ip !== '127.0.0.1' && !ip.startsWith('::ffff:127')) {
         const cleanIp = ip.replace('::ffff:', '');
-        const geoRes = await fetch(`http://ip-api.com/json/${cleanIp}?fields=country`, { signal: AbortSignal.timeout(2000) });
+        const geoRes = await fetch(`https://ip-api.com/json/${cleanIp}?fields=country`, { signal: AbortSignal.timeout(2000) });
         if (geoRes.ok) { const geo = await geoRes.json() as { country?: string }; country = geo.country || ''; }
       }
     } catch {}
@@ -247,8 +247,8 @@ initDatabase().then(() => {
   setInterval(async () => {
     const now = new Date();
     const isDigestWindow = now.getUTCDay() === 1 && now.getUTCHours() === 9 && now.getUTCMinutes() < 30;
-    // ISO week identifier: "YYYY-Www"
-    const weekId = `${now.getUTCFullYear()}-W${String(Math.ceil(now.getUTCDate() / 7)).padStart(2, '0')}`;
+    // Use date string as week ID (YYYY-MM-DD of Monday) — simpler and correct
+    const weekId = now.toISOString().slice(0, 10);
     if (isDigestWindow && lastDigestWeek !== weekId) {
       lastDigestWeek = weekId;
       console.log('[DIGEST] Triggering weekly digest...');

@@ -148,7 +148,11 @@ export default function CreateServicePage() {
     setError(''); setLoading(true);
 
     const price = form.price_eur ? parseFloat(form.price_eur) : null;
-    if (price !== null && price <= 0) {
+    if (price !== null && price < 0) {
+      setError('Price cannot be negative');
+      setLoading(false); return;
+    }
+    if (price !== null && price === 0 && !isGiveaway) {
       setError('Price must be greater than €0 — or leave it blank to arrange via message');
       setLoading(false); return;
     }
@@ -476,7 +480,12 @@ export default function CreateServicePage() {
                 <button
                   key={cat.name}
                   type="button"
-                  onClick={() => setItemCategory(cat.name)}
+                  onClick={() => {
+                    setItemCategory(cat.name);
+                    // Also sync form.category_id from the DB categories list by matching name
+                    const matched = categories.find((c: any) => c.name === cat.name);
+                    if (matched) setForm(f => ({ ...f, category_id: String(matched.id) }));
+                  }}
                   title={cat.desc}
                   className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
                     itemCategory === cat.name

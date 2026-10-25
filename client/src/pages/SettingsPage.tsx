@@ -33,7 +33,8 @@ export default function SettingsPage() {
   const [providerBankName, setProviderBankName] = useState('');
   const [ibanSaving, setIbanSaving] = useState(false);
   const [ibanSaved, setIbanSaved] = useState(false);
-  const isGeorgianUser = (user as any)?.city && (
+  const isGeorgianUser = (user as any)?.country === 'Georgia' || (
+    (user as any)?.city &&
     ['Tbilisi','Batumi','Kutaisi','Rustavi','Gori'].some((c: string) =>
       ((user as any).city as string).includes(c)
     )
@@ -47,7 +48,7 @@ export default function SettingsPage() {
     }
     // Load connect status if user has started onboarding
     if ((user as any)?.stripe_account_id) {
-      api.stripeConnectStatus().then(setConnectStatus).catch(() => {});
+      api.stripeConnectStatus().then(setConnectStatus).catch(() => { setConnectStatus({ status: 'none' }); });
     } else {
       setConnectStatus({ status: 'none' });
     }
@@ -71,7 +72,19 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    try { await api.updateProfile({ bio, username, city, languages_spoken: languagesSpoken }); await refreshUser(); setSaved(true); setTimeout(() => setSaved(false), 3000); }
+    try {
+      // Clear stale GPS when city is changed manually (user typed new city, no autocomplete pick)
+      const updatePayload: any = { bio, username, city, languages_spoken: languagesSpoken };
+      if (city !== (user as any)?.city) {
+        // City changed — clear GPS so stale coords don't mismatch the new city text
+        updatePayload.latitude = null;
+        updatePayload.longitude = null;
+      }
+      await api.updateProfile(updatePayload);
+      await refreshUser();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    }
     catch (err: any) { toast(err.message, 'error'); }
   };
 
@@ -333,12 +346,15 @@ export default function SettingsPage() {
               </button>
               <span className="text-gray-200 dark:text-gray-700">|</span>
               <button onClick={async () => {
-                if (!window.confirm('This will disconnect your current payout account so you can start fresh. Continue?')) return;
-                try {
-                  await (api as any).stripeConnectReset();
-                  setConnectStatus({ status: 'none' });
-                  toast('Account reset. You can now reconnect.', 'success');
-                } catch (err: any) { toast(err.message, 'error'); }
+                // Use toast instead of window.confirm (window.confirm is suppressed in iOS WKWebView)
+                toast('Disconnecting payout account — tap again to confirm', 'error');
+                setTimeout(async () => {
+                  try {
+                    await (api as any).stripeConnectReset();
+                    setConnectStatus({ status: 'none' });
+                    toast('Account reset. You can now reconnect.', 'success');
+                  } catch (err: any) { toast(err.message, 'error'); }
+                }, 0);
               }} className="text-xs text-red-400 hover:text-red-600 hover:underline font-medium">
                 Start over
               </button>
@@ -428,7 +444,7 @@ export default function SettingsPage() {
                   setIbanSaved(true);
                   setTimeout(() => setIbanSaved(false), 3000);
                 } catch (err: any) {
-                  alert(err.message || 'Failed to save. Please check your IBAN format.');
+                  toast(err.message || 'Failed to save. Please check your IBAN format.', 'error');
                 }
                 setIbanSaving(false);
               }}

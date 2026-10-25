@@ -21,7 +21,7 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response) =>
   const pwErr = validatePassword(password);
   if (pwErr) return res.status(400).json({ error: pwErr });
   try {
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = await bcrypt.hash(password, 10);
     const code = generateCode();
     const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
     // Check referral
@@ -51,7 +51,7 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response) =>
 });
 
 // Verify email
-router.post('/verify-email', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/verify-email', authMiddleware, authLimiter, async (req: AuthRequest, res: Response) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ error: 'Code is required' });
   const user = await db.get('SELECT * FROM users WHERE id = ?', req.userId);
@@ -71,7 +71,7 @@ router.post('/verify-email', authMiddleware, async (req: AuthRequest, res: Respo
 });
 
 // Resend verification code
-router.post('/resend-verify', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/resend-verify', authMiddleware, authLimiter, async (req: AuthRequest, res: Response) => {
   const user = await db.get('SELECT * FROM users WHERE id = ?', req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   if (user.email_verified) return res.json({ message: 'Already verified' });
@@ -102,7 +102,7 @@ router.post('/forgot-password', authLimiter, async (req: AuthRequest, res: Respo
 });
 
 // Reset password with code
-router.post('/reset-password', async (req: AuthRequest, res: Response) => {
+router.post('/reset-password', authLimiter, async (req: AuthRequest, res: Response) => {
   const { email, code, newPassword } = req.body;
   if (!email || !code || !newPassword) return res.status(400).json({ error: 'All fields are required' });
   if (newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -126,7 +126,7 @@ router.post('/reset-password', async (req: AuthRequest, res: Response) => {
 router.post('/login', authLimiter, async (req: AuthRequest, res: Response) => {
   const { email, password } = req.body;
   const user = await db.get('SELECT * FROM users WHERE email = ?', email);
-  if (!user || !bcrypt.compareSync(password, user.password)) {
+  if (!user || !await bcrypt.compare(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   // Update last active timestamp
@@ -253,9 +253,9 @@ router.get('/search/people', async (req: AuthRequest, res: Response) => {
   res.json(users);
 });
 
-// Get any user's public profile
+// Get any user's public profile — stripe_account_id intentionally excluded
 router.get('/:id', async (req: AuthRequest, res: Response) => {
-  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at, stripe_account_id, stripe_account_status, last_active_at FROM users WHERE id = ?', req.params.id);
+  const user = await db.get('SELECT id, username, bio, points, city, languages_spoken, avatar, created_at, stripe_account_status, last_active_at FROM users WHERE id = ?', req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const avgRating = await db.get('SELECT AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM reviews r JOIN service_requests sr ON r.request_id = sr.id JOIN services s ON sr.service_id = s.id WHERE s.provider_id = ?', req.params.id);
   const services = await db.all('SELECT s.*, c.name as category_name, c.icon as category_icon FROM services s JOIN categories c ON s.category_id = c.id WHERE s.provider_id = ? AND s.is_active = 1', req.params.id);

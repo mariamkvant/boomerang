@@ -128,17 +128,23 @@ export default function OnboardingPage() {
   const toggleNeed = (s: string) => setSelectedNeeds(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
 
   const handleFinish = async () => {
-    const finalBio = bio || (selectedSkills.length > 0 ? `I offer: ${selectedSkills.join(', ')}` : '');
-    if (finalBio) await api.updateProfile({ bio: finalBio });
-    if (selectedNeeds.length > 0) await api.updateProfile({ interests: selectedNeeds.join(',') });
-    localStorage.setItem('onboarding_done', 'true');
-    await refreshUser();
+    try {
+      const finalBio = bio || (selectedSkills.length > 0 ? `I offer: ${selectedSkills.join(', ')}` : '');
+      if (finalBio) await api.updateProfile({ bio: finalBio });
+      if (selectedNeeds.length > 0) await api.updateProfile({ interests: selectedNeeds.join(',') });
+      localStorage.setItem('onboarding_done', 'true');
+      await refreshUser();
+    } catch {
+      // Non-fatal — continue to service creation even if profile save fails
+    }
     navigate('/services/new');
   };
 
   const skipAll = async () => {
-    localStorage.setItem('onboarding_done', 'true');
-    await refreshUser();
+    try {
+      localStorage.setItem('onboarding_done', 'true');
+      await refreshUser();
+    } catch {}
     navigate('/dashboard');
   };
 

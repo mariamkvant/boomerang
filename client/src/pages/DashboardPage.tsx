@@ -155,7 +155,7 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user?.id]);
 
   const handleAction = async (action: (id: number) => Promise<any>, id: number) => {
     haptic('light');
@@ -999,8 +999,8 @@ export default function DashboardPage() {
               <button onClick={() => setDeliverNote(null)} className="flex-1 border border-gray-200 dark:border-gray-600 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300">Cancel</button>
               <button onClick={async () => {
                 try {
-                  await api.deliverRequest(deliverNote.id, deliverNote.note || undefined);
-                  toast('Marked as delivered!'); setDeliverNote(null); load();
+                  await api.deliverRequest(deliverNote.id, deliverNote.note || undefined, deliverPhoto || undefined);
+                  toast('Marked as delivered!'); setDeliverNote(null); setDeliverPhoto(null); load();
                 } catch (err: any) { toast(err.message, 'error'); }
               }} className="flex-1 bg-purple-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-purple-600">Mark delivered</button>
             </div>

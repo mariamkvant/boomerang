@@ -26,9 +26,16 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setLoading(true);
+    let groupJoinFailed = false;
     try {
       await register(username, email, password);
-      if (groupCode) { try { await api.joinByCode(groupCode); } catch {} }
+      if (groupCode) {
+        try { await api.joinByCode(groupCode); }
+        catch { groupJoinFailed = true; } // flag to show toast after verification
+      }
+      if (groupJoinFailed) {
+        sessionStorage.setItem('group_join_failed', '1');
+      }
       navigate('/verify-email');
     } catch (err: any) { setError(err.message); setLoading(false); }
   };

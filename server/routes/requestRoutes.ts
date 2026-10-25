@@ -170,7 +170,7 @@ router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response
 
 // ─── DELIVER ────────────────────────────────────────────────────────────────
 router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { delivery_note } = req.body;
+  const { delivery_note, delivery_photo } = req.body;
   const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
