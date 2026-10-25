@@ -54,86 +54,97 @@ export default function HomePage() {
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
       <section className="relative overflow-hidden">
-        {/* Clean background — no gradient bands */}
-        <div className="absolute inset-0 bg-[#f8f7f5] dark:bg-[#111111]" />
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f07028 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-        
-        <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-16 md:pt-28 md:pb-32">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-12">
-            <div className="max-w-xl flex-1">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-                Now live in Europe & Georgia
-              </div>
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
-                {t('hero.headline')}<br />
-                <span className="text-primary-500">{t('hero.headline2')}</span>
-              </h1>
-              <p className="text-base md:text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-lg">{t('hero.subtitle')}</p>
+      {/* Sage green full-width background */}
+      <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
+      {/* Illustration fills the entire hero — positioned as background */}
+      <img
+        src="/hero-illustration.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover object-center"
+        style={{ opacity: 0.97 }}
+      />
 
-              {/* Sample listings — the 5 core categories */}
-              <div className="flex flex-wrap gap-2 mb-8">
-                {[
-                  { emoji: '🌿', label: 'Plants & Pet Care' },
-                  { emoji: '👶', label: 'Childcare' },
-                  { emoji: '🚗', label: 'Transportation' },
-                  { emoji: '📦', label: 'Item Rental' },
-                  { emoji: '🚚', label: 'Courier Services' },
-                  { emoji: '✨', label: '+ more' },
-                ].map((s, i) => (
-                  <Link key={i} to={`/browse`}
-                    className="inline-flex items-center gap-1.5 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
-                    {s.emoji} {s.label}
-                  </Link>
-                ))}
-              </div>
+      {/* Floating service request card — top centre */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-[220px] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden sm:block">
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
+            <img src="/logo.svg" alt="" className="w-full h-full object-cover opacity-40" />
+          </div>
+          <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
+          <span className="text-[10px] font-semibold text-[#1a4731] bg-[#edf7f1] px-2 py-0.5 rounded-full">Pet care</span>
+        </div>
+        <p className="text-xs text-gray-600 mb-1.5">Need a sitter for this weekend!</p>
+        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-block mb-2">10 Gel</span>
+        <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
+      </div>
 
-              {user ? (
-                <div className="flex flex-wrap gap-3">
-                  <Link to="/browse" className="bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#111827] dark:hover:bg-gray-100 transition-all">{t('hero.browseBtn')}</Link>
-                  <Link to="/services/new" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex flex-wrap gap-3 mb-4">
-                    <Link to="/register" className="bg-[#1f2937] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#111827] transition-all">{t('hero.cta')}</Link>
-                    <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                      App Store
-                    </a>
-                  </div>
-                  <p className="text-xs text-gray-400">{t('hero.cta.free')} · <Link to="/login" className="text-primary-500 hover:underline">{t('login')}</Link></p>
-                </div>
-              )}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-16 md:pt-28 md:pb-32">
+        <div className="flex flex-col gap-8 md:gap-12">
+          {/* Text on the left — white card for readability over illustration */}
+          <div className="max-w-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl px-7 py-8 md:px-10 md:py-10 shadow-xl">
+            <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+              Now live in Europe & Georgia
+            </div>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-5 tracking-tight">
+              {t('hero.headline')}<br />
+              <span className="text-primary-500">{t('hero.headline2')}</span>
+            </h1>
+            <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
+
+            {/* Category pills */}
+            <div className="flex flex-wrap gap-2 mb-7">
+              {[
+                { emoji: '🌿', label: 'Plants & Pet Care' },
+                { emoji: '👶', label: 'Childcare' },
+                { emoji: '🚗', label: 'Transportation' },
+                { emoji: '📦', label: 'Item Rental' },
+                { emoji: '🚚', label: 'Courier Services' },
+                { emoji: '✨', label: '+ more' },
+              ].map((s, i) => (
+                <Link key={i} to="/browse"
+                  className="inline-flex items-center gap-1.5 bg-white/90 border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
+                  {s.emoji} {s.label}
+                </Link>
+              ))}
             </div>
 
-            {/* Hero illustration */}
-            <div className="flex-shrink-0 w-full md:w-[460px]">
-              <img
-                src="/hero-illustration.png"
-                alt="Neighbours helping each other"
-                className="w-full h-auto object-contain"
-                style={{ maxHeight: '420px' }}
-              />
-            </div>
+            {user ? (
+              <div className="flex flex-wrap gap-3">
+                <Link to="/browse" className="bg-[#1a4731] text-white px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#143828] transition-all">{t('hero.browseBtn')}</Link>
+                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
+              </div>
+            ) : (
+              <div>
+                <div className="flex flex-wrap gap-3 mb-3">
+                  <Link to="/register" className="bg-[#1a4731] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#143828] transition-all">{t('hero.cta')}</Link>
+                  <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    App Store
+                  </a>
+                </div>
+                <p className="text-xs text-gray-500">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
+              </div>
+            )}
           </div>
         </div>
+      </div>
         {stats && stats.total_users > 5 && (
-          <div className="relative border-t border-gray-200/50 dark:border-gray-800">
+          <div className="relative z-10 border-t border-white/30">
             <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
-                <div key={i}><div className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{val}+</div><div className="text-xs md:text-sm text-gray-500 mt-0.5">{label}</div></div>
+                <div key={i}>
+                  <div className="text-xl md:text-3xl font-bold text-[#1a4731]">{val}+</div>
+                  <div className="text-xs md:text-sm text-[#2d6a4f] mt-0.5">{label}</div>
+                </div>
               ))}
             </div>
           </div>
         )}
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 mb-4">
-        <img src="/illustration3.png" alt="" className="w-full rounded-2xl object-contain" style={{ maxHeight: '260px' }} />
-      </div>
+
 
       {/* "For you" section — numbered cards with accent colors */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
