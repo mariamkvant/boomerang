@@ -300,16 +300,20 @@ function Footer() {
 
 export default function App() {
   const { user } = useAuth();
+  const location = useLocation();
   useSocketConnection();
 
   // Redirect to verify-email if not verified, then onboarding if no city
   const needsVerification = user && !user.email_verified;
   const needsOnboarding = user && user.email_verified && !user.city && localStorage.getItem('onboarding_done') !== 'true';
 
+  // Auth/onboarding pages use fixed inset-0 layout — skip main padding for them
+  const isFullscreenPage = ['/login', '/register', '/onboarding'].includes(location.pathname);
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6 pt-[4.5rem] lg:pt-6">
+      {!isFullscreenPage && <Navbar />}
+      <main className={isFullscreenPage ? 'flex-1' : 'flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6 pt-[4.5rem] lg:pt-6'}>
         <ErrorBoundary>
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
@@ -352,11 +356,11 @@ export default function App() {
         </Suspense>
         </ErrorBoundary>
       </main>
-      <Footer />
-      <BottomNav />
+      {!isFullscreenPage && <Footer />}
+      {!isFullscreenPage && <BottomNav />}
       <OfflineBanner />
       <InstallPrompt />
-      {user && <OnboardingTooltip />}
+      {user && !isFullscreenPage && <OnboardingTooltip />}
     </div>
   );
 }
