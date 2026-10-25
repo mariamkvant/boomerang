@@ -57,7 +57,7 @@ export default function HomePage() {
       <section
         className="relative overflow-hidden"
         style={{
-          minHeight: '640px',
+          minHeight: '700px',
           marginLeft: 'calc(-50vw + 50%)',
           marginRight: 'calc(-50vw + 50%)',
           width: '100vw',
@@ -66,32 +66,36 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
 
-        {/* Illustration — right half, object-contain so FULL picture is always visible */}
+        {/* Illustration — right 65%, tall enough to show dog walker + all characters */}
         <img
           src="/hero-illustration.png"
           alt=""
           aria-hidden="true"
           className="absolute right-0 top-0 bottom-0 h-full"
-          style={{ width: '58%', objectFit: 'contain', objectPosition: 'right bottom' }}
+          style={{ width: '65%', objectFit: 'contain', objectPosition: 'right center' }}
         />
 
         {/* Gradient: green bg bleeds over the left edge of the illustration */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 35%, rgba(168,213,181,0.9) 42%, rgba(168,213,181,0.2) 55%, transparent 68%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 32%, rgba(168,213,181,0.88) 40%, rgba(168,213,181,0.15) 52%, transparent 65%)' }} />
 
-        {/* Floating service card — positioned at roughly the 47% mark */}
-        <div className="absolute z-20 bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block" style={{ top: '16px', left: '47%', width: '200px' }}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-6 h-6 rounded-full bg-[#e8d5c4] flex items-center justify-center text-xs font-bold text-[#8B5E3C]">T</div>
-            <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
-            <span className="text-[10px] font-semibold text-[#1a4731] bg-[#edf7f1] px-2 py-0.5 rounded-full">Pet care</span>
+        {/* Floating service card — compact, natural size */}
+        <div className="absolute z-20 bg-white rounded-xl shadow-lg border border-gray-100 hidden md:block" style={{ top: '14px', left: '46%', width: '168px' }}>
+          <div className="px-3 py-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-5 h-5 rounded-full bg-[#e8d5c4] flex items-center justify-center text-[9px] font-bold text-[#8B5E3C] shrink-0">T</div>
+              <span className="text-[11px] font-bold text-gray-800 flex-1">Tata</span>
+              <span className="text-[9px] font-semibold text-[#1a4731] bg-[#edf7f1] px-1.5 py-0.5 rounded-full">Pet care</span>
+            </div>
+            <p className="text-[11px] text-gray-600 mb-1.5 leading-tight">Need a sitter for this weekend!</p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">10 Gel</span>
+            </div>
+            <button className="w-full py-1.5 rounded-full text-white text-[11px] font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
           </div>
-          <p className="text-xs text-gray-600 mb-1.5">Need a sitter for this weekend!</p>
-          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-block mb-2">10 Gel</span>
-          <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
         </div>
 
         {/* Text — left half, aligned to same grid as rest of page */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '640px' }}>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '700px' }}>
           <div style={{ maxWidth: '46%' }}>
           <div className="inline-flex items-center gap-2 bg-white/70 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 w-fit">
             Now live in Europe & Georgia
