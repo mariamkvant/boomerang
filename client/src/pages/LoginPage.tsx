@@ -3,24 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 
-// Lottie animation for the hero — community/neighbourhood scene
-// Uses lottie-player web component loaded via CDN in index.html
-function HeroAnimation() {
-  return (
-    <div className="w-full max-w-[260px] mx-auto">
-      {/* @ts-ignore — lottie-player is a web component loaded via CDN */}
-      <lottie-player
-        src="https://assets5.lottiefiles.com/packages/lf20_qp1spd72.json"
-        background="transparent"
-        speed="1"
-        loop
-        autoplay
-        style={{ width: '100%', height: '200px' }}
-      />
-    </div>
-  );
-}
+import CommunityAnimation from '../components/CommunityAnimation';
 
+// Login page
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +34,7 @@ export default function LoginPage() {
           <span className="text-white text-2xl font-light tracking-widest" style={{ fontFamily: 'Outfit, sans-serif' }}>boomerang</span>
         </div>
         {/* Animation */}
-        <HeroAnimation />
+        <CommunityAnimation height={200} className="w-full max-w-[280px] mx-auto" />
       </div>
 
       {/* ── White card bottom ── */}
