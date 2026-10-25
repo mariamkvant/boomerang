@@ -455,14 +455,23 @@ export default function BrowsePage() {
               Locate me
             </button>
           )}
-          {/* Available Today + Instant Book filter pills */}
+          {/* Available Today filter pill */}
           <button onClick={() => setAvailableToday(v => !v)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
               availableToday ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             }`}>
             📅 Today
           </button>
-          {/* See all services button — removed, replaced by persistent floating button below */}
+          {/* Post Offer CTA */}
+          {user && (
+            <Link
+              to="/services/new"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 bg-[#1f2937] text-white border-[#1f2937] hover:bg-[#111827] transition-colors"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              Post Offer
+            </Link>
+          )}
         </div>
 
         {/* City picker — shows available cities as searchable pills */}
