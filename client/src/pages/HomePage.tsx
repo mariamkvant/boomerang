@@ -66,55 +66,53 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#b5c99a' }} />
 
-        {/* Illustration collage — right 60%, 3 images showing different services */}
-        <div className="absolute right-0 top-0 bottom-0 flex items-center pr-6" style={{ width: '60%' }}>
-          <div className="w-full h-full flex flex-col gap-3 justify-center py-8">
-            {/* Top row: two smaller illustrations side by side */}
-            <div className="flex gap-3 items-end px-2">
-              <img
-                src="/illustration2.png"
-                alt=""
-                aria-hidden="true"
-                className="flex-1 h-auto object-contain drop-shadow-sm"
-                style={{ maxHeight: '220px' }}
+        {/* Brick wall pattern — behind illustrations on right side */}
+        <svg className="absolute right-0 top-0 bottom-0 h-full opacity-20" style={{ width: '65%' }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 700" xmlns="http://www.w3.org/2000/svg">
+          {Array.from({ length: 22 }).map((_, row) =>
+            Array.from({ length: 8 }).map((_, col) => (
+              <rect
+                key={`${row}-${col}`}
+                x={col * 52 + (row % 2 === 0 ? 0 : 26) - 10}
+                y={row * 32}
+                width="48" height="28" rx="2"
+                fill="none"
+                stroke="#6b7c4a"
+                strokeWidth="1.2"
               />
-              <img
-                src="/illustration3.png"
-                alt=""
-                aria-hidden="true"
-                className="flex-1 h-auto object-contain drop-shadow-sm"
-                style={{ maxHeight: '220px' }}
-              />
-            </div>
-            {/* Bottom: main window illustration — wider, centrepiece */}
-            <img
-              src="/hero-illustration.png"
-              alt=""
-              aria-hidden="true"
-              className="w-full h-auto object-contain drop-shadow-sm"
-              style={{ maxHeight: '320px' }}
-            />
-          </div>
+            ))
+          )}
+        </svg>
+
+        {/* Illustration collage — 3 images, bigger, arranged across full right area */}
+        <div className="absolute right-0 top-0 bottom-0" style={{ width: '65%' }}>
+          {/* Dog walker — top left of collage */}
+          <img
+            src="/illustration3.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute object-contain drop-shadow-md"
+            style={{ width: '42%', top: '4%', left: '2%' }}
+          />
+          {/* Cup/neighbours — top right */}
+          <img
+            src="/illustration2.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute object-contain drop-shadow-md"
+            style={{ width: '42%', top: '2%', right: '2%' }}
+          />
+          {/* Main window scene — bottom centre, biggest */}
+          <img
+            src="/hero-illustration.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute object-contain drop-shadow-lg"
+            style={{ width: '68%', bottom: '2%', left: '16%' }}
+          />
         </div>
 
-        {/* Gradient: green bleeds over the left edge of the collage */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #b5c99a 32%, rgba(181,201,154,0.88) 40%, rgba(181,201,154,0.15) 52%, transparent 65%)' }} />
-
-        {/* Floating service card — compact, natural size */}
-        <div className="absolute z-20 bg-white rounded-xl shadow-lg border border-gray-100 hidden md:block" style={{ top: '14px', left: '46%', width: '168px' }}>
-          <div className="px-3 py-2.5">
-            <div className="flex items-center gap-1.5 mb-1">
-              <div className="w-5 h-5 rounded-full bg-[#e8d5c4] flex items-center justify-center text-[9px] font-bold text-[#8B5E3C] shrink-0">T</div>
-              <span className="text-[11px] font-bold text-gray-800 flex-1">Tata</span>
-              <span className="text-[9px] font-semibold text-[#1a4731] bg-[#edf7f1] px-1.5 py-0.5 rounded-full">Pet care</span>
-            </div>
-            <p className="text-[11px] text-gray-600 mb-1.5 leading-tight">Need a sitter for this weekend!</p>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">10 Gel</span>
-            </div>
-            <button className="w-full py-1.5 rounded-full text-white text-[11px] font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
-          </div>
-        </div>
+        {/* Gradient fade from olive into illustrations */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #b5c99a 30%, rgba(181,201,154,0.85) 38%, rgba(181,201,154,0.1) 50%, transparent 62%)' }} />
 
         {/* Text — left half, aligned to same grid as rest of page */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '700px' }}>
