@@ -72,17 +72,17 @@ export default function HomePage() {
 
             {/* Top-left: dog walker */}
             <div className="flex items-end justify-center">
-              <img src="/illustration3.png" alt="Dog walking service" className="w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
+              <img src="/illustration3.png" alt="Dog walking service" className="w-full h-auto object-contain"  />
             </div>
 
             {/* Top-right: neighbours passing */}
             <div className="flex items-end justify-center">
-              <img src="/illustration2.png" alt="Neighbours helping" className="w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
+              <img src="/illustration2.png" alt="Neighbours helping" className="w-full h-auto object-contain"  />
             </div>
 
             {/* Bottom: main plant exchange — spans full width */}
             <div className="col-span-2 flex items-end justify-center">
-              <img src="/hero-illustration.png" alt="Community neighbours" className="w-full h-auto object-contain" style={{ maxHeight: '300px' }} />
+              <img src="/hero-illustration.png" alt="Community neighbours" className="w-full h-auto object-contain"  />
             </div>
 
           </div>
