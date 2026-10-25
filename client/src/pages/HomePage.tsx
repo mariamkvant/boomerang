@@ -57,7 +57,7 @@ export default function HomePage() {
       <section
         className="relative overflow-hidden"
         style={{
-          minHeight: '560px',
+          minHeight: '640px',
           marginLeft: 'calc(-50vw + 50%)',
           marginRight: 'calc(-50vw + 50%)',
           width: '100vw',
@@ -66,20 +66,20 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
 
-        {/* Illustration pinned to the RIGHT half — never overlaps text */}
+        {/* Illustration — right half, object-contain so FULL picture is always visible */}
         <img
           src="/hero-illustration.png"
           alt=""
           aria-hidden="true"
-          className="absolute top-0 bottom-0 right-0 h-full"
-          style={{ width: '58%', objectFit: 'cover', objectPosition: 'left center' }}
+          className="absolute right-0 top-0 bottom-0 h-full"
+          style={{ width: '58%', objectFit: 'contain', objectPosition: 'right bottom' }}
         />
 
-        {/* Gradient fade: illustration fades into green from right-to-left at 42% */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 38%, rgba(168,213,181,0.95) 44%, rgba(168,213,181,0.4) 56%, transparent 70%)' }} />
+        {/* Gradient: green bg bleeds over the left edge of the illustration */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 35%, rgba(168,213,181,0.9) 42%, rgba(168,213,181,0.2) 55%, transparent 68%)' }} />
 
-        {/* Floating service card — over illustration, top-right of centre */}
-        <div className="absolute z-20 bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block" style={{ top: '16px', left: '48%', width: '200px' }}>
+        {/* Floating service card — positioned at roughly the 47% mark */}
+        <div className="absolute z-20 bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block" style={{ top: '16px', left: '47%', width: '200px' }}>
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-6 h-6 rounded-full bg-[#e8d5c4] flex items-center justify-center text-xs font-bold text-[#8B5E3C]">T</div>
             <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
@@ -90,8 +90,9 @@ export default function HomePage() {
           <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
         </div>
 
-        {/* Text — strictly left 45%, no overlap */}
-        <div className="relative z-10 flex flex-col justify-center px-6 md:px-16 py-16" style={{ maxWidth: '48%', minHeight: '560px' }}>
+        {/* Text — left half, aligned to same grid as rest of page */}
+        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '640px' }}>
+          <div style={{ maxWidth: '46%' }}>
           <div className="inline-flex items-center gap-2 bg-white/70 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 w-fit">
             Now live in Europe & Georgia
           </div>
@@ -135,12 +136,13 @@ export default function HomePage() {
               <p className="text-xs text-gray-600">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
             </div>
           )}
-        </div>
+          </div>{/* end maxWidth inner wrapper */}
+        </div>{/* end max-w-6xl */}
 
-        {/* Stats bar pinned to bottom */}
+        {/* Stats bar pinned to bottom — aligned to page grid */}
         {stats && stats.total_users > 5 && (
           <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/30" style={{ background: 'rgba(168,213,181,0.7)' }}>
-            <div className="px-6 md:px-16 py-4 flex gap-10">
+            <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex gap-10">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}>
                   <div className="text-lg md:text-2xl font-bold text-[#1a4731]">{val}+</div>
@@ -152,9 +154,10 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* ── FOR YOU ── with illustration3 on the right */}
-      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* ── FOR YOU ── */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
             <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
@@ -179,11 +182,12 @@ export default function HomePage() {
             <img src="/illustration3.png" alt="Community illustration" className="w-full h-auto object-contain" style={{ maxHeight: '420px' }} />
           </div>
         </div>
+        </div>
       </section>
 
       {/* ── HOW IT WORKS ── illustration2 on the right */}
       <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
-        <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-4 md:px-6 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
@@ -213,7 +217,7 @@ export default function HomePage() {
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <section className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Categories</p>
@@ -236,7 +240,7 @@ export default function HomePage() {
 
       {/* ── TRUST ── illustration4 on left */}
       <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
-        <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="flex items-center justify-center">
               <img src="/illustration4.png" alt="Neighbours sharing" className="w-full h-auto object-contain" style={{ maxHeight: '400px' }} />
@@ -264,7 +268,7 @@ export default function HomePage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+      <section className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
         <div className="text-center mb-10">
           <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Community</p>
           <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
