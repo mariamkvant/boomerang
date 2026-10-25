@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useInstall } from '../components/InstallPrompt';
 import { t } from '../i18n';
-import CommunityIllustration from '../components/CommunityIllustration';
 
 function tc(name: string): string {
   const key = 'cat.' + name;
@@ -111,8 +110,13 @@ export default function HomePage() {
             </div>
 
             {/* Hero illustration */}
-            <div className="flex-shrink-0 w-full md:w-[420px]">
-              <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '320px' }} />
+            <div className="flex-shrink-0 w-full md:w-[460px]">
+              <img
+                src="/hero-illustration.png"
+                alt="Neighbours helping each other"
+                className="w-full h-auto object-contain"
+                style={{ maxHeight: '420px' }}
+              />
             </div>
           </div>
         </div>
@@ -128,7 +132,7 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 mb-4">
-        <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '260px' }} />
+        <img src="/illustration3.png" alt="" className="w-full rounded-2xl object-contain" style={{ maxHeight: '260px' }} />
       </div>
 
       {/* "For you" section — numbered cards with accent colors */}
@@ -161,7 +165,7 @@ export default function HomePage() {
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
               <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
               <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
-              <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '220px' }} />
+              <img src="/illustration2.png" alt="How it works" className="w-full h-auto object-contain" style={{ maxHeight: '260px' }} />
             </div>
             <div className="space-y-6">
               {[
@@ -208,16 +212,8 @@ export default function HomePage() {
       <section className="border-t border-gray-100 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="grid grid-cols-2 gap-3">
-              {[t('home.trust1'), t('home.trust2'), t('home.trust3'), t('home.trust4')].map((label, i) => (
-                <div key={i} className="bg-white dark:bg-[#1e1b18] p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-3">
-                    <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{label}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{t(`home.trust${i+1}Desc`)}</p>
-                </div>
-              ))}
+            <div className="flex items-center justify-center">
+              <img src="/illustration4.png" alt="Trust and safety" className="w-full h-auto object-contain" style={{ maxHeight: '360px' }} />
             </div>
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Trust & Safety</p>
