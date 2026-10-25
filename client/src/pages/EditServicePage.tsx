@@ -56,7 +56,7 @@ export default function EditServicePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setSaving(true);
     const price = parseFloat(form.price_eur);
-    if (!price || price <= 0) { setError('Please enter a valid price'); setSaving(false); return; }
+    if (!price || price <= 0) { setError('Please enter a valid price greater than 0'); setSaving(false); return; }
     try {
       const body: any = {
         title: form.title,
@@ -69,10 +69,15 @@ export default function EditServicePage() {
         city: (form as any).district ? `${form.city} — ${(form as any).district}` : form.city,
         country: form.country,
       };
-      if (image !== null) body.image = image; // new image uploaded
+      if (image !== null) body.image = image;
       await api.updateService(Number(id), body);
+      toast('Service updated successfully!', 'success');
       navigate(`/services/${id}`);
-    } catch (err: any) { setError(err.message); setSaving(false); }
+    } catch (err: any) {
+      console.error('[EditService] save error:', err);
+      setError(err.message || 'Failed to save. Please try again.');
+      setSaving(false);
+    }
   };
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>

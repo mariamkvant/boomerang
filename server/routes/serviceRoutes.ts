@@ -332,8 +332,13 @@ router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
 
   if (image !== undefined) {
     if (image && image.length > 5_000_000) return res.status(400).json({ error: 'Image too large (max 2MB)' });
-    const imageUrl = image ? await uploadImage(image, 'boomerang/services') : null;
-    await db.run('UPDATE services SET image = ? WHERE id = ?', imageUrl, req.params.id);
+    try {
+      const imageUrl = image ? await uploadImage(image, 'boomerang/services') : null;
+      await db.run('UPDATE services SET image = ? WHERE id = ?', imageUrl, req.params.id);
+    } catch (imgErr: any) {
+      console.error('[EditService] image upload error:', imgErr.message);
+      // Don't block the save if image upload fails — just skip image update
+    }
   }
 
   // If price_eur is being updated, also keep points_cost in sync
