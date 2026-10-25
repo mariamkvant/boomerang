@@ -57,7 +57,7 @@ export default function HomePage() {
       <section
         className="relative overflow-hidden"
         style={{
-          minHeight: '700px',
+          minHeight: '760px',
           marginLeft: 'calc(-50vw + 50%)',
           marginRight: 'calc(-50vw + 50%)',
           width: '100vw',
@@ -66,16 +66,38 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
 
-        {/* Illustration — right 65%, tall enough to show dog walker + all characters */}
-        <img
-          src="/hero-illustration.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute right-0 top-0 bottom-0 h-full"
-          style={{ width: '65%', objectFit: 'contain', objectPosition: 'right center' }}
-        />
+        {/* Illustration collage — right 60%, 3 images showing different services */}
+        <div className="absolute right-0 top-0 bottom-0 flex items-center pr-6" style={{ width: '60%' }}>
+          <div className="w-full h-full flex flex-col gap-3 justify-center py-8">
+            {/* Top row: two smaller illustrations side by side */}
+            <div className="flex gap-3 items-end px-2">
+              <img
+                src="/illustration2.png"
+                alt=""
+                aria-hidden="true"
+                className="flex-1 h-auto object-contain drop-shadow-sm"
+                style={{ maxHeight: '220px' }}
+              />
+              <img
+                src="/illustration3.png"
+                alt=""
+                aria-hidden="true"
+                className="flex-1 h-auto object-contain drop-shadow-sm"
+                style={{ maxHeight: '220px' }}
+              />
+            </div>
+            {/* Bottom: main window illustration — wider, centrepiece */}
+            <img
+              src="/hero-illustration.png"
+              alt=""
+              aria-hidden="true"
+              className="w-full h-auto object-contain drop-shadow-sm"
+              style={{ maxHeight: '320px' }}
+            />
+          </div>
+        </div>
 
-        {/* Gradient: green bg bleeds over the left edge of the illustration */}
+        {/* Gradient: green bleeds over the left edge of the collage */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 32%, rgba(168,213,181,0.88) 40%, rgba(168,213,181,0.15) 52%, transparent 65%)' }} />
 
         {/* Floating service card — compact, natural size */}
