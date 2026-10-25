@@ -56,14 +56,6 @@ export default function HomePage() {
       <section className="relative overflow-hidden">
       {/* Sage green full-width background */}
       <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
-      {/* Illustration — positioned right, contained so full scene is visible */}
-      <img
-        src="/hero-illustration.png"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-contain object-right"
-        style={{ opacity: 0.97 }}
-      />
 
       {/* Floating service request card — top centre */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-[220px] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden sm:block">
@@ -80,17 +72,18 @@ export default function HomePage() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-10 pb-8 md:pt-20 md:pb-16" style={{ minHeight: '540px' }}>
-        <div className="flex flex-col gap-8 md:gap-12">
-          {/* Text on the left — white card */}
-          <div className="max-w-lg bg-white/90 rounded-3xl px-7 py-8 md:px-10 md:py-10 shadow-lg" style={{ backdropFilter: 'none' }}>
+        <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-0">
+
+          {/* Text card — left side */}
+          <div className="flex-shrink-0 md:w-[440px] bg-white/90 rounded-3xl px-7 py-8 shadow-lg" style={{ backdropFilter: 'none' }}>
             <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
               Now live in Europe & Georgia
             </div>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-5 tracking-tight">
+            <h1 className="text-3xl md:text-5xl font-extrabold leading-[1.05] text-gray-900 mb-5 tracking-tight">
               {t('hero.headline')}<br />
               <span className="text-primary-500">{t('hero.headline2')}</span>
             </h1>
-            <p className="text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
+            <p className="text-base text-gray-600 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
 
             {/* Category pills */}
             <div className="flex flex-wrap gap-2 mb-7">
@@ -103,7 +96,7 @@ export default function HomePage() {
                 { emoji: '✨', label: '+ more' },
               ].map((s, i) => (
                 <Link key={i} to="/browse"
-                  className="inline-flex items-center gap-1.5 bg-white/90 border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
+                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
                   {s.emoji} {s.label}
                 </Link>
               ))}
@@ -128,20 +121,32 @@ export default function HomePage() {
               </div>
             )}
           </div>
+
+          {/* Illustration — right side, full height */}
+          <div className="flex-1 flex items-end justify-center md:justify-end self-end">
+            <img
+              src="/hero-illustration.png"
+              alt="Neighbours helping each other"
+              className="w-full h-auto object-contain object-bottom"
+              style={{ maxWidth: '580px', maxHeight: '480px' }}
+            />
+          </div>
+
         </div>
       </div>
-        {stats && stats.total_users > 5 && (
-          <div className="relative z-10 border-t border-white/30">
-            <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
-              {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
-                <div key={i}>
-                  <div className="text-xl md:text-3xl font-bold text-[#1a4731]">{val}+</div>
-                  <div className="text-xs md:text-sm text-[#2d6a4f] mt-0.5">{label}</div>
-                </div>
-              ))}
-            </div>
+
+      {stats && stats.total_users > 5 && (
+        <div className="relative z-10 border-t border-white/30">
+          <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
+            {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
+              <div key={i}>
+                <div className="text-xl md:text-3xl font-bold text-[#1a4731]">{val}+</div>
+                <div className="text-xs md:text-sm text-[#2d6a4f] mt-0.5">{label}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
       </section>
 
 
