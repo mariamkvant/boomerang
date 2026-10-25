@@ -60,18 +60,18 @@ export default function HomePage() {
         {/* Subtle grid pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f07028 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         
-        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+        <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-16 md:pt-28 md:pb-32">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12">
             <div className="max-w-xl flex-1">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
                 Now live in Europe & Georgia
               </div>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-gray-900 dark:text-white mb-6 tracking-tight">
                 {t('hero.headline')}<br />
                 <span className="text-primary-500">{t('hero.headline2')}</span>
               </h1>
-              <p className="text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-lg">{t('hero.subtitle')}</p>
+              <p className="text-base md:text-xl text-gray-500 dark:text-gray-400 leading-relaxed mb-6 max-w-lg">{t('hero.subtitle')}</p>
 
               {/* Sample listings — the 5 core categories */}
               <div className="flex flex-wrap gap-2 mb-8">
@@ -116,7 +116,7 @@ export default function HomePage() {
           <div className="relative border-t border-gray-200/50 dark:border-gray-800">
             <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
-                <div key={i}><div className="text-3xl font-bold text-gray-900 dark:text-white">{val}+</div><div className="text-sm text-gray-500 mt-0.5">{label}</div></div>
+                <div key={i}><div className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{val}+</div><div className="text-xs md:text-sm text-gray-500 mt-0.5">{label}</div></div>
               ))}
             </div>
           </div>
@@ -129,8 +129,8 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
         <div className="mb-12">
           <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
-          <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
-          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg">{t('home.forYouDesc')}</p>
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
+          <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg">{t('home.forYouDesc')}</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
@@ -153,8 +153,8 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
-              <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
+              <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
+              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
             </div>
             <div className="space-y-6">
               {[
@@ -179,8 +179,8 @@ export default function HomePage() {
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Categories</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.catTitle')}</h2>
-            <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.catDesc')}</p>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.catTitle')}</h2>
+            <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.catDesc')}</p>
             <Link to="/browse" className="inline-flex items-center gap-2 text-gray-900 dark:text-white font-semibold hover:text-primary-600 transition-colors">
               {t('home.browseAll')}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
@@ -214,8 +214,8 @@ export default function HomePage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Trust & Safety</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.trustTitle')}</h2>
-              <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.trustDesc')}</p>
+              <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.trustTitle')}</h2>
+              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.trustDesc')}</p>
             </div>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
         <div className="text-center mb-12">
           <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Community</p>
-          <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -330,11 +330,11 @@ export default function HomePage() {
 
       <section className="bg-[#f8f7f5] dark:bg-[#111111]">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28 text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.communityTitle')}</h2>
-          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-10">{t('home.communityDesc')}</p>
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.communityTitle')}</h2>
+          <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-10">{t('home.communityDesc')}</p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/groups" className="bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-full text-lg font-semibold hover:bg-[#111827] dark:hover:bg-gray-100 transition-all">{t('home.exploreCommunities')}</Link>
-            <Link to="/people" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">{t('home.findPeople')}</Link>
+            <Link to="/groups" className="bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-6 py-3.5 md:px-8 md:py-4 rounded-full text-sm md:text-lg font-semibold hover:bg-[#111827] dark:hover:bg-gray-100 transition-all">{t('home.exploreCommunities')}</Link>
+            <Link to="/people" className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 px-6 py-3.5 md:px-8 md:py-4 rounded-full text-sm md:text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">{t('home.findPeople')}</Link>
           </div>
         </div>
       </section>
@@ -343,8 +343,8 @@ export default function HomePage() {
         <section className="border-t border-gray-100 dark:border-gray-800">
           <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center">
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-4">Get started</p>
-            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">{t('cta.title')}</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-6">{t('cta.title')}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg mb-10 max-w-md mx-auto">{t('cta.subtitle')}</p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link to="/register" className="inline-block bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-10 py-4 rounded-2xl text-lg font-bold hover:bg-[#111827] transition-all">{t('cta.button')}</Link>
               <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"

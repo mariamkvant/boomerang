@@ -16,7 +16,7 @@ const steps = [
   },
   {
     title: 'Pay securely, get paid fast',
-    desc: 'Stripe holds payment when a service is requested — released to the provider after delivery is confirmed.',
+    desc: 'Stripe holds payment when a service is requested ï¿½ released to the provider after delivery is confirmed.',
     visual: 'exchange',
     color: 'from-green-400 to-emerald-400',
   },
@@ -154,7 +154,7 @@ export default function AnimatedExplainer() {
     <section className="bg-white dark:bg-[#111b21]">
       <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-3">See how it works</h2>
+          <h2 className="text-xl md:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-3">See how it works</h2>
           <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">Four simple steps to start exchanging skills, services, and items with your community.</p>
         </div>
 
