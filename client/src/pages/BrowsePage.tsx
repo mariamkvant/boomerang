@@ -866,9 +866,9 @@ export default function BrowsePage() {
 
       {/* ── SELLER PROFILE SHEET ── */}
       {sellerSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => { setSellerSheet(null); setSelectedProviderId(null); }}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setSellerSheet(null); setSelectedProviderId(null); }} />
+          <div className="relative bg-white dark:bg-[#1c1c1c] rounded-t-2xl w-full max-w-lg shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto z-10">
 
             {/* Header bar with close button — always visible */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-[#1c1c1c] z-10">
