@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useInstall } from '../components/InstallPrompt';
 import { t } from '../i18n';
-import CommunityAnimation from '../components/CommunityAnimation';
+import CommunityIllustration from '../components/CommunityIllustration';
 
 function tc(name: string): string {
   const key = 'cat.' + name;
@@ -110,9 +110,9 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Hero animation — community/neighbourhood scene */}
+            {/* Hero illustration */}
             <div className="flex-shrink-0 w-full md:w-[420px]">
-              <CommunityAnimation height={320} />
+              <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '320px' }} />
             </div>
           </div>
         </div>
@@ -127,7 +127,9 @@ export default function HomePage() {
         )}
       </section>
 
-      <CommunityAnimation height={280} className="max-w-6xl mx-auto px-4 md:px-6 mb-4" />
+      <div className="max-w-6xl mx-auto px-4 md:px-6 mb-4">
+        <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '260px' }} />
+      </div>
 
       {/* "For you" section — numbered cards with accent colors */}
       <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
@@ -159,7 +161,7 @@ export default function HomePage() {
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
               <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
               <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
-              <CommunityAnimation height={220} />
+              <CommunityIllustration className="w-full rounded-2xl" style={{ maxHeight: '220px' }} />
             </div>
             <div className="space-y-6">
               {[

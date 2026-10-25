@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 
-import CommunityAnimation from '../components/CommunityAnimation';
+import CommunityIllustration from '../components/CommunityIllustration';
 
 // Login page
 export default function LoginPage() {
@@ -33,8 +33,8 @@ export default function LoginPage() {
           </div>
           <span className="text-white text-2xl font-light tracking-widest" style={{ fontFamily: 'Outfit, sans-serif' }}>boomerang</span>
         </div>
-        {/* Animation */}
-        <CommunityAnimation height={200} className="w-full max-w-[280px] mx-auto" />
+        {/* Illustration */}
+        <CommunityIllustration className="w-full max-w-[300px] mx-auto" />
       </div>
 
       {/* ── White card bottom ── */}

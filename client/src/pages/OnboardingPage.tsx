@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-import CommunityAnimation from '../components/CommunityAnimation';
+import CommunityIllustration from '../components/CommunityIllustration';
 
 const SKILL_OPTIONS = [
   { icon: '🌱', label: 'Gardening' },
@@ -59,8 +59,8 @@ function StepHeader({ step, title, subtitle }: { step: number; title: string; su
       </div>
       <h2 className="text-xl font-bold text-white mb-1 px-0">{title}</h2>
       <p className="text-white/70 text-xs leading-relaxed mb-4">{subtitle}</p>
-      {/* Community animation strip */}
-      <CommunityAnimation height={130} className="w-full -mx-0" />
+      {/* Illustration strip */}
+      <CommunityIllustration className="w-full" style={{ maxHeight: '130px' }} />
     </div>
   );
 }
