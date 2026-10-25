@@ -94,6 +94,22 @@ function PostRequestSheet({ onClose, onPosted, categories }: {
         </div>
 
         <form onSubmit={handleSubmit} className="px-4 pt-4 space-y-4">
+          {/* Category — first */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
+            <select
+              value={categoryId}
+              onChange={e => setCategoryId(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white"
+              required
+            >
+              <option value="">Select a category</option>
+              {categories.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">What do you need? <span className="text-red-500">*</span></label>
@@ -119,22 +135,6 @@ function PostRequestSheet({ onClose, onPosted, categories }: {
               className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white resize-none"
               required
             />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
-            <select
-              value={categoryId}
-              onChange={e => setCategoryId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white"
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map((c: any) => (
-                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-              ))}
-            </select>
           </div>
 
           {/* Budget */}

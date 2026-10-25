@@ -320,6 +320,19 @@ export default function CreateServicePage() {
         )}
 
         <form onSubmit={handleReqSubmit} className="bg-white dark:bg-[#202c33] p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+          {/* Category — first, matches offer form */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
+            <select value={reqCategoryId} onChange={e => setReqCategoryId(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
+              required>
+              <option value="">Select a category</option>
+              {categories.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">What do you need? <span className="text-red-500">*</span></label>
@@ -338,19 +351,6 @@ export default function CreateServicePage() {
               rows={4}
               className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white resize-none"
               required />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category <span className="text-red-500">*</span></label>
-            <select value={reqCategoryId} onChange={e => setReqCategoryId(e.target.value)}
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none dark:bg-[#2a3942] dark:text-white"
-              required>
-              <option value="">Select a category</option>
-              {categories.map((c: any) => (
-                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-              ))}
-            </select>
           </div>
 
           {/* Location — defaults to profile address */}
