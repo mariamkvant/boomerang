@@ -179,7 +179,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center justify-center">
-            <img src="/illustration3.png" alt="Community illustration" className="w-full h-auto object-contain" style={{ maxHeight: '420px' }} />
+            <img src="/illustration3.png" alt="Community illustration" className="w-full h-auto object-contain" />
           </div>
         </div>
         </div>
@@ -210,7 +210,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center justify-center">
-              <img src="/illustration2.png" alt="How it works" className="w-full h-auto object-contain" style={{ maxHeight: '420px' }} />
+              <img src="/illustration2.png" alt="How it works" className="w-full h-auto object-contain" />
             </div>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="flex items-center justify-center">
-              <img src="/illustration4.png" alt="Neighbours sharing" className="w-full h-auto object-contain" style={{ maxHeight: '400px' }} />
+              <img src="/illustration4.png" alt="Neighbours sharing" className="w-full h-auto object-contain" />
             </div>
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Trust & Safety</p>
