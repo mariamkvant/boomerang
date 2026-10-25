@@ -119,61 +119,49 @@ export default function HomePage() {
       {/* ── FOR YOU ── */}
       <section className="py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
+          <div className="mb-10">
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
             <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
-            <p className="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.forYouDesc')}</p>
-            <div className="space-y-4">
-              {[
-                { title: t('home.persona1'), desc: t('home.persona1Desc'), n: '01' },
-                { title: t('home.persona2'), desc: t('home.persona2Desc'), n: '02' },
-                { title: t('home.persona3'), desc: t('home.persona3Desc'), n: '03' },
-              ].map((p, i) => (
-                <div key={i} className="flex gap-4 items-start bg-gray-50 dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 p-5 rounded-2xl">
-                  <span className="text-xs font-bold text-gray-300 dark:text-gray-600 tracking-widest mt-0.5 shrink-0">{p.n}</span>
-                  <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{p.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-base text-gray-500 dark:text-gray-400 max-w-lg">{t('home.forYouDesc')}</p>
           </div>
-        </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: t('home.persona1'), desc: t('home.persona1Desc'), n: '01' },
+              { title: t('home.persona2'), desc: t('home.persona2Desc'), n: '02' },
+              { title: t('home.persona3'), desc: t('home.persona3Desc'), n: '03' },
+            ].map((p, i) => (
+              <div key={i} className="bg-gray-50 dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 p-6 rounded-2xl">
+                <span className="text-xs font-bold text-gray-300 dark:text-gray-600 tracking-widest">{p.n}</span>
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg mt-3 mb-2">{p.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── illustration2 on the right */}
-      <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
-        <div className="max-w-6xl mx-auto px-4 md:px-4 md:px-6 py-16 md:py-24">
+      {/* ── HOW IT WORKS ── */}
+      <section className="border-t border-gray-100 dark:border-gray-800 bg-[#f8f7f5] dark:bg-[#111111]">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
               <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
-              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
-              <div className="space-y-5">
-                {[
-                  { n: '1', title: t('home.step1'), desc: t('home.step1Desc') },
-                  { n: '2', title: t('home.step2'), desc: t('home.step2Desc') },
-                  { n: '3', title: t('home.step3'), desc: t('home.step3Desc') },
-                ].map(s => (
-                  <div key={s.n} className="flex gap-4 items-start">
-                    <div className="w-8 h-8 rounded-full border-2 border-primary-200 dark:border-primary-800 text-primary-500 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">{s.n}</div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{s.title}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {categories.slice(0, 8).map((c: any) => (
-                <Link key={c.id} to={`/browse?category=${c.id}`}
-                  className="bg-white dark:bg-[#1e1b18] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-primary-300 hover:bg-primary-50/30 group transition-all">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">{tc(c.name)}</span>
-                </Link>
+            <div className="space-y-6">
+              {[
+                { n: '1', title: t('home.step1'), desc: t('home.step1Desc') },
+                { n: '2', title: t('home.step2'), desc: t('home.step2Desc') },
+                { n: '3', title: t('home.step3'), desc: t('home.step3Desc') },
+              ].map(s => (
+                <div key={s.n} className="flex gap-4 items-start">
+                  <div className="w-8 h-8 rounded-full border-2 border-primary-200 dark:border-primary-800 text-primary-500 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">{s.n}</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{s.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -202,8 +190,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── TRUST ── illustration4 on left */}
-      <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
+      {/* ── TRUST ── */}
+      <section className="border-t border-gray-100 dark:border-gray-800 bg-[#f8f7f5] dark:bg-[#111111]">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="grid grid-cols-2 gap-3">
