@@ -229,7 +229,11 @@ export default function ServiceDetailPage() {
             return;
           }
         }
-        const intentRes: any = await api.createServiceIntent(res.id);
+        const intentRes: any = await api.createServiceIntent(res.id).catch(async (err: any) => {
+          // Payment setup failed — cancel the dangling request so it doesn't sit unpaid
+          await api.cancelRequest(res.id).catch(() => {});
+          throw err;
+        });
 
         // Populate saved card info for UI
         if (intentRes.has_saved_card) {

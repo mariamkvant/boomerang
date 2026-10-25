@@ -175,6 +175,14 @@ router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Respons
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'accepted') return res.status(400).json({ error: 'Request must be accepted first' });
+
+  // Block delivery if payment was required but never taken
+  if (r.amount_eur && parseFloat(r.amount_eur) > 0 && !r.stripe_payment_intent_id && r.payment_status !== 'free') {
+    return res.status(402).json({
+      error: 'payment_required',
+      message: 'Payment has not been collected for this service. The requester must complete payment before delivery can be confirmed.',
+    });
+  }
   await db.run(
     "UPDATE service_requests SET status = 'delivered', delivery_note = ?, delivered_at = NOW() WHERE id = ?",
     delivery_note || null, req.params.id,
@@ -198,6 +206,14 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
   if (r.status !== 'delivered') return res.status(400).json({ error: 'Service must be marked as delivered first' });
 
   const priceEur = r.amount_eur ? parseFloat(r.amount_eur) : null;
+
+  // Block confirmation if paid service has no payment intent — payment was never taken
+  if (priceEur && priceEur > 0 && !r.stripe_payment_intent_id && r.payment_status !== 'free') {
+    return res.status(402).json({
+      error: 'payment_required',
+      message: 'Payment was not collected for this service. Please contact support.',
+    });
+  }
 
   try {
     if (priceEur && r.stripe_payment_intent_id) {
