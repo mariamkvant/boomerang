@@ -66,51 +66,29 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#b5c99a' }} />
 
-        {/* Right side: 3 illustration panels in a grid — each with its own brick background */}
+        {/* Right side: 3 illustrations in a grid, no backgrounds */}
         <div className="absolute right-0 top-0 bottom-0 flex items-center" style={{ width: '55%', paddingRight: '2%', paddingTop: '16px', paddingBottom: '16px' }}>
           <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-3">
 
             {/* Top-left: dog walker */}
-            <div className="relative rounded-2xl overflow-hidden flex items-end justify-center" style={{ background: '#c8d8a8' }}>
-              {/* Brick pattern */}
-              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                {Array.from({ length: 8 }).map((_, row) =>
-                  Array.from({ length: 5 }).map((_, col) => (
-                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
-                  ))
-                )}
-              </svg>
-              <img src="/illustration3.png" alt="Dog walking service" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '190px' }} />
+            <div className="flex items-end justify-center">
+              <img src="/illustration3.png" alt="Dog walking service" className="w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
             </div>
 
-            {/* Top-right: cup/neighbours passing */}
-            <div className="relative rounded-2xl overflow-hidden flex items-end justify-center" style={{ background: '#c8d8a8' }}>
-              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                {Array.from({ length: 8 }).map((_, row) =>
-                  Array.from({ length: 5 }).map((_, col) => (
-                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
-                  ))
-                )}
-              </svg>
-              <img src="/illustration2.png" alt="Neighbours helping" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '190px' }} />
+            {/* Top-right: neighbours passing */}
+            <div className="flex items-end justify-center">
+              <img src="/illustration2.png" alt="Neighbours helping" className="w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
             </div>
 
-            {/* Bottom: main plant exchange scene — spans full width */}
-            <div className="relative rounded-2xl overflow-hidden col-span-2 flex items-end justify-center" style={{ background: '#c8d8a8' }}>
-              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                {Array.from({ length: 8 }).map((_, row) =>
-                  Array.from({ length: 10 }).map((_, col) => (
-                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
-                  ))
-                )}
-              </svg>
-              <img src="/hero-illustration.png" alt="Community neighbours" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
+            {/* Bottom: main plant exchange — spans full width */}
+            <div className="col-span-2 flex items-end justify-center">
+              <img src="/hero-illustration.png" alt="Community neighbours" className="w-full h-auto object-contain" style={{ maxHeight: '300px' }} />
             </div>
 
           </div>
         </div>
 
-        {/* Gradient: left text area blends into right panel area */}
+        {/* Gradient fade from text area into illustration area */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, #b5c99a 40%, rgba(181,201,154,0.6) 45%, transparent 50%)' }} />
 
         {/* Text — left half, aligned to same grid as rest of page */}
