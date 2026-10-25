@@ -267,6 +267,8 @@ export default function ServiceDetailPage() {
         const { error, paymentIntent } = confirmResult;
         if (error) {
           setPaymentError(error.message || 'Card declined. Please try another card.');
+          // Cancel the dangling request so provider inbox stays clean
+          await api.cancelRequest(res.id).catch(() => {});
           setRequesting(false);
           return;
         }

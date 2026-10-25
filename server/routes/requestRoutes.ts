@@ -214,6 +214,13 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
       message: 'Payment was not collected for this service. Please contact support.',
     });
   }
+  // Also block if paid service was somehow marked free — shouldn't be possible but guard it
+  if (priceEur && priceEur > 0 && r.payment_status === 'free') {
+    return res.status(402).json({
+      error: 'payment_required',
+      message: 'This service has a price but no payment was collected. Please contact support.',
+    });
+  }
 
   try {
     if (priceEur && r.stripe_payment_intent_id) {
@@ -226,6 +233,10 @@ router.put('/:id/confirm', authMiddleware, async (req: AuthRequest, res: Respons
 
       if (intent.status === 'requires_capture') {
         await stripe.paymentIntents.capture(r.stripe_payment_intent_id);
+        // Attach card to customer for saved-card reuse on future bookings
+        if (intent.payment_method && intent.customer) {
+          try { await stripe.paymentMethods.attach(intent.payment_method as string, { customer: intent.customer as string }); } catch {}
+        }
       } else if (!['succeeded', 'processing'].includes(intent.status)) {
         return res.status(400).json({ error: `Payment cannot be captured (status: ${intent.status})` });
       }
@@ -399,10 +410,13 @@ router.put('/:id/cancel', authMiddleware, async (req: AuthRequest, res: Response
   if (r.status === 'completed') return res.status(400).json({ error: 'Cannot cancel a completed request' });
 
   // Refund any held Stripe payment
-  if (r.stripe_payment_intent_id && r.payment_status === 'pending') {
+  if (r.stripe_payment_intent_id && ['pending', 'authorized'].includes(r.payment_status || '')) {
     try {
       const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-      await stripe.paymentIntents.cancel(r.stripe_payment_intent_id);
+      const intent = await stripe.paymentIntents.retrieve(r.stripe_payment_intent_id);
+      if (['requires_capture', 'requires_payment_method', 'requires_confirmation', 'requires_action'].includes(intent.status)) {
+        await stripe.paymentIntents.cancel(r.stripe_payment_intent_id);
+      }
     } catch {}
   }
   await db.run("UPDATE service_requests SET status = 'cancelled', payment_status = CASE WHEN payment_status = 'pending' THEN 'refunded' ELSE payment_status END WHERE id = ?", req.params.id);

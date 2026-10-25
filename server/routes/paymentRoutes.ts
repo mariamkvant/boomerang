@@ -197,8 +197,8 @@ router.post('/connect/dashboard-link', authMiddleware, async (req: AuthRequest, 
  * Creates a PaymentIntent with capture_method:'manual' (card is authorised but
  * money is NOT moved yet — just held like Vinted).
  * Uses transfer_data so when we later capture, Stripe automatically splits:
- *   - 90% → provider's Connect account
- *   - 10% → platform (application_fee_amount)
+ *   - 80% → provider's Connect account
+ *   - 20% → platform (application_fee_amount)
  * Returns client_secret for the client to complete card entry via Stripe.js.
  */
 router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, res: Response) => {
