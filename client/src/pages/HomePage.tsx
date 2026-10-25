@@ -53,22 +53,33 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
-      {/* ── HERO ── Full-width sage green with illustration as background */}
-      <section className="relative overflow-hidden" style={{ minHeight: '520px' }}>
-        {/* Background: sage green + illustration covering the full section */}
+      {/* ── HERO ── True full-viewport-width — breaks out of max-w-6xl container */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          minHeight: '560px',
+          marginLeft: 'calc(-50vw + 50%)',
+          marginRight: 'calc(-50vw + 50%)',
+          width: '100vw',
+        }}
+      >
+        {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
+
+        {/* Illustration pinned to the RIGHT half — never overlaps text */}
         <img
           src="/hero-illustration.png"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: 'cover', objectPosition: 'center bottom', opacity: 1 }}
+          className="absolute top-0 bottom-0 right-0 h-full"
+          style={{ width: '58%', objectFit: 'cover', objectPosition: 'left center' }}
         />
-        {/* Soft gradient on the left so text card blends with background */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(168,213,181,0.85) 0%, rgba(168,213,181,0.6) 45%, transparent 75%)' }} />
 
-        {/* Floating service request card — top centre-right */}
-        <div className="absolute top-5 left-1/2 z-20 w-[200px] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block">
+        {/* Gradient fade: illustration fades into green from right-to-left at 42% */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 38%, rgba(168,213,181,0.95) 44%, rgba(168,213,181,0.4) 56%, transparent 70%)' }} />
+
+        {/* Floating service card — over illustration, top-right of centre */}
+        <div className="absolute z-20 bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block" style={{ top: '16px', left: '48%', width: '200px' }}>
           <div className="flex items-center gap-2 mb-1.5">
             <div className="w-6 h-6 rounded-full bg-[#e8d5c4] flex items-center justify-center text-xs font-bold text-[#8B5E3C]">T</div>
             <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
@@ -79,64 +90,61 @@ export default function HomePage() {
           <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 flex items-center" style={{ minHeight: '520px' }}>
-          {/* Text card — left, no background on desktop (gradient handles it), white on mobile */}
-          <div className="w-full md:max-w-[460px] bg-white/85 md:bg-transparent rounded-3xl px-6 py-8 md:px-0 md:py-0 shadow-lg md:shadow-none">
-            <div className="inline-flex items-center gap-2 bg-white/70 md:bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-              Now live in Europe & Georgia
-            </div>
-            <h1 className="text-3xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.05] text-gray-900 mb-5 tracking-tight">
-              {t('hero.headline')}<br />
-              <span className="text-primary-500">{t('hero.headline2')}</span>
-            </h1>
-            <p className="text-base text-gray-700 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
-
-            <div className="flex flex-wrap gap-2 mb-7">
-              {[
-                { emoji: '🌿', label: 'Plants & Pet Care' },
-                { emoji: '👶', label: 'Childcare' },
-                { emoji: '🚗', label: 'Transportation' },
-                { emoji: '📦', label: 'Item Rental' },
-                { emoji: '🚚', label: 'Courier Services' },
-                { emoji: '✨', label: '+ more' },
-              ].map((s, i) => (
-                <Link key={i} to="/browse"
-                  className="inline-flex items-center gap-1.5 bg-white/90 border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
-                  {s.emoji} {s.label}
-                </Link>
-              ))}
-            </div>
-
-            {user ? (
-              <div className="flex flex-wrap gap-3">
-                <Link to="/browse" className="bg-[#1a4731] text-white px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#143828] transition-all">{t('hero.browseBtn')}</Link>
-                <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
-              </div>
-            ) : (
-              <div>
-                <div className="flex flex-wrap gap-3 mb-3">
-                  <Link to="/register" className="bg-[#1a4731] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#143828] transition-all">{t('hero.cta')}</Link>
-                  <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                    App Store
-                  </a>
-                </div>
-                <p className="text-xs text-gray-600">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
-              </div>
-            )}
+        {/* Text — strictly left 45%, no overlap */}
+        <div className="relative z-10 flex flex-col justify-center px-6 md:px-16 py-16" style={{ maxWidth: '48%', minHeight: '560px' }}>
+          <div className="inline-flex items-center gap-2 bg-white/70 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 w-fit">
+            Now live in Europe & Georgia
           </div>
+          <h1 className="text-3xl md:text-[42px] lg:text-[52px] font-extrabold leading-[1.05] text-gray-900 mb-5 tracking-tight">
+            {t('hero.headline')}<br />
+            <span className="text-primary-500">{t('hero.headline2')}</span>
+          </h1>
+          <p className="text-base text-gray-700 leading-relaxed mb-6" style={{ maxWidth: '420px' }}>{t('hero.subtitle')}</p>
+
+          <div className="flex flex-wrap gap-2 mb-7">
+            {[
+              { emoji: '🌿', label: 'Plants & Pet Care' },
+              { emoji: '👶', label: 'Childcare' },
+              { emoji: '🚗', label: 'Transportation' },
+              { emoji: '📦', label: 'Item Rental' },
+              { emoji: '🚚', label: 'Courier Services' },
+              { emoji: '✨', label: '+ more' },
+            ].map((s, i) => (
+              <Link key={i} to="/browse"
+                className="inline-flex items-center gap-1.5 bg-white/90 border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
+                {s.emoji} {s.label}
+              </Link>
+            ))}
+          </div>
+
+          {user ? (
+            <div className="flex flex-wrap gap-3">
+              <Link to="/browse" className="bg-[#1a4731] text-white px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-[#143828] transition-all">{t('hero.browseBtn')}</Link>
+              <Link to="/services/new" className="bg-white text-gray-700 border border-gray-200 px-7 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">{t('hero.offerBtn')}</Link>
+            </div>
+          ) : (
+            <div>
+              <div className="flex flex-wrap gap-3 mb-3">
+                <Link to="/register" className="bg-[#1a4731] text-white px-7 py-3.5 rounded-xl text-sm font-bold hover:bg-[#143828] transition-all">{t('hero.cta')}</Link>
+                <a href="https://apps.apple.com/app/boomerang-skill-exchange/id6761754319" target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                  App Store
+                </a>
+              </div>
+              <p className="text-xs text-gray-600">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
+            </div>
+          )}
         </div>
 
-        {/* Stats bar at the bottom of hero */}
+        {/* Stats bar pinned to bottom */}
         {stats && stats.total_users > 5 && (
-          <div className="relative z-10 border-t border-white/40" style={{ background: 'rgba(168,213,181,0.5)' }}>
-            <div className="max-w-6xl mx-auto px-6 py-5 flex justify-start gap-10">
+          <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/30" style={{ background: 'rgba(168,213,181,0.7)' }}>
+            <div className="px-6 md:px-16 py-4 flex gap-10">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}>
-                  <div className="text-xl md:text-2xl font-bold text-[#1a4731]">{val}+</div>
-                  <div className="text-xs text-[#2d6a4f] mt-0.5">{label}</div>
+                  <div className="text-lg md:text-2xl font-bold text-[#1a4731]">{val}+</div>
+                  <div className="text-xs text-[#2d6a4f]">{label}</div>
                 </div>
               ))}
             </div>
