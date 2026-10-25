@@ -3,45 +3,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 
-// Inline SVG illustration — two neighbours through windows (community scene)
-function HeroIllustration() {
+// Lottie animation for the hero — community/neighbourhood scene
+// Uses lottie-player web component loaded via CDN in index.html
+function HeroAnimation() {
   return (
-    <svg viewBox="0 0 320 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-xs mx-auto">
-      {/* Left window */}
-      <rect x="30" y="40" width="72" height="80" rx="6" fill="white" fillOpacity="0.25" />
-      <rect x="38" y="48" width="56" height="40" rx="4" fill="white" fillOpacity="0.5" />
-      {/* Person left — simple silhouette */}
-      <circle cx="66" cy="58" r="10" fill="#f97316" />
-      <rect x="54" y="70" width="24" height="20" rx="6" fill="#f97316" />
-      {/* Plant left */}
-      <circle cx="36" cy="52" r="8" fill="#4a9b6f" fillOpacity="0.7" />
-      <rect x="39" y="56" width="4" height="14" rx="2" fill="#2d6a4f" />
-      {/* Right window */}
-      <rect x="218" y="50" width="72" height="70" rx="6" fill="white" fillOpacity="0.25" />
-      <rect x="226" y="58" width="56" height="36" rx="4" fill="white" fillOpacity="0.5" />
-      {/* Person right */}
-      <circle cx="254" cy="67" r="9" fill="#f59e0b" />
-      <rect x="243" y="78" width="22" height="18" rx="5" fill="#d97706" />
-      {/* Plant right */}
-      <circle cx="280" cy="60" r="7" fill="#4a9b6f" fillOpacity="0.6" />
-      <rect x="283" y="64" width="3" height="12" rx="1.5" fill="#2d6a4f" />
-      {/* Floating service card */}
-      <rect x="100" y="30" width="120" height="52" rx="10" fill="white" fillOpacity="0.9" />
-      <circle cx="116" cy="48" r="10" fill="#e2e8f0" />
-      <circle cx="116" cy="45" r="5" fill="#f97316" />
-      <rect x="132" y="38" width="60" height="7" rx="3.5" fill="#e2e8f0" />
-      <rect x="132" y="50" width="40" height="5" rx="2.5" fill="#e2e8f0" />
-      <rect x="107" y="63" width="40" height="13" rx="6.5" fill="#1a4731" />
-      <rect x="115" y="67.5" width="24" height="4" rx="2" fill="white" fillOpacity="0.8" />
-      {/* Dog walker at bottom */}
-      <circle cx="170" cy="130" r="8" fill="#f97316" />
-      <rect x="162" y="140" width="16" height="16" rx="5" fill="#f59e0b" />
-      <circle cx="192" cy="146" r="6" fill="#92400e" />
-      <line x1="178" y1="148" x2="186" y2="146" stroke="#92400e" strokeWidth="2" strokeLinecap="round" />
-      {/* Tree */}
-      <circle cx="145" cy="125" r="16" fill="#4a9b6f" fillOpacity="0.5" />
-      <rect x="142" y="138" width="6" height="16" rx="3" fill="#2d6a4f" fillOpacity="0.6" />
-    </svg>
+    <div className="w-full max-w-[260px] mx-auto">
+      {/* @ts-ignore — lottie-player is a web component loaded via CDN */}
+      <lottie-player
+        src="https://assets5.lottiefiles.com/packages/lf20_qp1spd72.json"
+        background="transparent"
+        speed="1"
+        loop
+        autoplay
+        style={{ width: '100%', height: '200px' }}
+      />
+    </div>
   );
 }
 
@@ -72,8 +48,8 @@ export default function LoginPage() {
           </div>
           <span className="text-white text-2xl font-light tracking-widest" style={{ fontFamily: 'Outfit, sans-serif' }}>boomerang</span>
         </div>
-        {/* Illustration */}
-        <HeroIllustration />
+        {/* Animation */}
+        <HeroAnimation />
       </div>
 
       {/* ── White card bottom ── */}

@@ -37,27 +37,52 @@ const NEED_OPTIONS = [
   { icon: '🍳', label: 'Home-cooked meals' },
 ];
 
+// Lottie animation URLs per step — community/neighbourhood themed
+const STEP_ANIMATIONS: Record<number, string> = {
+  1: 'https://assets9.lottiefiles.com/packages/lf20_GofK09iPAX.json',   // location/map pin
+  2: 'https://assets4.lottiefiles.com/packages/lf20_qdas3yqm.json',     // people/community
+  3: 'https://assets9.lottiefiles.com/packages/lf20_jcikwtux.json',     // handshake/help
+  4: 'https://assets5.lottiefiles.com/packages/lf20_qp1spd72.json',     // celebration/done
+};
+
 // Green header bar shared by all steps
 function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
   const totalSteps = 4;
+  const animUrl = STEP_ANIMATIONS[step];
   return (
-    <div className="flex-shrink-0 px-6 pt-10 pb-6" style={{ background: '#4a9b6f' }}>
+    <div className="flex-shrink-0 px-6 pt-8 pb-5" style={{ background: '#4a9b6f' }}>
       {/* Back + logo row */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
           <img src="/logo.svg" alt="" className="w-5 h-5" />
         </div>
         <span className="text-white/80 text-xs font-medium tracking-wider uppercase">Boomerang</span>
         <div className="ml-auto text-white/60 text-xs">{step}/{totalSteps}</div>
       </div>
-      {/* Progress dots */}
-      <div className="flex gap-1.5 mb-5">
+      {/* Progress bar */}
+      <div className="flex gap-1.5 mb-4">
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div key={i} className={`h-1.5 rounded-full transition-all ${i < step ? 'bg-white flex-1' : i === step - 1 ? 'bg-white flex-[2]' : 'bg-white/30 flex-1'}`} />
         ))}
       </div>
-      <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
-      <p className="text-white/70 text-sm leading-relaxed">{subtitle}</p>
+      {/* Animation + text side by side */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-white mb-1">{title}</h2>
+          <p className="text-white/70 text-xs leading-relaxed">{subtitle}</p>
+        </div>
+        <div className="shrink-0 w-24 h-24">
+          {/* @ts-ignore — lottie-player web component */}
+          <lottie-player
+            src={animUrl}
+            background="transparent"
+            speed="1"
+            loop
+            autoplay
+            style={{ width: '96px', height: '96px' }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

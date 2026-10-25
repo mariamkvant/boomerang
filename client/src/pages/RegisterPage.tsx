@@ -44,6 +44,18 @@ export default function RegisterPage() {
         </div>
         <h1 className="text-3xl font-bold text-white mb-1">Register</h1>
         <p className="text-white/70 text-sm text-center max-w-xs">Join your neighbourhood marketplace and start offering or finding services nearby</p>
+        {/* Animation */}
+        <div className="w-full max-w-[180px] mx-auto mt-2">
+          {/* @ts-ignore */}
+          <lottie-player
+            src="https://assets3.lottiefiles.com/packages/lf20_khzniaya.json"
+            background="transparent"
+            speed="1"
+            loop
+            autoplay
+            style={{ width: '100%', height: '130px' }}
+          />
+        </div>
       </div>
 
       {/* ── White card ── */}
