@@ -64,7 +64,7 @@ export default function HomePage() {
         }}
       >
         {/* Sage green background */}
-        <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
+        <div className="absolute inset-0" style={{ background: '#b5c99a' }} />
 
         {/* Illustration collage — right 60%, 3 images showing different services */}
         <div className="absolute right-0 top-0 bottom-0 flex items-center pr-6" style={{ width: '60%' }}>
@@ -98,7 +98,7 @@ export default function HomePage() {
         </div>
 
         {/* Gradient: green bleeds over the left edge of the collage */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #a8d5b5 32%, rgba(168,213,181,0.88) 40%, rgba(168,213,181,0.15) 52%, transparent 65%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #b5c99a 32%, rgba(181,201,154,0.88) 40%, rgba(181,201,154,0.15) 52%, transparent 65%)' }} />
 
         {/* Floating service card — compact, natural size */}
         <div className="absolute z-20 bg-white rounded-xl shadow-lg border border-gray-100 hidden md:block" style={{ top: '14px', left: '46%', width: '168px' }}>
@@ -167,7 +167,7 @@ export default function HomePage() {
 
         {/* Stats bar pinned to bottom — aligned to page grid */}
         {stats && stats.total_users > 5 && (
-          <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/30" style={{ background: 'rgba(168,213,181,0.7)' }}>
+          <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/30" style={{ background: 'rgba(181,201,154,0.7)' }}>
             <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex gap-10">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}>
