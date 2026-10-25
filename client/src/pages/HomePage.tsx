@@ -53,39 +53,45 @@ export default function HomePage() {
 
   return (
     <div className="animate-fade-in -mx-4 -mt-6">
-      <section className="relative overflow-hidden">
-      {/* Sage green full-width background */}
-      <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
+      {/* ── HERO ── Full-width sage green with illustration as background */}
+      <section className="relative overflow-hidden" style={{ minHeight: '520px' }}>
+        {/* Background: sage green + illustration covering the full section */}
+        <div className="absolute inset-0" style={{ background: '#a8d5b5' }} />
+        <img
+          src="/hero-illustration.png"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', objectPosition: 'center bottom', opacity: 1 }}
+        />
+        {/* Soft gradient on the left so text card blends with background */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(168,213,181,0.85) 0%, rgba(168,213,181,0.6) 45%, transparent 75%)' }} />
 
-      {/* Floating service request card — top centre */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-[220px] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden sm:block">
-        <div className="flex items-center gap-2 mb-1.5">
-          <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden shrink-0">
-            <img src="/logo.svg" alt="" className="w-full h-full object-cover opacity-40" />
+        {/* Floating service request card — top centre-right */}
+        <div className="absolute top-5 left-1/2 z-20 w-[200px] bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 hidden md:block">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-6 h-6 rounded-full bg-[#e8d5c4] flex items-center justify-center text-xs font-bold text-[#8B5E3C]">T</div>
+            <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
+            <span className="text-[10px] font-semibold text-[#1a4731] bg-[#edf7f1] px-2 py-0.5 rounded-full">Pet care</span>
           </div>
-          <span className="text-xs font-bold text-gray-800 flex-1">Tata</span>
-          <span className="text-[10px] font-semibold text-[#1a4731] bg-[#edf7f1] px-2 py-0.5 rounded-full">Pet care</span>
+          <p className="text-xs text-gray-600 mb-1.5">Need a sitter for this weekend!</p>
+          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-block mb-2">10 Gel</span>
+          <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
         </div>
-        <p className="text-xs text-gray-600 mb-1.5">Need a sitter for this weekend!</p>
-        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full inline-block mb-2">10 Gel</span>
-        <button className="w-full py-1.5 rounded-full text-white text-xs font-bold" style={{ background: '#1a4731' }}>Offer Help</button>
-      </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pt-10 pb-8 md:pt-20 md:pb-16" style={{ minHeight: '540px' }}>
-        <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-0">
-
-          {/* Text card — left side */}
-          <div className="flex-shrink-0 md:w-[440px] bg-white/90 rounded-3xl px-7 py-8 shadow-lg" style={{ backdropFilter: 'none' }}>
-            <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
+        {/* Content */}
+        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 flex items-center" style={{ minHeight: '520px' }}>
+          {/* Text card — left, no background on desktop (gradient handles it), white on mobile */}
+          <div className="w-full md:max-w-[460px] bg-white/85 md:bg-transparent rounded-3xl px-6 py-8 md:px-0 md:py-0 shadow-lg md:shadow-none">
+            <div className="inline-flex items-center gap-2 bg-white/70 md:bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
               Now live in Europe & Georgia
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold leading-[1.05] text-gray-900 mb-5 tracking-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.05] text-gray-900 mb-5 tracking-tight">
               {t('hero.headline')}<br />
               <span className="text-primary-500">{t('hero.headline2')}</span>
             </h1>
-            <p className="text-base text-gray-600 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
+            <p className="text-base text-gray-700 leading-relaxed mb-6 max-w-md">{t('hero.subtitle')}</p>
 
-            {/* Category pills */}
             <div className="flex flex-wrap gap-2 mb-7">
               {[
                 { emoji: '🌿', label: 'Plants & Pet Care' },
@@ -96,7 +102,7 @@ export default function HomePage() {
                 { emoji: '✨', label: '+ more' },
               ].map((s, i) => (
                 <Link key={i} to="/browse"
-                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
+                  className="inline-flex items-center gap-1.5 bg-white/90 border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-primary-300 hover:text-primary-600 transition-colors">
                   {s.emoji} {s.label}
                 </Link>
               ))}
@@ -117,106 +123,102 @@ export default function HomePage() {
                     App Store
                   </a>
                 </div>
-                <p className="text-xs text-gray-500">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
+                <p className="text-xs text-gray-600">{t('hero.cta.free')} · <Link to="/login" className="text-[#1a4731] font-medium hover:underline">{t('login')}</Link></p>
               </div>
             )}
           </div>
-
-          {/* Illustration — right side, full height */}
-          <div className="flex-1 flex items-end justify-center md:justify-end self-end">
-            <img
-              src="/hero-illustration.png"
-              alt="Neighbours helping each other"
-              className="w-full h-auto object-contain object-bottom"
-              style={{ maxWidth: '580px', maxHeight: '480px' }}
-            />
-          </div>
-
         </div>
-      </div>
 
-      {stats && stats.total_users > 5 && (
-        <div className="relative z-10 border-t border-white/30">
-          <div className="max-w-6xl mx-auto px-6 py-6 flex justify-start gap-12">
-            {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
-              <div key={i}>
-                <div className="text-xl md:text-3xl font-bold text-[#1a4731]">{val}+</div>
-                <div className="text-xs md:text-sm text-[#2d6a4f] mt-0.5">{label}</div>
-              </div>
-            ))}
+        {/* Stats bar at the bottom of hero */}
+        {stats && stats.total_users > 5 && (
+          <div className="relative z-10 border-t border-white/40" style={{ background: 'rgba(168,213,181,0.5)' }}>
+            <div className="max-w-6xl mx-auto px-6 py-5 flex justify-start gap-10">
+              {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
+                <div key={i}>
+                  <div className="text-xl md:text-2xl font-bold text-[#1a4731]">{val}+</div>
+                  <div className="text-xs text-[#2d6a4f] mt-0.5">{label}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </section>
 
-
-
-      {/* "For you" section — numbered cards with accent colors */}
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <div className="mb-12">
-          <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
-          <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
-          <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-lg">{t('home.forYouDesc')}</p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { title: t('home.persona1'), desc: t('home.persona1Desc'), n: '01', bg: 'bg-gray-50 dark:bg-[#1c1c1c]', border: 'border-gray-100 dark:border-gray-800' },
-            { title: t('home.persona2'), desc: t('home.persona2Desc'), n: '02', bg: 'bg-gray-50 dark:bg-[#1c1c1c]', border: 'border-gray-100 dark:border-gray-800' },
-            { title: t('home.persona3'), desc: t('home.persona3Desc'), n: '03', bg: 'bg-gray-50 dark:bg-[#1c1c1c]', border: 'border-gray-100 dark:border-gray-800' },
-          ].map((p, i) => (
-            <div key={i} className={`${p.bg} border ${p.border} p-6 rounded-2xl`}>
-              <span className="text-xs font-bold text-gray-300 dark:text-gray-600 tracking-widest">{p.n}</span>
-              <h3 className="font-bold text-gray-900 dark:text-white text-lg mt-3 mb-2">{p.title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How it works — light seamless section */}
-      <section className="border-t border-gray-100 dark:border-gray-800 bg-[#f8f7f5] dark:bg-[#111111]">
-        <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
-              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
-              <img src="/illustration2.png" alt="How it works" className="w-full h-auto object-contain" style={{ maxHeight: '260px' }} />
-            </div>
-            <div className="space-y-6">
+      {/* ── FOR YOU ── with illustration3 on the right */}
+      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Who it's for</p>
+            <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-4">{t('home.forYou')}</h2>
+            <p className="text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md">{t('home.forYouDesc')}</p>
+            <div className="space-y-4">
               {[
-                { n: '1', title: t('home.step1'), desc: t('home.step1Desc') },
-                { n: '2', title: t('home.step2'), desc: t('home.step2Desc') },
-                { n: '3', title: t('home.step3'), desc: t('home.step3Desc') },
-              ].map(s => (
-                <div key={s.n} className="flex gap-4 items-start">
-                  <div className="w-8 h-8 rounded-full border-2 border-primary-200 dark:border-primary-800 text-primary-500 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">{s.n}</div>
+                { title: t('home.persona1'), desc: t('home.persona1Desc'), n: '01' },
+                { title: t('home.persona2'), desc: t('home.persona2Desc'), n: '02' },
+                { title: t('home.persona3'), desc: t('home.persona3Desc'), n: '03' },
+              ].map((p, i) => (
+                <div key={i} className="flex gap-4 items-start bg-gray-50 dark:bg-[#1c1c1c] border border-gray-100 dark:border-gray-800 p-5 rounded-2xl">
+                  <span className="text-xs font-bold text-gray-300 dark:text-gray-600 tracking-widest mt-0.5 shrink-0">{p.n}</span>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{s.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{p.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{p.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+          <div className="flex items-center justify-center">
+            <img src="/illustration3.png" alt="Community illustration" className="w-full h-auto object-contain" style={{ maxHeight: '420px' }} />
+          </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+      {/* ── HOW IT WORKS ── illustration2 on the right */}
+      <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
+        <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
+              <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
+              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
+              <div className="space-y-5">
+                {[
+                  { n: '1', title: t('home.step1'), desc: t('home.step1Desc') },
+                  { n: '2', title: t('home.step2'), desc: t('home.step2Desc') },
+                  { n: '3', title: t('home.step3'), desc: t('home.step3Desc') },
+                ].map(s => (
+                  <div key={s.n} className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-full bg-[#1a4731] text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">{s.n}</div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{s.title}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <img src="/illustration2.png" alt="How it works" className="w-full h-auto object-contain" style={{ maxHeight: '420px' }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CATEGORIES ── */}
+      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Categories</p>
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.catTitle')}</h2>
-            <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.catDesc')}</p>
-            <Link to="/browse" className="inline-flex items-center gap-2 text-gray-900 dark:text-white font-semibold hover:text-primary-600 transition-colors">
-              {t('home.browseAll')}
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+            <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.catTitle')}</h2>
+            <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.catDesc')}</p>
+            <Link to="/browse" className="inline-flex items-center gap-2 bg-[#1a4731] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[#143828] transition-all">
+              {t('home.browseAll')} <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {categories.slice(0, 8).map((c: any) => (
               <Link key={c.id} to={`/browse?category=${c.id}`}
-                className="bg-white dark:bg-[#1e1b18] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-primary-300 hover:bg-primary-50/30 dark:hover:bg-primary-900/10 group transition-all">
+                className="bg-white dark:bg-[#1e1b18] px-4 py-3.5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-primary-300 hover:bg-primary-50/30 group transition-all">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary-600 transition-colors">{tc(c.name)}</span>
               </Link>
             ))}
@@ -224,26 +226,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust section — clean, minimal */}
-      <section className="border-t border-gray-100 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+      {/* ── TRUST ── illustration4 on left */}
+      <section className="border-t border-gray-100 dark:border-gray-800" style={{ background: '#f5fbf7' }}>
+        <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="flex items-center justify-center">
-              <img src="/illustration4.png" alt="Trust and safety" className="w-full h-auto object-contain" style={{ maxHeight: '360px' }} />
+              <img src="/illustration4.png" alt="Neighbours sharing" className="w-full h-auto object-contain" style={{ maxHeight: '400px' }} />
             </div>
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Trust & Safety</p>
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.trustTitle')}</h2>
-              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.trustDesc')}</p>
+              <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.trustTitle')}</h2>
+              <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.trustDesc')}</p>
+              <div className="grid grid-cols-2 gap-4">
+                {[t('home.trust1'), t('home.trust2'), t('home.trust3'), t('home.trust4')].map((label, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-[#edf7f1] flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-4 h-4 text-[#1a4731]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">{label}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{t(`home.trust${i+1}Desc`)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
-        <div className="text-center mb-12">
+      {/* ── TESTIMONIALS ── */}
+      <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <div className="text-center mb-10">
           <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">Community</p>
-          <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
+          <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white">{t('home.proofTitle')}</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -255,9 +271,7 @@ export default function HomePage() {
             <div key={i} className="bg-white dark:bg-[#1e1b18] p-5 rounded-2xl border border-gray-100 dark:border-gray-800 flex flex-col justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">"{q.text}"</p>
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs font-bold">
-                  {q.name.charAt(0)}
-                </div>
+                <div className="w-7 h-7 rounded-full bg-[#edf7f1] flex items-center justify-center text-[#1a4731] text-xs font-bold">{q.name.charAt(0)}</div>
                 <div>
                   <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{q.name}</span>
                   <span className="text-xs text-gray-400 ml-1">· {q.city}</span>
