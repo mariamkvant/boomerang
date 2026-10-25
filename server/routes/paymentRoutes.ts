@@ -45,6 +45,23 @@ router.get('/saved-card', authMiddleware, async (req: AuthRequest, res: Response
 // ─── STRIPE CONNECT ONBOARDING ───────────────────────────────────────────────
 
 /**
+ * POST /payments/connect/reset
+ * Clears the stored Stripe account ID so the user can start fresh onboarding.
+ * Used when the existing account is stuck/restricted and needs to be recreated.
+ */
+router.post('/connect/reset', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    await db.run(
+      "UPDATE users SET stripe_account_id = NULL, stripe_account_status = 'none' WHERE id = ?",
+      req.userId,
+    );
+    res.json({ message: 'Payout account reset. You can now start fresh onboarding.' });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to reset account' });
+  }
+});
+
+/**
  * POST /payments/connect/onboard
  * Creates a Stripe Express account for the provider (if not already created),
  * then returns an AccountLink URL so they can complete KYC/bank setup.
@@ -82,6 +99,11 @@ router.post('/connect/onboard', authMiddleware, async (req: AuthRequest, res: Re
         email: user.email,
         capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
         business_type: 'individual',
+        business_profile: {
+          url: 'https://www.boomerang.fyi',
+          mcc: '7299', // Services not elsewhere classified (personal services / gig work)
+          product_description: 'Local services marketplace — offering personal services to neighbours via Boomerang platform',
+        },
         metadata: { boomerang_user_id: String(req.userId), username: user.username },
       });
       accountId = account.id;

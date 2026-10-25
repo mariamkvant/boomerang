@@ -319,17 +319,30 @@ export default function SettingsPage() {
                 Verification in progress
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-3">Stripe is verifying your details. This usually takes a few minutes to a few hours.</p>
-            <button disabled={connectLoading} onClick={async () => {
-              setConnectLoading(true);
-              try {
-                const r: any = await api.stripeConnectOnboard();
-                window.location.href = r.url;
-              } catch (err: any) { toast(err.message, 'error'); }
-              setConnectLoading(false);
-            }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
-              Complete setup →
-            </button>
+            <p className="text-xs text-gray-400 mb-3">Stripe is reviewing your details. If it's been more than 24 hours or you see outstanding requirements, click "Continue setup".</p>
+            <div className="flex gap-3 flex-wrap items-center">
+              <button disabled={connectLoading} onClick={async () => {
+                setConnectLoading(true);
+                try {
+                  const r: any = await api.stripeConnectOnboard();
+                  window.location.href = r.url;
+                } catch (err: any) { toast(err.message, 'error'); }
+                setConnectLoading(false);
+              }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                Continue setup →
+              </button>
+              <span className="text-gray-200 dark:text-gray-700">|</span>
+              <button onClick={async () => {
+                if (!window.confirm('This will disconnect your current payout account so you can start fresh. Continue?')) return;
+                try {
+                  await (api as any).stripeConnectReset();
+                  setConnectStatus({ status: 'none' });
+                  toast('Account reset. You can now reconnect.', 'success');
+                } catch (err: any) { toast(err.message, 'error'); }
+              }} className="text-xs text-red-400 hover:text-red-600 hover:underline font-medium">
+                Start over
+              </button>
+            </div>
           </div>
         ) : connectStatus.status === 'active' ? (
           <div>

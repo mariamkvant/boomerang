@@ -245,6 +245,7 @@ export const api = {
   stripeConnectOnboard: () => request('/payments/connect/onboard', { method: 'POST' }),
   stripeConnectStatus: () => request('/payments/connect/status'),
   stripeConnectDashboard: () => request('/payments/connect/dashboard-link', { method: 'POST' }),
+  stripeConnectReset: () => request('/payments/connect/reset', { method: 'POST' }),
 
   // BOG Pay — Georgian payment system
   bogStatus: () => request('/bog/status'),
