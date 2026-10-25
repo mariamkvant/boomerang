@@ -9,7 +9,7 @@ export default function TermsPage() {
       <p>Welcome to Boomerang. By using our platform at boomerang.fyi, you agree to these terms.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">1. What Boomerang Is</h2>
-      <p className="text-sm text-gray-600">Boomerang is a community platform where people exchange skills and services using a points-based system called "boomerangs." No real money is exchanged on the platform.</p>
+      <p className="text-sm text-gray-600">Boomerang is a community marketplace where people offer, discover, and pay for local services and items. Payments are processed in EUR or GEL via Stripe (and BOG Pay for Georgia). Boomerang charges a 20% platform fee on each completed transaction.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">2. Your Account</h2>
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
@@ -19,12 +19,13 @@ export default function TermsPage() {
         <li>You must provide accurate information</li>
       </ul>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">3. Boomerangs (Points)</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">3. Payments & Fees</h2>
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
-        <li>Boomerangs have no monetary value and cannot be exchanged for money</li>
-        <li>New users receive 50 boomerangs upon registration</li>
-        <li>Boomerangs are earned by providing services and lost by receiving them</li>
-        <li>We reserve the right to adjust boomerang balances to maintain platform health</li>
+        <li>All payments are processed in EUR or GEL via Stripe (or BOG Pay for Georgian users)</li>
+        <li>Prices are set by providers in EUR or GEL and are displayed before you request</li>
+        <li>Boomerang charges a 20% platform fee on each completed transaction</li>
+        <li>Payments are held in escrow until the requester confirms delivery</li>
+        <li>Refunds are issued if the provider does not deliver or a dispute is resolved in the requester's favour</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">4. Services & Exchanges</h2>
@@ -32,14 +33,14 @@ export default function TermsPage() {
         <li>All exchanges are between users directly. Boomerang is not a party to any exchange.</li>
         <li>You are responsible for the quality and safety of services you provide</li>
         <li>Services must be legal and not harmful</li>
-        <li>Both parties must confirm completion before boomerangs transfer</li>
+        <li>Both parties must confirm completion before payment is released</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">5. Prohibited Conduct</h2>
       <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
         <li>No illegal, harmful, or fraudulent services</li>
         <li>No harassment, discrimination, or abusive behavior</li>
-        <li>No spam, fake accounts, or manipulation of the points system</li>
+        <li>No spam, fake accounts, or manipulation of the platform</li>
         <li>No sharing of others' personal information without consent</li>
         <li>No commercial advertising or solicitation</li>
       </ul>
@@ -55,11 +56,11 @@ export default function TermsPage() {
         <li>All exchanges are conducted at your own risk. You acknowledge that Boomerang does not vet, endorse, or guarantee any user or service</li>
         <li>Boomerang provides dispute resolution tools (messaging, dispute flags, admin mediation) as a courtesy but does not guarantee outcomes or resolutions</li>
         <li>The platform is provided "as is" without warranties of any kind, express or implied, including but not limited to merchantability, fitness for a particular purpose, or non-infringement</li>
-        <li>To the maximum extent permitted by law, Boomerang's total liability shall not exceed the value of boomerangs in your account at the time of the claim</li>
+        <li>To the maximum extent permitted by law, Boomerang's total liability shall not exceed the amount paid by you in the 30 days preceding the claim</li>
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">8. Platform Fee</h2>
-      <p className="text-sm text-gray-600">A small platform fee of 5% (minimum 1 boomerang) is deducted from each completed exchange to maintain the health of the boomerang economy. The requester pays the full listed price, and the provider receives the amount minus the fee. This fee is removed from circulation and is not retained by Boomerang.</p>
+      <p className="text-sm text-gray-600">Boomerang charges a 20% platform fee on each completed transaction. The requester pays the provider's listed price in full. The provider receives 80% of that amount. The 20% fee covers payment processing, platform maintenance, and trust infrastructure.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">9. Account Termination</h2>
       <p className="text-sm text-gray-600">You can delete your account at any time from Account Settings. We may suspend or terminate accounts that violate these terms, with or without notice.</p>

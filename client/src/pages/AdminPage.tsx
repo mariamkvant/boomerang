@@ -541,7 +541,7 @@ export default function AdminPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">User</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500 hidden md:table-cell">Email</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-500">Points</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
@@ -554,7 +554,7 @@ export default function AdminPage() {
                       {u.points === -1 && <span className="ml-1 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">banned</span>}
                     </td>
                     <td className="px-4 py-3 text-gray-400 hidden md:table-cell">{u.email}</td>
-                    <td className="px-4 py-3 text-center dark:text-white">{u.points}</td>
+                    <td className="px-4 py-3 text-center dark:text-white text-xs text-gray-500">{u.email_verified ? 'Verified' : 'Unverified'}</td>
                     <td className="px-4 py-3 text-center space-x-1">
                       <button onClick={async () => { await api.banUser(u.id, u.points !== -1); searchUsers(); }}
                         className={`text-xs px-2 py-1 rounded ${u.points === -1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>

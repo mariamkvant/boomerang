@@ -381,7 +381,7 @@ export default function GroupDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <h4 className="font-medium text-sm dark:text-white group-hover:text-primary-600 transition-colors truncate">{s.title}</h4>
-                        <p className="text-xs text-gray-400 mt-1">{s.category_name} · {s.points_cost} boomerangs · {t('service.by')} {s.provider_name}</p>
+                        <p className="text-xs text-gray-400 mt-1">{s.category_name}{s.price_eur ? ` · €${Math.round(parseFloat(s.price_eur))}` : ''} · {t('service.by')} {s.provider_name}</p>
                       </div>
                       <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-primary-400 transition-colors shrink-0 ml-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                     </div>
@@ -456,7 +456,7 @@ export default function GroupDetailPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-xs text-primary-500 font-medium">Attached service</p>
                       <p className="text-sm font-medium dark:text-white truncate">{attachedService.title}</p>
-                      <p className="text-xs text-gray-400">{attachedService.points_cost} 🪃 · {attachedService.category_name}</p>
+                      <p className="text-xs text-gray-400">{attachedService.price_eur ? `€${Math.round(parseFloat(attachedService.price_eur))}` : ''} · {attachedService.category_name}</p>
                     </div>
                     <button onClick={() => setAttachedService(null)} className="text-gray-400 hover:text-red-500 ml-2 shrink-0">✕</button>
                   </div>
@@ -470,7 +470,7 @@ export default function GroupDetailPage() {
                       <button key={s.id} onClick={() => { setAttachedService(s); setShowServicePicker(false); }}
                         className="w-full text-left px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-[#1f2937] border-b border-gray-50 dark:border-gray-700 last:border-0">
                         <p className="text-sm font-medium dark:text-white truncate">{s.title}</p>
-                        <p className="text-xs text-gray-400">{s.points_cost} 🪃 · {s.category_name}</p>
+                        <p className="text-xs text-gray-400">{s.price_eur ? `€${Math.round(parseFloat(s.price_eur))}` : ''} · {s.category_name}</p>
                       </button>
                     ))}
                   </div>
@@ -575,7 +575,7 @@ export default function GroupDetailPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium dark:text-white truncate">{a.service_title}</p>
-                                <p className="text-xs text-gray-400">{a.service_points} 🪃 · {a.service_category} · by {a.service_provider}</p>
+                                <p className="text-xs text-gray-400">{a.service_price_eur ? `€${Math.round(parseFloat(a.service_price_eur))}` : ''} · {a.service_category} · by {a.service_provider}</p>
                               </div>
                               <span className="text-xs bg-primary-500 text-white px-3 py-1.5 rounded-lg shrink-0 font-medium">Request</span>
                             </Link>

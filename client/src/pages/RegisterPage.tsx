@@ -42,7 +42,7 @@ export default function RegisterPage() {
       <div className="text-center mb-8">
         <img src="/logo.svg" alt="" className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold">{t('register.title')}</h2>
-        <p className="text-gray-500 text-sm mt-1">{t('register.subtitle')} <span className="font-semibold text-primary-600">{t('register.freePoints')}</span></p>
+        <p className="text-gray-500 text-sm mt-1">{t('register.subtitle')}</p>
       </div>
       {error && (
         <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">

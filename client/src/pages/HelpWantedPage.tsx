@@ -77,7 +77,7 @@ export default function HelpWantedPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs text-gray-400">{r.category_name}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Community favour</span>
+                    {r.budget_eur && <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800">€{Math.round(parseFloat(r.budget_eur))}</span>}
                     {r.status !== 'open' && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                         {r.status === 'completed' ? 'Done' : r.status === 'accepted' ? 'In progress' : r.status === 'delivered' ? 'Delivered' : r.status}
@@ -131,7 +131,7 @@ export default function HelpWantedPage() {
                   {r.status === 'accepted' ? 'In progress' : r.status}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name} · Community favour</p>
+              <p className="text-xs text-gray-400 mt-1">{r.category_icon} {r.category_name}{r.budget_eur ? ` · €${Math.round(parseFloat(r.budget_eur))}` : ''}</p>
               {r.helper_name && <p className="text-xs text-primary-600 mt-1">Helper: {r.helper_name}</p>}
             </div>
           ))}
@@ -158,10 +158,7 @@ export default function HelpWantedPage() {
             <textarea id="hw-desc" required value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} rows={3} placeholder="Describe what you need..."
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-primary-500 outline-none" />
           </div>
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">🤝 Community favour — no payment</p>
-            <p className="text-xs text-amber-700 dark:text-amber-400">Help requests are free exchanges. You're asking your neighbours for a favour — they help because they want to, not for money. Say thanks in return!</p>
-          </div>
+
           <button type="submit" className="bg-primary-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-600">Post Request</button>
         </form>
       )}

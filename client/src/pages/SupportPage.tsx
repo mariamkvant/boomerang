@@ -7,15 +7,15 @@ import { api } from '../api';
 const FAQS = [
   {
     q: 'What is Boomerang?',
-    a: 'Boomerang is a community platform where people exchange skills and services using a points system called "boomerangs." No real money is involved â€” you earn boomerangs by helping others and spend them to get help.',
+    a: 'Boomerang is a community marketplace where people offer and discover local services and items. Providers set their own prices in EUR or GEL. Payments are processed securely via Stripe.',
   },
   {
-    q: 'How do boomerangs work?',
-    a: 'Providers set their own price in EUR or GEL. Buyers pay via card — Stripe holds the payment in escrow. After the requester confirms delivery, 90% is released to the provider. Boomerang keeps 10% as a platform fee.',
+    q: 'How do payments work?',
+    a: 'Providers set their price in EUR (or GEL for Georgia). When you request a service, Stripe holds the payment in escrow. Once you confirm delivery, 80% is released to the provider. Boomerang keeps 20% as a platform fee.',
   },
   {
     q: 'Is Boomerang free to join?',
-    a: 'Yes, free to join and list services. You only pay when you request a service — at the price the provider set. The platform fee (10%) is deducted automatically.',
+    a: 'Yes, free to join and list services. You only pay when you request a service ï¿½ at the price the provider set. The platform fee (10%) is deducted automatically.',
   },
   {
     q: 'How do I offer a service?',

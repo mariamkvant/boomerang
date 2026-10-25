@@ -92,7 +92,7 @@ export default function CommunityPage() {
               <Link key={m.id} to="/help-wanted" className="flex items-center justify-between bg-white p-3 rounded-xl hover:shadow-sm">
                 <div>
                   <span className="text-sm font-medium">{m.title}</span>
-                  <span className="text-xs text-gray-500 ml-2">{m.category_icon} {m.category_name} · 🪃 {m.points_budget} 🪃</span>
+                  <span className="text-xs text-gray-500 ml-2">{m.category_icon} {m.category_name}{m.budget_eur ? ` · €${Math.round(parseFloat(m.budget_eur))}` : ''}</span>
                 </div>
                 <span className="text-xs text-primary-600 font-medium">Help →</span>
               </Link>
@@ -152,7 +152,7 @@ export default function CommunityPage() {
                     {' '}with{' '}
                     <Link to={`/services/${item.service_id}`} className="text-primary-600 hover:underline">{item.service_title}</Link>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">{item.points_cost} 🪃 exchanged</p>
+                  <p className="text-xs text-gray-400 mt-1">{item.points_cost ? `€${Math.round(item.points_cost)}` : ''} exchanged</p>
                 </div>
               </div>
             )}
@@ -167,7 +167,7 @@ export default function CommunityPage() {
                     {' '}is now offering{' '}
                     <Link to={`/services/${item.id}`} className="text-primary-600 hover:underline">{item.category_icon} {item.title}</Link>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">{item.points_cost} 🪃</p>
+                  <p className="text-xs text-gray-400 mt-1">{item.price_eur ? `€${Math.round(parseFloat(item.price_eur))}` : ''}</p>
                 </div>
               </div>
             )}

@@ -87,7 +87,6 @@ export default function PeoplePage() {
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-400 mt-0.5">
                 {u.city && <span>{u.city}</span>}
                 {u.languages_spoken && <span>{u.languages_spoken}</span>}
-                <span>🪃 {u.points}</span>
               </div>
               {u.bio && <p className="text-xs text-gray-400 mt-1 line-clamp-1">{u.bio}</p>}
             </div>

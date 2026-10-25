@@ -294,7 +294,7 @@ export default function HomePage() {
                   <p className="text-xs text-gray-500 line-clamp-2 mb-3">{m.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{m.requester_name}</span>
-                    <span className="text-sm font-semibold text-primary-600">{m.points_budget} pts</span>
+                    {m.budget_eur && <span className="text-sm font-semibold text-amber-600">€{Math.round(parseFloat(m.budget_eur))}</span>}
                   </div>
                 </div>
               ))}
@@ -318,7 +318,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">{s.provider_name}</span>
                     <span className="text-sm font-semibold text-primary-600">
-                      {s.price_eur != null ? `€${parseFloat(s.price_eur).toFixed(0)}` : `${s.points_cost} pts`}
+                      {s.price_eur != null ? `€${parseFloat(s.price_eur).toFixed(0)}` : ''}
                     </span>
                   </div>
                 </Link>

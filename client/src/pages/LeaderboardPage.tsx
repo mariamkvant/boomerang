@@ -33,7 +33,7 @@ export default function LeaderboardPage() {
       </div>
       <div className="text-right shrink-0">
         <p className="text-sm font-bold text-primary-600">{u.completed_count} done</p>
-        <p className="text-xs text-gray-400">{u.points_earned} 🪃</p>
+        <p className="text-xs text-gray-400">{u.completed_count} exchanges</p>
       </div>
     </Link>
   );
@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
               </div>
               <div className="text-right shrink-0">
                 <p className="text-sm font-bold text-primary-600">{u.completed_count} done</p>
-                <p className="text-xs text-gray-400">{u.points_earned} 🪃</p>
+                <p className="text-xs text-gray-400">{u.completed_count} exchanges</p>
               </div>
             </Link>
           ))}
