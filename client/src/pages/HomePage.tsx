@@ -66,57 +66,56 @@ export default function HomePage() {
         {/* Sage green background */}
         <div className="absolute inset-0" style={{ background: '#b5c99a' }} />
 
-        {/* Brick wall pattern — behind illustrations on right side */}
-        <svg className="absolute right-0 top-0 bottom-0 h-full opacity-20" style={{ width: '65%' }} preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 700" xmlns="http://www.w3.org/2000/svg">
-          {Array.from({ length: 22 }).map((_, row) =>
-            Array.from({ length: 8 }).map((_, col) => (
-              <rect
-                key={`${row}-${col}`}
-                x={col * 52 + (row % 2 === 0 ? 0 : 26) - 10}
-                y={row * 32}
-                width="48" height="28" rx="2"
-                fill="none"
-                stroke="#6b7c4a"
-                strokeWidth="1.2"
-              />
-            ))
-          )}
-        </svg>
+        {/* Right side: 3 illustration panels in a grid — each with its own brick background */}
+        <div className="absolute right-0 top-0 bottom-0 flex items-center" style={{ width: '55%', paddingRight: '2%', paddingTop: '16px', paddingBottom: '16px' }}>
+          <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-3">
 
-        {/* Illustration collage — 3 images, bigger, arranged across full right area */}
-        <div className="absolute right-0 top-0 bottom-0" style={{ width: '65%' }}>
-          {/* Dog walker — top left of collage */}
-          <img
-            src="/illustration3.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute object-contain drop-shadow-md"
-            style={{ width: '42%', top: '4%', left: '2%' }}
-          />
-          {/* Cup/neighbours — top right */}
-          <img
-            src="/illustration2.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute object-contain drop-shadow-md"
-            style={{ width: '42%', top: '2%', right: '2%' }}
-          />
-          {/* Main window scene — bottom centre, biggest */}
-          <img
-            src="/hero-illustration.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute object-contain drop-shadow-lg"
-            style={{ width: '68%', bottom: '2%', left: '16%' }}
-          />
+            {/* Top-left: dog walker */}
+            <div className="relative rounded-2xl overflow-hidden flex items-end justify-center" style={{ background: '#c8d8a8' }}>
+              {/* Brick pattern */}
+              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                {Array.from({ length: 8 }).map((_, row) =>
+                  Array.from({ length: 5 }).map((_, col) => (
+                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
+                  ))
+                )}
+              </svg>
+              <img src="/illustration3.png" alt="Dog walking service" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '190px' }} />
+            </div>
+
+            {/* Top-right: cup/neighbours passing */}
+            <div className="relative rounded-2xl overflow-hidden flex items-end justify-center" style={{ background: '#c8d8a8' }}>
+              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                {Array.from({ length: 8 }).map((_, row) =>
+                  Array.from({ length: 5 }).map((_, col) => (
+                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
+                  ))
+                )}
+              </svg>
+              <img src="/illustration2.png" alt="Neighbours helping" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '190px' }} />
+            </div>
+
+            {/* Bottom: main plant exchange scene — spans full width */}
+            <div className="relative rounded-2xl overflow-hidden col-span-2 flex items-end justify-center" style={{ background: '#c8d8a8' }}>
+              <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                {Array.from({ length: 8 }).map((_, row) =>
+                  Array.from({ length: 10 }).map((_, col) => (
+                    <rect key={`${row}-${col}`} x={col * 44 + (row % 2 === 0 ? 0 : 22) - 5} y={row * 26} width="40" height="22" rx="2" fill="none" stroke="#5a6e3a" strokeWidth="1.2" />
+                  ))
+                )}
+              </svg>
+              <img src="/hero-illustration.png" alt="Community neighbours" className="relative z-10 w-full h-auto object-contain" style={{ maxHeight: '240px' }} />
+            </div>
+
+          </div>
         </div>
 
-        {/* Gradient fade from olive into illustrations */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #b5c99a 30%, rgba(181,201,154,0.85) 38%, rgba(181,201,154,0.1) 50%, transparent 62%)' }} />
+        {/* Gradient: left text area blends into right panel area */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, #b5c99a 40%, rgba(181,201,154,0.6) 45%, transparent 50%)' }} />
 
         {/* Text — left half, aligned to same grid as rest of page */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 h-full flex flex-col justify-center py-16" style={{ minHeight: '700px' }}>
-          <div style={{ maxWidth: '46%' }}>
+          <div style={{ maxWidth: '42%' }}>
           <div className="inline-flex items-center gap-2 bg-white/70 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 w-fit">
             Now live in Europe & Georgia
           </div>
