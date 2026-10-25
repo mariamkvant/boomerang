@@ -61,7 +61,7 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #f07028 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         
         <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-16 md:pt-28 md:pb-32">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-12">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-12">
             <div className="max-w-xl flex-1">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
@@ -109,7 +109,19 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-            {/* Remove the floating card entirely */}
+
+            {/* Hero animation — community/neighbourhood scene */}
+            <div className="flex-shrink-0 w-full md:w-[420px] flex items-center justify-center">
+              {/* @ts-ignore */}
+              <lottie-player
+                src="https://assets5.lottiefiles.com/packages/lf20_qp1spd72.json"
+                background="transparent"
+                speed="0.8"
+                loop
+                autoplay
+                style={{ width: '100%', maxWidth: '420px', height: '360px' }}
+              />
+            </div>
           </div>
         </div>
         {stats && stats.total_users > 5 && (
@@ -154,7 +166,17 @@ export default function HomePage() {
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How it works</p>
               <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.howTitle')}</h2>
-              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed">{t('home.howDesc')}</p>
+              <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-8">{t('home.howDesc')}</p>
+              {/* Lottie — people exchanging / community help */}
+              {/* @ts-ignore */}
+              <lottie-player
+                src="https://assets2.lottiefiles.com/packages/lf20_5tl1xxnz.json"
+                background="transparent"
+                speed="0.8"
+                loop
+                autoplay
+                style={{ width: '100%', maxWidth: '320px', height: '260px' }}
+              />
             </div>
             <div className="space-y-6">
               {[
