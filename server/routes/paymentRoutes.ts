@@ -213,6 +213,18 @@ router.post('/create-service-intent', authMiddleware, async (req: AuthRequest, r
     WHERE sr.id = ? AND sr.requester_id = ?`, request_id, req.userId);
   if (!r) return res.status(404).json({ error: 'Request not found or not yours' });
 
+  // BUG-5 fix: idempotency guard — return existing intent if already created
+  if (r.stripe_payment_intent_id) {
+    try {
+      const stripe = getStripe();
+      const existing = await stripe.paymentIntents.retrieve(r.stripe_payment_intent_id);
+      if (['requires_payment_method', 'requires_confirmation', 'requires_action', 'requires_capture'].includes(existing.status)) {
+        return res.json({ client_secret: existing.client_secret, payment_intent_id: existing.id, amount_eur: r.amount_eur });
+      }
+    } catch {}
+    // If retrieval fails or intent is in terminal state, allow creating a new one
+  }
+
   const price = r.price_eur ? parseFloat(r.price_eur) : null;
   if (!price || price <= 0) return res.status(400).json({ error: 'This service has no price' });
 

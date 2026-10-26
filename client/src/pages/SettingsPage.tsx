@@ -358,14 +358,12 @@ export default function SettingsPage() {
                 {connectLoading ? 'Checking…' : 'Refresh status'}
               </button>
               <button onClick={async () => {
-                toast('Disconnecting payout account — tap again to confirm', 'error');
-                setTimeout(async () => {
-                  try {
-                    await (api as any).stripeConnectReset();
-                    setConnectStatus({ status: 'none' });
-                    toast('Account reset. You can now reconnect.', 'success');
-                  } catch (err: any) { toast(err.message, 'error'); }
-                }, 0);
+                if (!window.confirm('Reset your payout account setup? This cannot be undone.')) return;
+                try {
+                  await (api as any).stripeConnectReset();
+                  setConnectStatus({ status: 'none' });
+                  toast('Account reset. You can now reconnect.', 'success');
+                } catch (err: any) { toast(err.message, 'error'); }
               }} className="text-xs text-red-400 hover:text-red-600 hover:underline font-medium self-start">
                 Start over
               </button>

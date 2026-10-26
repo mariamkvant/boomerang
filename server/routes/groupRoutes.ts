@@ -64,10 +64,14 @@ router.get('/events', async (req: AuthRequest, res: Response) => {
 
   // Proximity filter — use event coords, fall back to group creator's home coords
   let distanceExpr = 'NULL::real as distance_km';
+  // BUG-G2 fix: validate lat/lng/radius are finite numbers before interpolating into SQL
   if (lat && lng && radius) {
     const latN = parseFloat(String(lat));
     const lngN = parseFloat(String(lng));
     const radN = parseFloat(String(radius));
+    if (!isFinite(latN) || !isFinite(lngN) || !isFinite(radN) || radN > 1000) {
+      return res.status(400).json({ error: 'Invalid location parameters' });
+    }
     distanceExpr = `(6371 * acos(GREATEST(-1, LEAST(1,
       cos(radians(${latN})) * cos(radians(COALESCE(ga.event_latitude, uc.latitude))) *
       cos(radians(COALESCE(ga.event_longitude, uc.longitude)) - radians(${lngN})) +
@@ -284,6 +288,10 @@ router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: 
     try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
   }
   const canPin = member.role === 'admin' && pinned;
+  // BUG-G1 fix: only group admins can create paid-ticket events
+  if (event_date && ticket_price_eur != null && parseFloat(ticket_price_eur) > 0 && member.role !== 'admin') {
+    return res.status(403).json({ error: 'Only group admins can create paid events' });
+  }
   // ticket_price_eur only applies to events; non-event posts ignore it
   const ticketPrice = event_date && ticket_price_eur != null && parseFloat(ticket_price_eur) > 0
     ? parseFloat(ticket_price_eur)

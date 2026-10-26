@@ -344,7 +344,7 @@ export default function App() {
           <Route path="/messages" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MessagesPage />) : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/me" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MePage />) : <Navigate to="/login" />} />
-          <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={user ? (user.is_admin ? <AdminPage /> : <Navigate to="/" />) : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/buy" element={user ? <BuyBoomerangsPage /> : <Navigate to="/login" />} />

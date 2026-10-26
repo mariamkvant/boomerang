@@ -33,8 +33,20 @@ router.get('/conversations', authMiddleware, async (req: AuthRequest, res: Respo
 
 // Dynamic routes AFTER static ones
 
+// BUG-M2 fix: check block relationship before allowing read or send
+async function checkBlocked(db: any, userA: number, userB: number): Promise<boolean> {
+  const block = await db.get(
+    'SELECT id FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)',
+    userA, userB, userB, userA
+  );
+  return !!block;
+}
+
 // Get messages with a specific user
 router.get('/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
+  if (await checkBlocked(db, req.userId!, Number(req.params.userId))) {
+    return res.status(403).json({ error: 'You cannot message this user' });
+  }
   const messages = await db.all(
     'SELECT dm.*, u.username as sender_name FROM direct_messages dm JOIN users u ON dm.sender_id = u.id WHERE (dm.sender_id = ? AND dm.receiver_id = ?) OR (dm.sender_id = ? AND dm.receiver_id = ?) ORDER BY dm.created_at ASC LIMIT 100',
     req.userId, req.params.userId, req.params.userId, req.userId
@@ -53,6 +65,9 @@ router.post('/:userId/typing', authMiddleware, async (req: AuthRequest, res: Res
 router.post('/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { body, image } = req.body;
   if ((!body || !body.trim()) && !image) return res.status(400).json({ error: 'Message cannot be empty' });
+  if (await checkBlocked(db, req.userId!, Number(req.params.userId))) {
+    return res.status(403).json({ error: 'You cannot message this user' });
+  }
   if (body) {
     const contentCheck = isContentClean(body);
     if (!contentCheck.clean) return res.status(400).json({ error: contentCheck.reason });

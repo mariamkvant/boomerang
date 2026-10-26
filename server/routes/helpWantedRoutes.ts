@@ -47,10 +47,14 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 
   // Location-based proximity filter
   let distanceExpr = 'NULL::real as distance';
+  // BUG-G3 fix: validate lat/lng/radius are finite numbers before interpolating into SQL
   if (lat && lng && radius) {
     const latN = parseFloat(String(lat));
     const lngN = parseFloat(String(lng));
     const radN = parseFloat(String(radius));
+    if (!isFinite(latN) || !isFinite(lngN) || !isFinite(radN) || radN > 1000) {
+      return res.status(400).json({ error: 'Invalid location parameters' });
+    }
     distanceExpr = `(6371 * acos(cos(radians(${latN})) * cos(radians(COALESCE(hw.latitude, u.latitude))) * cos(radians(COALESCE(hw.longitude, u.longitude)) - radians(${lngN})) + sin(radians(${latN})) * sin(radians(COALESCE(hw.latitude, u.latitude))))) as distance`;
     conditions.push(`COALESCE(hw.latitude, u.latitude) IS NOT NULL`);
     conditions.push(`(6371 * acos(GREATEST(-1, LEAST(1, cos(radians(${latN})) * cos(radians(COALESCE(hw.latitude, u.latitude))) * cos(radians(COALESCE(hw.longitude, u.longitude)) - radians(${lngN})) + sin(radians(${latN})) * sin(radians(COALESCE(hw.latitude, u.latitude))))))) <= ${radN}`);
@@ -80,6 +84,9 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 
 // Offer to help — creates a real service + service_request so it flows through the normal system
 router.put('/:id/offer', authMiddleware, async (req: AuthRequest, res: Response) => {
+  // BUG-H2 fix: require email verification before offering to help
+  const offeringUser = await db.get('SELECT email_verified FROM users WHERE id = ?', req.userId);
+  if (!offeringUser?.email_verified) return res.status(403).json({ error: 'Please verify your email before offering to help' });
   const hw = await db.get('SELECT * FROM help_wanted WHERE id = ? AND status = ?', req.params.id, 'open');
   if (!hw) return res.status(404).json({ error: 'Not found or already taken' });
   if (hw.requester_id === req.userId) return res.status(400).json({ error: 'Cannot accept your own request' });

@@ -260,7 +260,9 @@ export default function BrowsePage() {
       });
       const data = await res.json();
       if (data[0]) {
-        setMapCenter({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        const cityLatLng = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        setMapCenter(cityLatLng);
+        setUserCoords(cityLatLng); // BUG-11 fix: update userCoords so radius filter targets selected city
       }
     } catch {}
   };

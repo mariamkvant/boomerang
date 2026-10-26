@@ -759,11 +759,15 @@ export default function DashboardPage() {
                   )}
                   {r.status === 'delivered' && (
                     <>
-                      <button onClick={async () => {
-                        await handleAction(api.confirmRequest, r.id);
-                        setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
-                        setShoutoutMsg('');
-                      }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-lg font-medium">Confirm ✓</button>
+                      {r.payment_status === 'pending' ? (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">Payment not yet confirmed. You can confirm once payment is authorised.</p>
+                      ) : (
+                        <button onClick={async () => {
+                          await handleAction(api.confirmRequest, r.id);
+                          setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
+                          setShoutoutMsg('');
+                        }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-lg font-medium">Confirm</button>
+                      )}
                       <button onClick={() => setDisputeForm({ id: r.id, reason: '' })}
                         className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2.5 rounded-lg font-medium">Issue?</button>
                     </>
