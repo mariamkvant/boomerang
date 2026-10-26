@@ -281,13 +281,12 @@ export default function MapView({
 
       marker.on('click', () => {
         if (onMarkerClick) onMarkerClick(providerId);
-        // Close popup immediately — the in-app sheet handles details
-        setTimeout(() => marker.closePopup(), 0);
+        marker.closePopup();
       });
 
-      // Hover: show popup on mouseover, hide on mouseout (desktop)
-      marker.on('mouseover', () => marker.openPopup());
-      marker.on('mouseout', () => marker.closePopup());
+      // Show popup on click for desktop users who want a quick preview
+      // No hover events — hover popups disappear before you can click links inside them
+      // The in-app sheet (opened via onMarkerClick) is the primary detail view
 
       // Always-visible name label below the price pin
       marker.bindTooltip(name, {

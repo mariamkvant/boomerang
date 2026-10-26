@@ -82,10 +82,12 @@ router.put('/:id/offer', authMiddleware, async (req: AuthRequest, res: Response)
     req.userId, hw.category_id, '[Help] ' + hw.title, 'Helping with: ' + hw.description, hw.points_budget, 60
   );
 
-  // Create a service request from the original requester, auto-accepted
-  const sr = await db.run(
-    "INSERT INTO service_requests (service_id, requester_id, status, message) VALUES (?, ?, 'accepted', ?)",
-    svc.lastInsertRowid, hw.requester_id, 'Help offered via Help Needed board'
+  // Create a service request from the original requester as PENDING
+  // This goes through the normal dashboard flow: requester accepts → message → deliver → confirm
+  const helperMessage = req.body.message || 'I can help with this request — let\'s connect!';
+  await db.run(
+    "INSERT INTO service_requests (service_id, requester_id, status, message) VALUES (?, ?, 'pending', ?)",
+    svc.lastInsertRowid, hw.requester_id, helperMessage
   );
 
   // Update help_wanted with the link
