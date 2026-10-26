@@ -146,31 +146,34 @@ export default function BrowsePage() {
     api.getServiceCities().then((res: any) => setAvailableCities(Array.isArray(res) ? res : [])).catch(() => {});
   }, []);
 
-  // Run acquireLocation once when user first loads — prefer profile home coords, fall back to GPS
+  // Run acquireLocation when user identity changes OR when their coordinates update
   useEffect(() => {
     if (user !== undefined) acquireLocation();
     if (user) {
       api.getSuggestions().then((res: any) => setSuggestions(Array.isArray(res) ? res : [])).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]); // use user.id so it only fires when the actual user identity changes
+  }, [user?.id, (user as any)?.latitude]); // re-run if lat changes (address saved in Settings)
 
   // ── Location ─────────────────────────────────────────────────────────────
 
   const acquireLocation = useCallback(() => {
-    // Priority 1: profile home address (always set if user has address in settings)
-    if (user && (user as any).latitude) {
-      setUserCoords({ lat: (user as any).latitude, lng: (user as any).longitude });
-      setRadiusKm(prev => prev === 0 ? 0.5 : prev); // only set default 500m if not already chosen
+    // Priority 1: profile home address (always takes precedence — even over GPS already set)
+    if (user && parseFloat((user as any).latitude)) {
+      setUserCoords({ lat: parseFloat((user as any).latitude), lng: parseFloat((user as any).longitude) });
+      setRadiusKm(prev => prev === 0 ? 0.5 : prev);
       return;
     }
-    // Priority 2: device GPS — only request if we don't have coords yet
+    // Priority 2: device GPS — only request if profile has no coords
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       pos => {
-        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setRadiusKm(0.5);
+        // Only use GPS if profile still has no coordinates (don't override a late-arriving profile)
+        if (!user || !parseFloat((user as any).latitude)) {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setRadiusKm(0.5);
+        }
         setLocating(false);
       },
       () => { setLocating(false); setLocationDenied(true); },
