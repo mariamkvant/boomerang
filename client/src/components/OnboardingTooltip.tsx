@@ -4,17 +4,17 @@ import { Link } from 'react-router-dom';
 const STEPS = [
   {
     title: 'Welcome to Boomerang 🪃',
-    body: 'Boomerang is a skill-exchange platform. You offer something, someone else offers something back — no money needed.',
-    cta: 'Got it',
-  },
-  {
-    title: 'What are 🪃 Boomerangs?',
-    body: 'Boomerangs are your exchange currency. You start with 25. Spend them to request help, earn them by helping others.',
+    body: 'Discover and book local services from people in your neighbourhood — dog walking, tutoring, home repairs, and more. Providers set their own prices in EUR or GEL.',
     cta: 'Next',
   },
   {
-    title: 'How to get started',
-    body: 'Post a service you can offer, then browse what others offer and send a request. That\'s it.',
+    title: 'How payments work',
+    body: 'Pay securely by card when you book. Your money is held safely until you confirm the service was delivered — then released to the provider. Cancel anytime before delivery for a full refund.',
+    cta: 'Next',
+  },
+  {
+    title: 'Ready to explore',
+    body: 'Browse services nearby on the map, post your own offer to earn, or ask the community for help via Requests.',
     cta: 'Start exploring',
     link: '/browse',
   },
@@ -25,16 +25,16 @@ export default function OnboardingTooltip() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const done = localStorage.getItem('onboarding_tooltip_done');
+    // v2 key — forces existing users who saw the old boomerang-points tooltip to see the new one
+    const done = localStorage.getItem('onboarding_tooltip_v2_done');
     if (!done) {
-      // Small delay so page renders first
       const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
     }
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem('onboarding_tooltip_done', 'true');
+    localStorage.setItem('onboarding_tooltip_v2_done', 'true');
     setVisible(false);
   };
 
