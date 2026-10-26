@@ -250,9 +250,8 @@ export default function BrowsePage() {
     setCityFilter(city);
     setShowCityPicker(false);
     setCitySearch('');
-    // When selecting a different city, clear the radius filter
-    // (user's GPS coords are in Luxembourg, not Tbilisi)
-    setRadiusKm(0);
+    // When selecting a city, set a sensible default radius (5km) centered on city coords
+    setRadiusKm(5);
     try {
       const q = encodeURIComponent(city);
       const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`, {
@@ -1008,8 +1007,18 @@ export default function BrowsePage() {
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
                   Back
                 </button>
-                <button onClick={() => confirmRequest(requestConfirm.service.id)}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Send Request</button>
+                {/* Paid services must go through ServiceDetailPage to handle Stripe auth */}
+                {requestConfirm.service.price_eur != null && Number(requestConfirm.service.price_eur) > 0 ? (
+                  <Link
+                    to={`/services/${requestConfirm.service.id}`}
+                    onClick={() => setRequestConfirm(null)}
+                    className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[#1f2937] text-white text-center">
+                    View and Pay
+                  </Link>
+                ) : (
+                  <button onClick={() => confirmRequest(requestConfirm.service.id)}
+                    className="flex-1 py-3 rounded-xl text-sm font-semibold bg-[#1f2937] text-white">Send Request</button>
+                )}
               </div>
             </div>
           </div>

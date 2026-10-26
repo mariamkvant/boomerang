@@ -600,12 +600,17 @@ export default function GroupDetailPage() {
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Ticket price (optional)</label>
+                      {!isAdmin && (
+                        <p className="text-[10px] text-amber-600 mt-1">Only group admins can create paid events.</p>
+                      )}
+                      {isAdmin && (
                       <div className="relative mt-1">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">€</span>
                         <input type="number" min="0" step="0.01" value={ticketPriceEur} onChange={e => setTicketPriceEur(e.target.value)} placeholder="0 for free"
                           className="w-full border border-gray-200 dark:border-gray-600 rounded-lg pl-7 pr-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
                       </div>
-                      {ticketPriceEur && parseFloat(ticketPriceEur) > 0 && (
+                      )}
+                      {isAdmin && ticketPriceEur && parseFloat(ticketPriceEur) > 0 && (
                         <p className="text-[10px] text-gray-400 mt-1">Attendees pay €{parseFloat(ticketPriceEur).toFixed(2)} · you receive €{(parseFloat(ticketPriceEur) * 0.8).toFixed(2)} after 20% platform fee</p>
                       )}
                     </div>

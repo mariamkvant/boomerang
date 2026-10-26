@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmModal';
 import { getLang, setLang, LANGUAGES, t } from '../i18n';
 import { useDarkMode } from '../hooks/useDarkMode';
 
@@ -10,6 +11,7 @@ export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const { dark, toggle: toggleDark } = useDarkMode();
   const [bio, setBio] = useState(user?.bio || '');
   const [username, setUsername] = useState(user?.username || '');
@@ -358,7 +360,8 @@ export default function SettingsPage() {
                 {connectLoading ? 'Checking…' : 'Refresh status'}
               </button>
               <button onClick={async () => {
-                if (!window.confirm('Reset your payout account setup? This cannot be undone.')) return;
+                const ok = await confirm({ title: 'Reset payout account?', message: 'This cannot be undone. You will need to reconnect your bank account.', confirmText: 'Reset', danger: true });
+                if (!ok) return;
                 try {
                   await (api as any).stripeConnectReset();
                   setConnectStatus({ status: 'none' });

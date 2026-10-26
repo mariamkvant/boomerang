@@ -44,6 +44,7 @@ export default function MessagesPage() {
   const [newMsg, setNewMsg] = useState('');
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +56,10 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (activeUser) {
-      api.getDMs(activeUser).then(setMessages).catch(() => {});
+      setIsBlocked(false);
+      api.getDMs(activeUser).then(setMessages).catch((err: any) => {
+        if (err?.status === 403 || err?.message?.includes('cannot message')) setIsBlocked(true);
+      });
       const i = setInterval(() => { api.getDMs(activeUser).then(setMessages).catch(() => {}); }, 5000);
       return () => clearInterval(i);
     }
@@ -359,6 +363,12 @@ export default function MessagesPage() {
                   </div>
                 )}
                 <div className="flex gap-1.5 items-end">
+                  {isBlocked ? (
+                    <div className="flex-1 flex items-center justify-center py-3 px-4 bg-gray-100 dark:bg-[#2a3942] rounded-2xl">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">Messaging is not available with this user.</p>
+                    </div>
+                  ) : (
+                  <>
                   <input type="file" ref={fileInputRef} accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImageSelect} className="hidden" />
                   <button onClick={() => fileInputRef.current?.click()} className="w-11 h-11 text-gray-500 hover:text-gray-700 rounded-full flex items-center justify-center shrink-0 hover:bg-gray-200/50 active:bg-gray-200 touch-manipulation" aria-label="Attach photo">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,6 +386,8 @@ export default function MessagesPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                   </button>
+                  </>
+                  )}
                 </div>
               </div>
             </>

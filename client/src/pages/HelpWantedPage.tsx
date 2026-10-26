@@ -92,7 +92,7 @@ export default function HelpWantedPage() {
                     {r.created_at && <span className="ml-2 text-gray-300">· {timeAgo(r.created_at)}</span>}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    {user && user.id !== r.requester_id && r.status === 'open' && (
+                    {user && user.id !== r.requester_id && r.status === 'open' && user.email_verified && (
                       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOffer(r.id); }}
                         className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-1.5 rounded-lg text-xs font-medium">
                         I Can Help

@@ -90,7 +90,8 @@ function AnnouncementBlast() {
 
   const send = async () => {
     if (!subject.trim() || !body.trim()) { setStatus('Subject and message are required.'); return; }
-    if (!window.confirm(`Send this email to ALL users with email notifications enabled?\n\nSubject: ${subject}`)) return;
+    // eslint-disable-next-line no-restricted-globals
+    if (!confirm(`Send this email to ALL users with email notifications enabled?\n\nSubject: ${subject}`)) return;
     setLoading(true);
     setStatus('');
     try {
