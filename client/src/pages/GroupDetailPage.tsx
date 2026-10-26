@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmModal';
 import { t } from '../i18n';
+import QRCode from '../components/QRCode';
 
 function UserSearchInvite({ groupId, onInvited }: { groupId: number; onInvited: () => void }) {
   const [query, setQuery] = useState('');
@@ -145,9 +146,70 @@ export default function GroupDetailPage() {
   const [eventTime, setEventTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [maxAttendees, setMaxAttendees] = useState('');
+  const [ticketPriceEur, setTicketPriceEur] = useState('');
   const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
   const [comments, setComments] = useState<Record<number, any[]>>({});
   const [newComment, setNewComment] = useState<Record<number, string>>({});
+
+  // Stripe ticket payment state
+  const [ticketPayingAnnId, setTicketPayingAnnId] = useState<number | null>(null);
+  const [ticketClientSecret, setTicketClientSecret] = useState<string | null>(null);
+  const [ticketAmountEur, setTicketAmountEur] = useState<number | null>(null);
+  const [ticketStripeInstance, setTicketStripeInstance] = useState<any>(null);
+  const [ticketCardElement, setTicketCardElement] = useState<any>(null);
+  const [ticketCardReady, setTicketCardReady] = useState(false);
+  const [ticketPaymentError, setTicketPaymentError] = useState('');
+  const [ticketPaying, setTicketPaying] = useState(false);
+  const ticketCardMountRef = useRef<HTMLDivElement>(null);
+
+  // Load Stripe.js once
+  useEffect(() => {
+    if ((window as any).Stripe && (window as any).__stripePublishableKey) {
+      setTicketStripeInstance((window as any).Stripe((window as any).__stripePublishableKey));
+      return;
+    }
+    api.getStripePublishableKey().then((r: any) => {
+      (window as any).__stripePublishableKey = r.key;
+      if ((window as any).Stripe) {
+        setTicketStripeInstance((window as any).Stripe(r.key));
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.onload = () => setTicketStripeInstance((window as any).Stripe(r.key));
+        document.head.appendChild(script);
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Mount CardElement when ticket payment sheet opens
+  useEffect(() => {
+    if (!ticketPayingAnnId || !ticketStripeInstance || !ticketClientSecret) return;
+    if (ticketCardElement) return;
+    const t = setTimeout(() => {
+      if (!ticketCardMountRef.current) return;
+      const elements = ticketStripeInstance.elements();
+      const card = elements.create('card', {
+        style: {
+          base: { fontSize: '15px', color: '#1f2937', '::placeholder': { color: '#9ca3af' }, fontFamily: 'system-ui, sans-serif' },
+          invalid: { color: '#ef4444' },
+        },
+      });
+      card.mount(ticketCardMountRef.current);
+      card.on('change', (e: any) => { setTicketPaymentError(e.error?.message || ''); setTicketCardReady(e.complete); });
+      setTicketCardElement(card);
+    }, 80);
+    return () => clearTimeout(t);
+  }, [ticketPayingAnnId, ticketStripeInstance, ticketClientSecret]);
+
+  // Cleanup card element when sheet closes
+  useEffect(() => {
+    if (!ticketPayingAnnId && ticketCardElement) {
+      ticketCardElement.destroy();
+      setTicketCardElement(null);
+      setTicketCardReady(false);
+      setTicketPaymentError('');
+    }
+  }, [ticketPayingAnnId]);
 
   const reload = () => {
     api.getGroup(Number(id)).then(g => {
@@ -198,7 +260,19 @@ export default function GroupDetailPage() {
     } catch (err: any) { toast(err.message, 'error'); }
   };
 
-  const handleRsvp = async (annId: number, iRsvped: boolean) => {
+  const handleRsvp = async (annId: number, iRsvped: boolean, ticketPrice?: number) => {
+    // Paid events: open payment sheet instead of immediate RSVP
+    if (!iRsvped && ticketPrice && ticketPrice > 0) {
+      try {
+        const res: any = await api.rsvpAnnouncement(Number(id), annId);
+        if (res.is_paid && res.client_secret) {
+          setTicketPayingAnnId(annId);
+          setTicketClientSecret(res.client_secret);
+          setTicketAmountEur(res.amount_eur);
+        }
+      } catch (err: any) { toast(err.message, 'error'); }
+      return;
+    }
     try {
       if (iRsvped) { await api.cancelRsvp(Number(id), annId); }
       else { await api.rsvpAnnouncement(Number(id), annId); }
@@ -208,6 +282,41 @@ export default function GroupDetailPage() {
         rsvp_count: (a.rsvp_count || 0) + (iRsvped ? -1 : 1)
       } : a));
     } catch (err: any) { toast(err.message, 'error'); }
+  };
+
+  const handleTicketConfirm = async () => {
+    if (!ticketStripeInstance || !ticketCardElement || !ticketPayingAnnId) return;
+    setTicketPaying(true);
+    setTicketPaymentError('');
+    try {
+      const { error, paymentIntent } = await ticketStripeInstance.confirmCardPayment(
+        ticketClientSecret,
+        { payment_method: { card: ticketCardElement } }
+      );
+      if (error) {
+        setTicketPaymentError(error.message || 'Card declined.');
+        setTicketPaying(false);
+        return;
+      }
+      if (paymentIntent?.status === 'requires_capture') {
+        // Capture on server + issue ticket_code
+        const res: any = await api.confirmTicketPayment(Number(id), ticketPayingAnnId);
+        setAnnouncements(prev => prev.map(a => a.id === ticketPayingAnnId ? {
+          ...a,
+          i_rsvped: true,
+          my_payment_status: 'paid',
+          my_ticket_code: res.ticket_code,
+          rsvp_count: (a.rsvp_count || 0) + 1,
+        } : a));
+        toast('Ticket confirmed!', 'success');
+        setTicketPayingAnnId(null);
+        setTicketClientSecret(null);
+        setTicketAmountEur(null);
+      }
+    } catch (err: any) {
+      setTicketPaymentError(err.message || 'Payment failed.');
+    }
+    setTicketPaying(false);
   };
   const handleLeave = async () => {
     const ok = await confirm({ title: t('groups.leave'), message: 'Are you sure you want to leave this community?', confirmText: 'Leave', danger: true });
@@ -438,6 +547,17 @@ export default function GroupDetailPage() {
                       <input type="number" min="1" value={maxAttendees} onChange={e => setMaxAttendees(e.target.value)} placeholder="Leave empty for unlimited"
                         className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
                     </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Ticket price (optional)</label>
+                      <div className="relative mt-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">€</span>
+                        <input type="number" min="0" step="0.01" value={ticketPriceEur} onChange={e => setTicketPriceEur(e.target.value)} placeholder="0 for free"
+                          className="w-full border border-gray-200 dark:border-gray-600 rounded-lg pl-7 pr-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      {ticketPriceEur && parseFloat(ticketPriceEur) > 0 && (
+                        <p className="text-[10px] text-gray-400 mt-1">Attendees pay €{parseFloat(ticketPriceEur).toFixed(2)} · you receive €{(parseFloat(ticketPriceEur) * 0.8).toFixed(2)} after 20% platform fee</p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -502,9 +622,10 @@ export default function GroupDetailPage() {
                         event_time: isEvent && eventTime ? eventTime : null,
                         event_location: isEvent && eventLocation ? eventLocation : null,
                         max_attendees: isEvent && maxAttendees ? Number(maxAttendees) : null,
+                        ticket_price_eur: isEvent && ticketPriceEur && parseFloat(ticketPriceEur) > 0 ? parseFloat(ticketPriceEur) : null,
                       });
                       setNewPost(''); setPostImage(null); setAttachedService(null); setShowServicePicker(false);
-                      setIsEvent(false); setEventDate(''); setEventTime(''); setEventLocation(''); setMaxAttendees('');
+                      setIsEvent(false); setEventDate(''); setEventTime(''); setEventLocation(''); setMaxAttendees(''); setTicketPriceEur('');
                       reload(); toast('Posted!', 'success');
                     } catch (err: any) { toast(err.message, 'error'); }
                   }} disabled={!newPost.trim()}
@@ -554,12 +675,49 @@ export default function GroupDetailPage() {
                                   <span>{a.rsvp_count || 0} / {a.max_attendees} spots taken</span>
                                 </div>
                               )}
-                              {/* RSVP button */}
+                              {/* Ticket price badge */}
+                              {a.ticket_price_eur && parseFloat(a.ticket_price_eur) > 0 && (
+                                <div className="flex items-center gap-2 text-xs text-primary-600 dark:text-primary-400 mt-1">
+                                  <span className="font-semibold">🎟 €{parseFloat(a.ticket_price_eur).toFixed(2)} per ticket</span>
+                                </div>
+                              )}
+                              {/* My ticket QR — shown after paid RSVP is confirmed */}
+                              {user && isMember && a.i_rsvped && a.my_payment_status === 'paid' && a.my_ticket_code && (
+                                <div className="mt-3 p-3 bg-white dark:bg-[#202c33] rounded-xl border border-primary-200 dark:border-primary-700 flex flex-col items-center gap-2">
+                                  <p className="text-xs font-semibold text-primary-700 dark:text-primary-300">Your Ticket</p>
+                                  <QRCode url={`https://www.boomerang.fyi/ticket/${a.my_ticket_code}`} size={140} caption={null} />
+                                  <p className="text-[10px] text-gray-400 font-mono break-all">{a.my_ticket_code.substring(0, 8).toUpperCase()}</p>
+                                </div>
+                              )}
+                              {/* RSVP / Buy Ticket button */}
                               {user && isMember && (
-                                <button onClick={() => handleRsvp(a.id, a.i_rsvped)}
-                                  className={`mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors ${a.i_rsvped ? 'bg-primary-500 text-white' : 'bg-white dark:bg-[#202c33] border border-primary-300 text-primary-600 hover:bg-primary-50'}`}>
-                                  {a.i_rsvped ? `✓ Going (${a.rsvp_count || 0})` : `I'm Going · ${a.rsvp_count || 0} attending`}
-                                </button>
+                                <>
+                                  {/* Already going (free) — show cancel option */}
+                                  {a.i_rsvped && (!a.ticket_price_eur || parseFloat(a.ticket_price_eur) <= 0) && (
+                                    <button onClick={() => handleRsvp(a.id, true)}
+                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white">
+                                      ✓ Going ({a.rsvp_count || 0})
+                                    </button>
+                                  )}
+                                  {/* Already has paid ticket — no cancel button (must contact organiser) */}
+                                  {a.i_rsvped && a.my_payment_status === 'paid' && (
+                                    <p className="mt-2 text-center text-xs text-gray-400">To cancel, contact the organiser</p>
+                                  )}
+                                  {/* Not yet RSVPed — free event */}
+                                  {!a.i_rsvped && (!a.ticket_price_eur || parseFloat(a.ticket_price_eur) <= 0) && (
+                                    <button onClick={() => handleRsvp(a.id, false)}
+                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] border border-primary-300 text-primary-600 hover:bg-primary-50">
+                                      I'm Going · {a.rsvp_count || 0} attending
+                                    </button>
+                                  )}
+                                  {/* Not yet RSVPed — paid event */}
+                                  {!a.i_rsvped && a.ticket_price_eur && parseFloat(a.ticket_price_eur) > 0 && (
+                                    <button onClick={() => handleRsvp(a.id, false, parseFloat(a.ticket_price_eur))}
+                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white hover:bg-primary-600">
+                                      🎟 Buy Ticket · €{parseFloat(a.ticket_price_eur).toFixed(2)}
+                                    </button>
+                                  )}
+                                </>
                               )}
                               {!user && (
                                 <div className="mt-2 text-xs text-primary-600 dark:text-primary-400">{a.rsvp_count || 0} attending</div>
@@ -692,6 +850,47 @@ export default function GroupDetailPage() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* ── Ticket Payment Sheet ── */}
+      {ticketPayingAnnId && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { if (!ticketPaying) { setTicketPayingAnnId(null); setTicketClientSecret(null); setTicketAmountEur(null); } }} />
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-sm mx-auto p-6 z-10">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-base font-semibold dark:text-white">Buy Ticket</h3>
+                {ticketAmountEur && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">€{ticketAmountEur.toFixed(2)} · secure payment</p>}
+              </div>
+              <button onClick={() => { if (!ticketPaying) { setTicketPayingAnnId(null); setTicketClientSecret(null); setTicketAmountEur(null); } }}
+                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#2a3942] flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-[#3a4a52] transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="mb-5">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Card details</label>
+              {!ticketStripeInstance && (
+                <div className="border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] animate-pulse" />
+              )}
+              <div ref={ticketCardMountRef} className={`border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3.5 bg-white dark:bg-[#2a3942] min-h-[46px] ${!ticketStripeInstance ? 'hidden' : ''}`} />
+              {ticketPaymentError && <p className="text-xs text-red-500 mt-1.5">{ticketPaymentError}</p>}
+            </div>
+
+            <button
+              onClick={handleTicketConfirm}
+              disabled={!ticketCardReady || ticketPaying}
+              className="w-full bg-primary-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-primary-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+              {ticketPaying ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+              ) : (
+                <>🎟 Pay €{ticketAmountEur?.toFixed(2)} &amp; Get Ticket</>
+              )}
+            </button>
+
+            <p className="text-[10px] text-gray-400 text-center mt-3">Powered by Stripe · Your card is charged immediately</p>
+          </div>
+        </div>
       )}
     </div>
   );

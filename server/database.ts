@@ -348,6 +348,17 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_city ON help_wanted(city)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_budget ON help_wanted(budget_eur)'); } catch(e) {}
 
+    // === Event ticketing — paid RSVP with QR codes ===
+    // ticket_price_eur NULL means free (existing free RSVP flow unchanged)
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS ticket_price_eur NUMERIC(10,2)'); } catch(e) {}
+    // payment_status: 'free' | 'pending' | 'paid' | 'refunded'
+    try { await client.query("ALTER TABLE announcement_rsvps ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'free'"); } catch(e) {}
+    try { await client.query('ALTER TABLE announcement_rsvps ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT'); } catch(e) {}
+    // ticket_code: UUID issued after payment confirmed — used as QR payload
+    try { await client.query('ALTER TABLE announcement_rsvps ADD COLUMN IF NOT EXISTS ticket_code TEXT'); } catch(e) {}
+    try { await client.query('ALTER TABLE announcement_rsvps ADD COLUMN IF NOT EXISTS checked_in BOOLEAN DEFAULT false'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_rsvps_ticket_code ON announcement_rsvps(ticket_code)'); } catch(e) {}
+
     console.log('Database initialized with PostgreSQL');
   } finally { client.release(); }
 }

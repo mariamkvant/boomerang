@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import db from '../database';
 import { authMiddleware, AuthRequest } from '../auth';
 import { notify } from '../notify';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 
@@ -220,17 +221,21 @@ router.put('/:id/cover', authMiddleware, async (req: AuthRequest, res: Response)
 router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: Response) => {
   const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   if (!member) return res.status(403).json({ error: 'Members only' });
-  const { content, image, pinned, service_id, event_date, event_time, event_location, max_attendees } = req.body;
+  const { content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
   let imageUrl = image || null;
   if (image && image.startsWith('data:')) {
     try { const { uploadAvatar } = require('../cloudinary'); imageUrl = await uploadAvatar(image); } catch { imageUrl = null; }
   }
   const canPin = member.role === 'admin' && pinned;
+  // ticket_price_eur only applies to events; non-event posts ignore it
+  const ticketPrice = event_date && ticket_price_eur != null && parseFloat(ticket_price_eur) > 0
+    ? parseFloat(ticket_price_eur)
+    : null;
   const result = await db.run(
-    'INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id, event_date, event_time, event_location, max_attendees) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+    'INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
     req.params.id, req.userId, content.trim(), imageUrl, canPin || false, service_id || null,
-    event_date || null, event_time || null, event_location || null, max_attendees || null
+    event_date || null, event_time || null, event_location || null, max_attendees || null, ticketPrice
   );
   res.status(201).json({ id: result.lastInsertRowid });
 });
@@ -258,34 +263,197 @@ router.get('/:id/announcements', async (req: AuthRequest, res: Response) => {
     LEFT JOIN users su ON s.provider_id = su.id
     WHERE ga.group_id = ? ORDER BY ga.pinned DESC, ga.created_at DESC LIMIT 50`, req.params.id);
 
-  // Add viewer's RSVP status
+  // Add viewer's RSVP status and ticket info
   if (viewerId) {
-    const myRsvps = await db.all('SELECT announcement_id FROM announcement_rsvps WHERE user_id = ?', viewerId);
-    const rsvpSet = new Set(myRsvps.map((r: any) => r.announcement_id));
-    return res.json(announcements.map((a: any) => ({ ...a, i_rsvped: rsvpSet.has(a.id) })));
+    const myRsvps = await db.all(
+      'SELECT announcement_id, payment_status, ticket_code FROM announcement_rsvps WHERE user_id = ?',
+      viewerId
+    );
+    const rsvpMap = new Map(myRsvps.map((r: any) => [r.announcement_id, r]));
+    return res.json(announcements.map((a: any) => {
+      const rsvp = rsvpMap.get(a.id) as any;
+      return {
+        ...a,
+        i_rsvped: !!rsvp,
+        my_payment_status: rsvp?.payment_status || null,
+        my_ticket_code: rsvp?.ticket_code || null,
+      };
+    }));
   }
   res.json(announcements);
 });
 
-// RSVP to an event
+// RSVP to an event — free events: direct insert; paid events: create Stripe PaymentIntent
 router.post('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRequest, res: Response) => {
   const member = await db.get('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   if (!member) return res.status(403).json({ error: 'Members only' });
   const ann = await db.get('SELECT * FROM group_announcements WHERE id = ? AND group_id = ?', req.params.annId, req.params.id);
   if (!ann) return res.status(404).json({ error: 'Not found' });
-  // Check capacity
+
+  // Check capacity (count only paid/free confirmed RSVPs, not pending)
   if (ann.max_attendees) {
-    const count = await db.get('SELECT COUNT(*) as c FROM announcement_rsvps WHERE announcement_id = ?', req.params.annId);
+    const count = await db.get(
+      "SELECT COUNT(*) as c FROM announcement_rsvps WHERE announcement_id = ? AND (payment_status = 'free' OR payment_status = 'paid')",
+      req.params.annId
+    );
     if (parseInt(count?.c || '0') >= ann.max_attendees) return res.status(400).json({ error: 'Event is full' });
   }
+
+  const ticketPrice = ann.ticket_price_eur ? parseFloat(ann.ticket_price_eur) : 0;
+
+  // ── FREE event ────────────────────────────────────────────────────────────
+  if (ticketPrice <= 0) {
+    try {
+      await db.run(
+        "INSERT INTO announcement_rsvps (announcement_id, user_id, payment_status) VALUES (?, ?, 'free')",
+        req.params.annId, req.userId
+      );
+      return res.json({ message: 'RSVP confirmed', is_paid: false });
+    } catch {
+      return res.status(409).json({ error: 'Already RSVPed' });
+    }
+  }
+
+  // ── PAID event ────────────────────────────────────────────────────────────
+  // Check the group creator's Stripe Connect account
+  const group = await db.get('SELECT created_by FROM groups WHERE id = ?', req.params.id);
+  if (!group) return res.status(404).json({ error: 'Group not found' });
+
+  const organiser = await db.get(
+    'SELECT stripe_account_id, stripe_account_status, email FROM users WHERE id = ?',
+    group.created_by
+  );
+  if (!organiser?.stripe_account_id) {
+    return res.status(422).json({
+      error: 'organiser_not_connected',
+      message: 'The event organiser has not set up their payout account yet.',
+    });
+  }
+  if (organiser.stripe_account_status !== 'active') {
+    return res.status(422).json({
+      error: 'organiser_not_active',
+      message: "The organiser's payout account is not fully verified yet.",
+    });
+  }
+
+  // Check for existing pending/paid RSVP
+  const existingRsvp = await db.get(
+    'SELECT id, payment_status FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?',
+    req.params.annId, req.userId
+  );
+  if (existingRsvp?.payment_status === 'paid') {
+    return res.status(409).json({ error: 'You already have a ticket for this event' });
+  }
+
   try {
-    await db.run('INSERT INTO announcement_rsvps (announcement_id, user_id) VALUES (?, ?)', req.params.annId, req.userId);
-    res.json({ message: 'RSVP confirmed' });
-  } catch { res.status(409).json({ error: 'Already RSVPed' }); }
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const PLATFORM_FEE_RATE = 0.20;
+    const amountCents = Math.round(ticketPrice * 100);
+    const feeCents = Math.round(amountCents * PLATFORM_FEE_RATE);
+
+    const buyer = await db.get('SELECT email FROM users WHERE id = ?', req.userId);
+
+    const intent = await stripe.paymentIntents.create({
+      amount: amountCents,
+      currency: 'eur',
+      capture_method: 'manual',
+      payment_method_types: ['card'],
+      receipt_email: buyer?.email || undefined,
+      description: `Ticket: ${ann.content?.substring(0, 60)}`,
+      transfer_data: { destination: organiser.stripe_account_id },
+      application_fee_amount: feeCents,
+      metadata: {
+        announcement_id: String(req.params.annId),
+        group_id: String(req.params.id),
+        buyer_id: String(req.userId),
+      },
+    });
+
+    // Upsert the RSVP row as pending
+    if (existingRsvp) {
+      await db.run(
+        "UPDATE announcement_rsvps SET stripe_payment_intent_id = ?, payment_status = 'pending', ticket_code = NULL WHERE id = ?",
+        intent.id, existingRsvp.id
+      );
+    } else {
+      await db.run(
+        "INSERT INTO announcement_rsvps (announcement_id, user_id, payment_status, stripe_payment_intent_id) VALUES (?, ?, 'pending', ?)",
+        req.params.annId, req.userId, intent.id
+      );
+    }
+
+    return res.json({
+      is_paid: true,
+      client_secret: intent.client_secret,
+      amount_eur: ticketPrice,
+    });
+  } catch (err: any) {
+    console.error('[TICKET] PaymentIntent creation failed:', err.message);
+    return res.status(500).json({ error: 'Payment setup failed. Please try again.' });
+  }
 });
 
-// Cancel RSVP
+// Confirm ticket payment after Stripe card authorisation
+router.post('/:id/announcements/:annId/rsvp/confirm', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const rsvp = await db.get(
+    'SELECT * FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?',
+    req.params.annId, req.userId
+  );
+  if (!rsvp) return res.status(404).json({ error: 'No pending RSVP found' });
+  if (rsvp.payment_status === 'paid') return res.json({ ticket_code: rsvp.ticket_code, message: 'Already confirmed' });
+  if (rsvp.payment_status !== 'pending') return res.status(400).json({ error: 'RSVP is not in pending state' });
+
+  try {
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const intent = await stripe.paymentIntents.capture(rsvp.stripe_payment_intent_id);
+    if (intent.status !== 'succeeded') {
+      return res.status(402).json({ error: 'Payment capture failed', stripe_status: intent.status });
+    }
+
+    const ticketCode = randomUUID();
+    await db.run(
+      "UPDATE announcement_rsvps SET payment_status = 'paid', ticket_code = ? WHERE id = ?",
+      ticketCode, rsvp.id
+    );
+
+    return res.json({ ticket_code: ticketCode, message: 'Ticket confirmed' });
+  } catch (err: any) {
+    console.error('[TICKET] Capture failed:', err.message);
+    return res.status(500).json({ error: 'Payment capture failed. Please contact support.' });
+  }
+});
+
+// Get my ticket for an event (returns ticket_code for QR)
+router.get('/:id/announcements/:annId/my-ticket', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const rsvp = await db.get(
+    'SELECT payment_status, ticket_code, checked_in, created_at FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?',
+    req.params.annId, req.userId
+  );
+  if (!rsvp) return res.status(404).json({ error: 'No ticket found' });
+  res.json(rsvp);
+});
+
+// Cancel RSVP (free) or refund ticket (paid)
 router.delete('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const rsvp = await db.get(
+    'SELECT * FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?',
+    req.params.annId, req.userId
+  );
+  if (!rsvp) return res.status(404).json({ error: 'No RSVP found' });
+
+  // Paid tickets: attempt Stripe refund before deleting
+  if (rsvp.payment_status === 'paid' && rsvp.stripe_payment_intent_id) {
+    try {
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      await stripe.refunds.create({ payment_intent: rsvp.stripe_payment_intent_id });
+      await db.run("UPDATE announcement_rsvps SET payment_status = 'refunded', ticket_code = NULL WHERE id = ?", rsvp.id);
+      return res.json({ message: 'Ticket cancelled and refunded' });
+    } catch (err: any) {
+      console.error('[TICKET] Refund failed:', err.message);
+      return res.status(500).json({ error: 'Refund failed. Please contact support.' });
+    }
+  }
+
   await db.run('DELETE FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?', req.params.annId, req.userId);
   res.json({ message: 'RSVP cancelled' });
 });

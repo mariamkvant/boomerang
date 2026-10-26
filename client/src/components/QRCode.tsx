@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 // Minimal QR code generator using canvas — no external deps
-export default function QRCode({ url, size = 150 }: { url: string; size?: number }) {
+export default function QRCode({ url, size = 150, caption = 'Scan to view profile' }: { url: string; size?: number; caption?: string | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function QRCode({ url, size = 150 }: { url: string; size?: number
   return (
     <div className="inline-block bg-white p-3 rounded-xl shadow-card">
       <canvas ref={canvasRef} width={size} height={size} className="rounded-lg" />
-      <p className="text-[10px] text-gray-400 text-center mt-1">Scan to view profile</p>
+      {caption && <p className="text-[10px] text-gray-400 text-center mt-1">{caption}</p>}
     </div>
   );
 }
