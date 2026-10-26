@@ -462,7 +462,7 @@ export default function BrowsePage() {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
               availableToday ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             }`}>
-            📅 Today
+            📅 Available today
           </button>
           {/* Post Offer CTA */}
           {user && (
@@ -939,12 +939,17 @@ export default function BrowsePage() {
                 ) : (
                   <div className="space-y-2 mb-4">
                     {sellerProfile.services.map((s: any) => (
-                      <div key={s.id} className="flex items-center gap-3 bg-gray-50 dark:bg-[#242424] rounded-xl p-3">
+                      <Link
+                        key={s.id}
+                        to={`/services/${s.id}`}
+                        onClick={() => setSellerSheet(null)}
+                        className="flex items-center gap-3 bg-gray-50 dark:bg-[#242424] rounded-xl p-3 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] transition-colors group"
+                      >
                         <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl shrink-0">
                           {s.category_icon || '🛠'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold dark:text-white truncate">{s.title}</p>
+                          <p className="text-sm font-semibold dark:text-white truncate group-hover:text-primary-600 transition-colors">{s.title}</p>
                           <p className="text-xs text-gray-400">{s.category_name}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -953,18 +958,62 @@ export default function BrowsePage() {
                               {s.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(s.price_eur))}
                             </span>
                           )}
-                          <Link
-                            to={`/services/${s.id}`}
-                            onClick={() => setSellerSheet(null)}
-                            className="text-xs font-semibold bg-[#1f2937] text-white px-3 py-1.5 rounded-lg hover:bg-[#111827]"
-                          >
-                            Request
-                          </Link>
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
+
+                {/* Similar providers — others offering the same category, from the already-loaded map data */}
+                {(() => {
+                  const myCategories = new Set((sellerProfile.services || []).map((s: any) => s.category_name));
+                  const similar = services.filter((s: any) =>
+                    s.provider_id !== sellerSheet.providerId &&
+                    myCategories.has(s.category_name)
+                  );
+                  // Deduplicate by provider
+                  const seen = new Set<number>();
+                  const similarProviders: any[] = [];
+                  for (const s of similar) {
+                    if (!seen.has(s.provider_id)) { seen.add(s.provider_id); similarProviders.push(s); }
+                    if (similarProviders.length >= 3) break;
+                  }
+                  if (similarProviders.length === 0) return null;
+                  return (
+                    <div className="mb-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Similar providers nearby</p>
+                      <div className="space-y-2">
+                        {similarProviders.map((s: any) => (
+                          <button key={s.provider_id}
+                            onClick={() => {
+                              setSellerProfile(null);
+                              setSellerLoading(true);
+                              setSellerSheet({ providerId: s.provider_id });
+                              setSelectedProviderId(s.provider_id);
+                              api.getUser(s.provider_id).then((p: any) => { setSellerProfile(p); setSellerLoading(false); }).catch(() => setSellerLoading(false));
+                            }}
+                            className="w-full flex items-center gap-3 bg-gray-50 dark:bg-[#242424] rounded-xl p-3 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] transition-colors text-left group"
+                          >
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                              {s.provider_name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold dark:text-white truncate group-hover:text-primary-600 transition-colors">{s.provider_name}</p>
+                              <p className="text-xs text-gray-400 truncate">{s.title} · {s.category_icon} {s.category_name}</p>
+                            </div>
+                            {s.price_eur != null && (
+                              <span className="text-xs font-bold text-primary-600 dark:text-primary-400 shrink-0">
+                                {s.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(s.price_eur))}
+                              </span>
+                            )}
+                            <svg className="w-4 h-4 text-gray-300 group-hover:text-primary-400 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Bottom actions */}
                 <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
