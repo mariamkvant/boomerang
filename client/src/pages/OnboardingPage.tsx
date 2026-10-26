@@ -2,7 +2,6 @@
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-import CommunityIllustration from '../components/CommunityIllustration';
 
 const SKILL_OPTIONS = [
   { emoji: '🐕', label: 'Pet Walking\n& Sitting',   grad: 'linear-gradient(135deg, #d4edda 0%, #a8d5b5 100%)', accent: '#2d6a4f' },
@@ -59,9 +58,7 @@ function StepHeader({ step, title, subtitle }: { step: number; title: string; su
         ))}
       </div>
       <h2 className="text-xl font-bold text-white mb-1 px-0">{title}</h2>
-      <p className="text-white/70 text-xs leading-relaxed mb-4">{subtitle}</p>
-      {/* Illustration strip */}
-      <CommunityIllustration className="w-full" style={{ maxHeight: '130px' }} />
+      <p className="text-white/70 text-xs leading-relaxed mb-5">{subtitle}</p>
     </div>
   );
 }
@@ -133,6 +130,8 @@ export default function OnboardingPage() {
       if (finalBio) await api.updateProfile({ bio: finalBio });
       if (selectedNeeds.length > 0) await api.updateProfile({ interests: selectedNeeds.join(',') });
       localStorage.setItem('onboarding_done', 'true');
+      // Flag so CreateServicePage can show "post your 2nd offer" nudge after first is posted
+      sessionStorage.setItem('new_account_offers_goal', '2');
       await refreshUser();
     } catch {
       // Non-fatal — continue to service creation even if profile save fails
@@ -317,8 +316,28 @@ export default function OnboardingPage() {
             <div className="bg-[#edf7f1] border border-[#4a9b6f]/20 rounded-2xl p-4 mb-6 flex items-start gap-3">
               <span className="text-xl shrink-0">🎉</span>
               <div>
-                <p className="text-sm font-semibold text-[#1a4731] mb-0.5">Almost done!</p>
-                <p className="text-xs text-[#4a9b6f] leading-relaxed">Next step: post your first service listing. It takes 2 minutes and you'll start receiving requests straight away.</p>
+                <p className="text-sm font-semibold text-[#1a4731] mb-0.5">You're almost ready!</p>
+                <p className="text-xs text-[#4a9b6f] leading-relaxed">
+                  We recommend posting <strong>2 offers</strong> to start getting requests. Listings with 2+ services get 3x more views. It takes about 2 minutes each.
+                </p>
+              </div>
+            </div>
+
+            {/* 2-offer goal tracker */}
+            <div className="flex gap-3 mb-5">
+              <div className="flex-1 bg-[#edf7f1] border border-[#4a9b6f]/30 rounded-xl p-3 flex flex-col items-center gap-1.5">
+                <div className="w-8 h-8 rounded-full bg-[#4a9b6f] flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                </div>
+                <p className="text-[11px] font-semibold text-[#1a4731]">Offer 1</p>
+                <p className="text-[10px] text-[#4a9b6f]">We'll create this now</p>
+              </div>
+              <div className="flex-1 bg-gray-50 border border-gray-100 rounded-xl p-3 flex flex-col items-center gap-1.5 opacity-60">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                </div>
+                <p className="text-[11px] font-semibold text-gray-500">Offer 2</p>
+                <p className="text-[10px] text-gray-400">Reminded after first</p>
               </div>
             </div>
 
@@ -330,7 +349,7 @@ export default function OnboardingPage() {
               <button onClick={handleFinish}
                 className="flex-[2] py-4 rounded-2xl text-white text-sm font-bold flex items-center justify-center gap-2"
                 style={{ background: '#1a4731' }}>
-                Post my first service →
+                Post Offer 1 →
               </button>
             </div>
             <button onClick={skipAll} className="w-full text-center text-xs text-gray-300 hover:text-gray-400 mt-3 py-2">Skip for now</button>

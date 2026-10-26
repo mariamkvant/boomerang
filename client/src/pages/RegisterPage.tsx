@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { t } from '../i18n';
-import CommunityIllustration from '../components/CommunityIllustration';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -52,7 +51,6 @@ export default function RegisterPage() {
         </div>
         <h1 className="text-3xl font-bold text-white mb-1">Register</h1>
         <p className="text-white/70 text-sm text-center max-w-xs">Join your neighbourhood marketplace and start offering or finding services nearby</p>
-        <CommunityIllustration className="w-full mt-2" style={{ maxHeight: '140px' }} />
       </div>
 
       {/* ── White card ── */}

@@ -190,6 +190,10 @@ export default function CreateServicePage() {
 
   // ── Success screen ────────────────────────────────────────────────────────
   if (createdServiceId != null) {
+    const isNewAccountGoal = sessionStorage.getItem('new_account_offers_goal') === '2';
+    // Mark first offer done; if they came from onboarding, nudge them to post a second
+    if (isNewAccountGoal) sessionStorage.setItem('new_account_offers_goal', '1');
+
     return (
       <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">
         <div className="bg-white dark:bg-[#202c33] p-8 rounded-2xl shadow-sm text-center">
@@ -199,12 +203,42 @@ export default function CreateServicePage() {
             </svg>
           </div>
           <h2 className="text-xl font-bold dark:text-white mb-2">Service listed!</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
             Now set your availability so buyers can book a time slot.
           </p>
+
+          {/* New account nudge: post a 2nd offer */}
+          {isNewAccountGoal && (
+            <div className="bg-[#edf7f1] border border-[#4a9b6f]/30 rounded-xl p-4 mb-5 flex items-start gap-3 text-left">
+              <div className="flex-shrink-0 flex flex-col items-center gap-1 pt-0.5">
+                <div className="flex gap-1">
+                  <div className="w-5 h-5 rounded-full bg-[#4a9b6f] flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <span className="text-[9px] font-bold text-gray-500">2</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#1a4731]">1 of 2 offers posted!</p>
+                <p className="text-xs text-[#4a9b6f] leading-relaxed mt-0.5">
+                  Profiles with 2+ offers get 3x more requests. Post one more to complete your profile.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
+            {isNewAccountGoal && (
+              <button onClick={() => { window.location.href = '/services/new'; }}
+                className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
+                style={{ background: '#1a4731' }}>
+                Post Offer 2 →
+              </button>
+            )}
             <button onClick={() => navigate(`/availability?service=${createdServiceId}`)}
-              className="w-full bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600">
+              className={`w-full py-3 rounded-xl font-semibold ${isNewAccountGoal ? 'border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800' : 'bg-primary-500 text-white hover:bg-primary-600'}`}>
               Set availability →
             </button>
             <button onClick={() => navigate(`/services/${createdServiceId}`)}
