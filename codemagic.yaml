@@ -123,6 +123,15 @@ workflows:
             <string>app-store-connect</string>
             <key>teamID</key>
             <string>FQ8GX7UR2S</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>fyi.boomerang.app</key>
+              <string>Boomerang_AppStore</string>
+            </dict>
           </dict>
           </plist>
           EOF
