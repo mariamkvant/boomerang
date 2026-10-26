@@ -325,14 +325,12 @@ router.post('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRe
   );
   if (!organiser?.stripe_account_id) {
     return res.status(422).json({
-      error: 'organiser_not_connected',
-      message: 'The event organiser has not set up their payout account yet.',
+      error: 'The event organiser has not set up their payout account yet. Tickets cannot be purchased until they do.',
     });
   }
   if (organiser.stripe_account_status !== 'active') {
     return res.status(422).json({
-      error: 'organiser_not_active',
-      message: "The organiser's payout account is not fully verified yet.",
+      error: "The organiser's payout account is not fully verified yet. Please try again later.",
     });
   }
 
@@ -433,13 +431,26 @@ router.get('/:id/announcements/:annId/my-ticket', authMiddleware, async (req: Au
   res.json(rsvp);
 });
 
-// Cancel RSVP (free) or refund ticket (paid)
+// Cancel RSVP (free) or refund/cancel ticket (paid or pending)
 router.delete('/:id/announcements/:annId/rsvp', authMiddleware, async (req: AuthRequest, res: Response) => {
   const rsvp = await db.get(
     'SELECT * FROM announcement_rsvps WHERE announcement_id = ? AND user_id = ?',
     req.params.annId, req.userId
   );
   if (!rsvp) return res.status(404).json({ error: 'No RSVP found' });
+
+  // Pending tickets: card was authorised but capture never happened — cancel the authorisation
+  if (rsvp.payment_status === 'pending' && rsvp.stripe_payment_intent_id) {
+    try {
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      await stripe.paymentIntents.cancel(rsvp.stripe_payment_intent_id);
+    } catch (err: any) {
+      // Log but don't block — Stripe may have already expired/cancelled the intent
+      console.warn('[TICKET] Cancel pending intent failed (may be already expired):', err.message);
+    }
+    await db.run('DELETE FROM announcement_rsvps WHERE id = ?', rsvp.id);
+    return res.json({ message: 'RSVP cancelled' });
+  }
 
   // Paid tickets: attempt Stripe refund before deleting
   if (rsvp.payment_status === 'paid' && rsvp.stripe_payment_intent_id) {

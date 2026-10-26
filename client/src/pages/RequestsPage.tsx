@@ -184,6 +184,7 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
   const [requests, setRequests] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -267,8 +268,8 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
       params.set('radius', String(radiusKm));
     }
     api.getRequests(params.toString())
-      .then((res: any) => { setRequests(Array.isArray(res) ? res : []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((res: any) => { setRequests(Array.isArray(res) ? res : []); setLoadError(false); setLoading(false); })
+      .catch(() => { setLoadError(true); setLoading(false); });
   }, [debouncedSearch, cityFilter, userCoords, radiusKm]);
 
   useEffect(() => { loadRequests(); }, [loadRequests]);
@@ -528,6 +529,8 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
               <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                 {[1,2,3].map(i => <div key={i} className="flex-shrink-0 w-48 h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />)}
               </div>
+            ) : loadError ? (
+              <p className="text-xs text-red-400 py-1">Could not load requests. Check your connection and try again.</p>
             ) : requests.length === 0 ? (
               <p className="text-xs text-gray-400 py-1">No requests yet — be the first!</p>
             ) : (
@@ -561,6 +564,13 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
             {loading ? (
               <div className="space-y-3 pt-1">
                 {[1,2,3,4].map(i => <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />)}
+              </div>
+            ) : loadError ? (
+              <div className="text-center py-10">
+                <p className="text-3xl mb-3">⚠️</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Could not load requests</p>
+                <p className="text-xs text-gray-400 mb-4">Check your connection and try again</p>
+                <button onClick={loadRequests} className="text-xs text-primary-500 hover:text-primary-600 font-medium">Retry</button>
               </div>
             ) : requests.length === 0 ? (
               <div className="text-center py-10">

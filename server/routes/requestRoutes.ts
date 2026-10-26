@@ -171,7 +171,7 @@ router.put('/:id/accept', authMiddleware, async (req: AuthRequest, res: Response
 // ─── DELIVER ────────────────────────────────────────────────────────────────
 router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Response) => {
   const { delivery_note, delivery_photo } = req.body;
-  const r = await db.get('SELECT sr.*, s.provider_id FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
+  const r = await db.get('SELECT sr.*, s.provider_id, s.currency FROM service_requests sr JOIN services s ON sr.service_id = s.id WHERE sr.id = ?', req.params.id);
   if (!r) return res.status(404).json({ error: 'Request not found' });
   if (r.provider_id !== req.userId) return res.status(403).json({ error: 'Not your service' });
   if (r.status !== 'accepted') return res.status(400).json({ error: 'Request must be accepted first' });
@@ -181,6 +181,20 @@ router.put('/:id/deliver', authMiddleware, async (req: AuthRequest, res: Respons
     return res.status(402).json({
       error: 'payment_required',
       message: 'Payment has not been collected for this service. The requester must complete payment before delivery can be confirmed.',
+    });
+  }
+  // Block delivery if card was authorised but buyer never confirmed (pending escrow hold)
+  if (r.payment_status === 'pending') {
+    return res.status(402).json({
+      error: 'payment_required',
+      message: 'The requester has not completed payment yet. Delivery will be available once payment is confirmed.',
+    });
+  }
+  // Block delivery for GEL services until BOG payment is authorised by the webhook
+  if (r.currency === 'gel' && r.bog_payment_status && r.bog_payment_status !== 'authorized' && r.bog_payment_status !== 'paid') {
+    return res.status(402).json({
+      error: 'payment_required',
+      message: 'BOG payment has not been authorised yet. Please wait for payment confirmation before marking as delivered.',
     });
   }
   await db.run(

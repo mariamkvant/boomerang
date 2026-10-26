@@ -181,6 +181,11 @@ export default function CreateServicePage() {
       if (serviceSlots.length > 0) {
         await api.setServiceAvailability(res.id, serviceSlots).catch(() => {});
       }
+      // Clear the new-account offers goal flag immediately on success so a hard-refresh
+      // of the success screen doesn't re-show the nudge for a third time
+      if (sessionStorage.getItem('new_account_offers_goal') === '2') {
+        sessionStorage.setItem('new_account_offers_goal', '1');
+      }
       setCreatedServiceId(res.id);
     } catch (err: any) { setError(err.message); setLoading(false); }
   };
@@ -190,9 +195,7 @@ export default function CreateServicePage() {
 
   // ── Success screen ────────────────────────────────────────────────────────
   if (createdServiceId != null) {
-    const isNewAccountGoal = sessionStorage.getItem('new_account_offers_goal') === '2';
-    // Mark first offer done; if they came from onboarding, nudge them to post a second
-    if (isNewAccountGoal) sessionStorage.setItem('new_account_offers_goal', '1');
+    const isNewAccountGoal = sessionStorage.getItem('new_account_offers_goal') === '1';
 
     return (
       <div className="max-w-lg mx-auto mt-8 animate-fade-in pb-24 md:pb-8">

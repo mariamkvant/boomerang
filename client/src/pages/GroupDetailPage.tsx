@@ -312,6 +312,14 @@ export default function GroupDetailPage() {
         setTicketPayingAnnId(null);
         setTicketClientSecret(null);
         setTicketAmountEur(null);
+      } else if (paymentIntent?.status === 'succeeded') {
+        // Already captured (e.g. double-submit) — just reload to pick up the ticket
+        reload();
+        setTicketPayingAnnId(null);
+        setTicketClientSecret(null);
+        setTicketAmountEur(null);
+      } else {
+        setTicketPaymentError(`Payment status unexpected: ${paymentIntent?.status}. Please contact support.`);
       }
     } catch (err: any) {
       setTicketPaymentError(err.message || 'Payment failed.');
