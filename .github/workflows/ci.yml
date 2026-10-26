@@ -33,6 +33,10 @@ jobs:
         run: npx tsc --noEmit
         working-directory: skillswap
 
+      - name: Run server tests
+        run: npm test
+        working-directory: skillswap
+
       # ── Client ────────────────────────────────────────────────────────────
       - name: Install client dependencies
         run: npm ci
@@ -40,4 +44,8 @@ jobs:
 
       - name: TypeScript check — client
         run: npx tsc --noEmit
+        working-directory: skillswap/client
+
+      - name: Build client
+        run: npm run build
         working-directory: skillswap/client
