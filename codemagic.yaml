@@ -14,6 +14,7 @@ workflows:
         XCODE_SCHEME: "App"
         CM_CERTIFICATE: Boomerang_AppStore
         CM_PROVISIONING_PROFILE: Boomerang_AppStore_v2
+        PROJECT_BUILD_NUMBER: "12"
       node: 22
     scripts:
       - name: Install client dependencies
@@ -56,11 +57,16 @@ workflows:
 
       - name: Build and export IPA
         script: |
-          set -e
           cd client/ios/App
           xcode-project build-ipa \
             --project App.xcodeproj \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" 2>&1 | tee /tmp/xcode_build.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "=== FULL XCODE ERROR LOG ==="
+            grep -E "error:|rror" /tmp/xcode_build.log | tail -50
+            exit $EXIT_CODE
+          fi
 
       - name: Upload to App Store Connect
         script: |
