@@ -814,7 +814,7 @@ export default function DashboardPage() {
                   <div className="flex gap-1 mb-3">
                     {[1,2,3,4,5].map(n => (
                       <button key={n} onClick={() => setReviewForm(f => f ? {...f, rating: n} : f)}
-                        className={`text-2xl transition-transform hover:scale-110 ${n <= (reviewForm?.rating ?? 0) ? 'text-yellow-400' : 'text-gray-200'}`} aria-label={`Rate ${n} stars`}>★</button>
+                        className={`w-10 h-10 flex items-center justify-center text-2xl transition-transform hover:scale-110 ${n <= (reviewForm?.rating ?? 0) ? 'text-yellow-400' : 'text-gray-200'}`} aria-label={`Rate ${n} stars`}>★</button>
                     ))}
                   </div>
                   <textarea value={reviewForm?.comment ?? ''} onChange={e => setReviewForm(f => f ? {...f, comment: e.target.value} : f)}
@@ -916,10 +916,9 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white cursor-pointer">{s.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">{s.category_name}{s.price_eur != null ? ` · ${s.currency === 'gel' ? '₾' : '€'}${parseFloat(s.price_eur).toFixed(0)}` : ''}</p>
               </Link>
-              <div className="flex items-center gap-2 ml-3 shrink-0">
-                <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600">Edit</Link>
-                <Link to={`/services/${s.id}`} className="text-xs text-gray-400 hover:text-primary-600">View</Link>
-                <Link to={`/services/${s.id}/hours`} className="text-xs text-green-600 hover:text-green-700 font-medium" title="Set available hours for this service">🕐 Hours</Link>
+              <div className="flex items-center gap-3 ml-3 shrink-0">
+                <Link to={`/services/${s.id}/edit`} className="text-xs text-primary-500 hover:text-primary-600 py-2 px-1">Edit</Link>
+                <Link to={`/services/${s.id}/hours`} className="text-xs text-green-600 hover:text-green-700 font-medium py-2 px-1" title="Set available hours for this service">🕐 Hours</Link>
                 {/* Task #18: Boost button */}
                 {!s.boosted_until || new Date(s.boosted_until) < new Date() ? (
                   <button onClick={async () => {
@@ -972,7 +971,7 @@ export default function DashboardPage() {
       {deliverNote && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setDeliverNote(null)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }} onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="font-bold text-lg dark:text-white mb-2">Mark as delivered</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Add an optional note for the requester — what did you deliver, any handover details?</p>
@@ -1012,7 +1011,7 @@ export default function DashboardPage() {
       {rescheduleForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setRescheduleForm(null)}>
           <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="relative bg-white dark:bg-[#202c33] rounded-t-2xl w-full max-w-lg p-6 animate-slide-up" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }} onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <h3 className="font-bold text-lg dark:text-white mb-1">Propose reschedule</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{rescheduleForm.title}</p>
@@ -1104,7 +1103,7 @@ export default function DashboardPage() {
       {/* Thank you / Shoutout prompt */}
       {shoutoutPrompt && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShoutoutPrompt(null)}>
-          <div className="bg-white dark:bg-[#202c33] rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-[#202c33] rounded-2xl p-6 max-w-sm w-full shadow-xl" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }} onClick={e => e.stopPropagation()}>
             <div className="text-center mb-4">
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>

@@ -185,7 +185,7 @@ function EventsTab() {
                 key={ymd}
                 onClick={() => setSelectedDay(isSelected ? null : ymd)}
                 disabled={!hasEvents}
-                className={`relative flex flex-col items-center justify-center rounded-xl py-1.5 transition-all ${
+                className={`relative flex flex-col items-center justify-center rounded-xl py-2 min-h-[40px] transition-all ${
                   isSelected
                     ? 'bg-primary-500 text-white'
                     : isToday
@@ -312,10 +312,10 @@ export default function GroupsPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl overflow-x-auto">
         {([
-          { key: 'browse', label: t('groups.browse') },
+          { key: 'browse', label: 'Browse' },
           { key: 'events', label: '📅 Events' },
-          { key: 'mine',   label: t('groups.myGroups') },
-          { key: 'create', label: t('groups.create') },
+          { key: 'mine',   label: 'Mine' },
+          { key: 'create', label: 'Create' },
         ] as const).map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
             className={`flex-1 min-w-fit px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
@@ -443,10 +443,10 @@ export default function GroupsPage() {
               <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">You haven't joined any communities yet</p>
               <p className="text-gray-400 dark:text-gray-500 text-xs mb-4">Communities are where neighbours connect, share skills, and organise events.</p>
               <div className="flex gap-2 justify-center">
-                <button onClick={() => setTab('browse')} className="text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                <button onClick={() => setTab('browse')} className="text-sm bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-3 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
                   Browse communities
                 </button>
-                <button onClick={() => setTab('create')} className="text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors">
+                <button onClick={() => setTab('create')} className="text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 px-4 py-3 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors">
                   Create one
                 </button>
               </div>
@@ -462,13 +462,13 @@ export default function GroupsPage() {
             <label htmlFor="gname" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('groups.groupName')}</label>
             <input id="gname" required value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
               placeholder="e.g. Luxembourg City Helpers"
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-[#2a3942] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm bg-white dark:bg-[#2a3942] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
           </div>
           <div>
             <label htmlFor="gdesc" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t('groups.description')}</label>
             <textarea id="gdesc" value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))}
               rows={3} placeholder="What's this community about?"
-              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm resize-none bg-white dark:bg-[#2a3942] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-sm resize-none bg-white dark:bg-[#2a3942] dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
           </div>
           <label className="flex items-center gap-2.5 text-sm dark:text-gray-300 cursor-pointer">
             <input type="checkbox" checked={form.is_public} onChange={e => setForm(f => ({...f, is_public: e.target.checked}))} className="rounded" />

@@ -178,7 +178,7 @@ export default function OnboardingPage() {
                 className="w-full pl-4 pr-8 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-[#4a9b6f] transition-all" />
               {geocoding && <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-block w-3.5 h-3.5 border-2 border-[#4a9b6f]/30 border-t-[#4a9b6f] rounded-full animate-spin" />}
               {citySuggestions.length > 0 && !cityCoords && (
-                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 overflow-hidden">
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 overflow-hidden max-h-[200px] overflow-y-auto">
                   {citySuggestions.map((s: any, i: number) => (
                     <button key={i} type="button" onClick={() => selectCitySuggestion(s)}
                       className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-[#edf7f1] border-b border-gray-50 last:border-0 transition-colors">
@@ -199,7 +199,7 @@ export default function OnboardingPage() {
               style={{ background: '#1a4731' }}>
               Continue <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
             </button>
-            <button onClick={skipAll} className="w-full text-center text-xs text-gray-300 hover:text-gray-400 mt-3 py-2">Skip for now</button>
+            <button onClick={skipAll} className="w-full text-center text-xs text-gray-300 hover:text-gray-400 mt-3 py-3 min-h-[44px]">Skip for now</button>
           </div>
         </>
       )}
@@ -352,7 +352,7 @@ export default function OnboardingPage() {
                 Post Offer 1 →
               </button>
             </div>
-            <button onClick={skipAll} className="w-full text-center text-xs text-gray-300 hover:text-gray-400 mt-3 py-2">Skip for now</button>
+            <button onClick={skipAll} className="w-full text-center text-xs text-gray-300 hover:text-gray-400 mt-3 py-3 min-h-[44px]">Skip for now</button>
           </div>
         </>
       )}

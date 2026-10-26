@@ -339,7 +339,7 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 flex flex-col" style={{ top: '64px', bottom: '60px' }}>
+    <div className="fixed inset-0 flex flex-col" style={{ top: '64px', bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
 
       {/* MAP */}
       <div className="absolute inset-0 z-0">
@@ -411,22 +411,22 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
         </div>
 
         {/* Radius + City + Locate row */}
-        <div className="pointer-events-auto flex gap-1.5 items-center flex-wrap">
+        <div className="pointer-events-auto flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button
             onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : r === 5 ? 0 : 0.5)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937]">
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937] shrink-0">
             {radiusKm === 0 ? 'All' : radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}
             <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
           </button>
           <button onClick={() => setShowCityPicker(p => !p)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 transition-all ${cityFilter ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
+            className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 transition-all shrink-0 ${cityFilter ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
             {cityFilter || 'City'}
             {cityFilter && <span onClick={e => { e.stopPropagation(); setCityFilter(''); setRadiusKm(0); }} className="ml-0.5 opacity-70 hover:opacity-100">✕</span>}
           </button>
           {!userCoords && (
             <button onClick={acquireLocation} disabled={locating}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1">
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1 shrink-0">
               {locating ? <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '📍'}
               Locate me
             </button>
@@ -435,7 +435,7 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
           {user && (
             <button
               onClick={() => setShowPostSheet(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-amber-500 text-white border-amber-500 flex items-center gap-1">
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-amber-500 text-white border-amber-500 flex items-center gap-1 shrink-0">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Post Request
             </button>
@@ -447,7 +447,7 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
           <div className="pointer-events-auto bg-white dark:bg-[#1c1c1c] rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden" style={{ maxHeight: '300px', display: 'flex', flexDirection: 'column' }}>
             <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
               <p className="text-sm font-semibold text-gray-800 dark:text-white">Cities with requests</p>
-              <button onClick={() => { setShowCityPicker(false); setCitySearch(''); }} className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+              <button onClick={() => { setShowCityPicker(false); setCitySearch(''); }} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
             </div>

@@ -337,11 +337,11 @@ export default function CreateServicePage() {
         {/* Offer / Request toggle */}
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl mb-6">
           <button type="button" onClick={() => setPostType('offer')}
-            className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
+            className="flex-1 py-3 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
             🛠 Offer
           </button>
           <button type="button" onClick={() => setPostType('request')}
-            className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
+            className="flex-1 py-3 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
             📋 Request
           </button>
         </div>
@@ -457,11 +457,11 @@ export default function CreateServicePage() {
       {/* Offer / Request top toggle */}
       <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl mb-6">
         <button type="button" onClick={() => setPostType('offer')}
-          className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
+          className="flex-1 py-3 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm">
           🛠 Offer
         </button>
         <button type="button" onClick={() => setPostType('request')}
-          className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
+          className="flex-1 py-3 rounded-lg text-sm font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800">
           📋 Request
         </button>
       </div>
@@ -493,11 +493,11 @@ export default function CreateServicePage() {
         {/* ── Service / Item toggle ── */}
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
           <button type="button" onClick={() => { setForm(f => ({ ...f, is_product: false })); setItemCategory(''); setIsGiveaway(false); }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${!form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
             🛠 Service
           </button>
           <button type="button" onClick={() => setForm(f => ({ ...f, is_product: true }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${form.is_product ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
             📦 Item
           </button>
         </div>
@@ -522,7 +522,7 @@ export default function CreateServicePage() {
                     if (matched) setForm(f => ({ ...f, category_id: String(matched.id) }));
                   }}
                   title={cat.desc}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
                     itemCategory === cat.name
                       ? 'bg-[#1f2937] text-white border-[#1f2937]'
                       : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
@@ -540,7 +540,7 @@ export default function CreateServicePage() {
                   key={c.id}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' }))}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
                     form.category_id === String(c.id)
                       ? 'bg-[#1f2937] text-white border-[#1f2937]'
                       : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
@@ -556,7 +556,7 @@ export default function CreateServicePage() {
                       key={c.id}
                       type="button"
                       onClick={() => { setForm(f => ({ ...f, category_id: String(c.id), subcategory_id: '' })); setShowOtherCategories(false); }}
-                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                      className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
                         form.category_id === String(c.id)
                           ? 'bg-[#1f2937] text-white border-[#1f2937]'
                           : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
@@ -572,7 +572,7 @@ export default function CreateServicePage() {
                 </>
               ) : (
                 <button type="button" onClick={() => setShowOtherCategories(true)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
                     form.category_id && !coreCategories.find(c => String(c.id) === form.category_id)
                       ? 'bg-[#1f2937] text-white border-[#1f2937]'
                       : 'bg-white dark:bg-[#2a3942] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-400'
@@ -615,15 +615,15 @@ export default function CreateServicePage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Listing type</label>
             <div className="flex gap-1.5 p-1 bg-gray-100 dark:bg-[#2a3942] rounded-xl">
               <button type="button" onClick={() => { setIsGiveaway(false); setIsRental(false); setForm(f => ({ ...f, price_eur: '' })); }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${!isGiveaway && !isRental ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors ${!isGiveaway && !isRental ? 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
                 💰 For sale
               </button>
               <button type="button" onClick={() => { setIsGiveaway(false); setIsRental(true); setForm(f => ({ ...f, price_eur: '' })); }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${isRental ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors ${isRental ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
                 🔑 Rental
               </button>
               <button type="button" onClick={() => { setIsGiveaway(true); setIsRental(false); setForm(f => ({ ...f, price_eur: '0' })); }}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-semibold transition-colors ${isGiveaway ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+                className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors ${isGiveaway ? 'bg-green-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
                 🎁 Free
               </button>
             </div>
@@ -839,7 +839,7 @@ export default function CreateServicePage() {
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-block w-3.5 h-3.5 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" />
                 )}
                 {serviceAddressSuggestions.length > 0 && !serviceAddressSet && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden">
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-20 overflow-hidden max-h-[200px] overflow-y-auto">
                     {serviceAddressSuggestions.map((s: any, i: number) => (
                       <button key={i} type="button"
                         onClick={() => { setServiceAddress(s.display_name); setServiceLatLng({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) }); setServiceAddressSuggestions([]); setServiceAddressSet(true); }}

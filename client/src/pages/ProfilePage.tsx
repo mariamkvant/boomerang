@@ -73,8 +73,8 @@ export default function ProfilePage() {
               </div>
             )}
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">{profile.username}</h1>
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <h1 className="text-2xl font-bold truncate">{profile.username}</h1>
                 {trust && (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                     trust.level === 'Platinum' ? 'bg-violet-100 text-violet-700' :
@@ -99,10 +99,10 @@ export default function ProfilePage() {
           </div>
           {user && !isMe && (
             <div className="flex items-center gap-2 shrink-0">
-              <Link to={`/messages?to=${id}`} className="text-sm bg-gray-900 dark:bg-primary-600 text-white px-4 py-2 rounded-xl hover:bg-gray-800 font-medium">Message</Link>
+              <Link to={`/messages?to=${id}`} className="text-sm bg-gray-900 dark:bg-primary-600 text-white px-4 py-3 rounded-xl hover:bg-gray-800 font-medium">Message</Link>
               <div className="relative">
                 <button onClick={() => setShowOverflow(!showOverflow)}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a3942]">
+                  className="w-11 h-11 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a3942]">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
                 </button>
                 {showOverflow && (
@@ -176,8 +176,8 @@ export default function ProfilePage() {
           <textarea value={reportDetails} onChange={e => setReportDetails(e.target.value)} placeholder="Additional details (optional)..."
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm h-20 resize-none mb-3" aria-label="Report details" />
           <div className="flex gap-2">
-            <button onClick={handleReport} disabled={!reportReason} className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-50">Submit Report</button>
-            <button onClick={() => setShowReport(false)} className="text-sm text-gray-500 px-3 py-2">Cancel</button>
+            <button onClick={handleReport} disabled={!reportReason} className="bg-red-500 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-red-600 disabled:opacity-50">Submit Report</button>
+            <button onClick={() => setShowReport(false)} className="text-sm text-gray-500 px-3 py-3">Cancel</button>
           </div>
         </div>
       )}
@@ -204,7 +204,7 @@ export default function ProfilePage() {
           <div className="grid md:grid-cols-2 gap-3">
             {profile.services.map((s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="bg-white dark:bg-[#202c33] p-5 rounded-xl shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 group transition-all">
-                <h4 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white">{s.title}</h4>
+                <h4 className="font-semibold text-sm group-hover:text-primary-600 dark:text-white line-clamp-2">{s.title}</h4>
                 <p className="text-xs text-gray-500 mt-1">
                   {s.category_name} · {s.price_eur != null ? (Number(s.price_eur) === 0 ? '🎁 Free' : (s.currency === 'gel' ? '₾' : '€') + parseFloat(s.price_eur).toFixed(0)) : 'Contact provider'}
                 </p>
