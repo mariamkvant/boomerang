@@ -32,6 +32,47 @@ workflows:
           cd client
           npx cap sync ios
 
+      - name: Fix Xcode signing settings
+        script: |
+          # cap sync overwrites project.pbxproj — patch signing settings after sync
+          PBXPROJ="client/ios/App/App.xcodeproj/project.pbxproj"
+
+          # Switch ProvisioningStyle from Automatic to Manual
+          sed -i '' 's/ProvisioningStyle = Automatic/ProvisioningStyle = Manual/g' "$PBXPROJ"
+
+          # Switch CODE_SIGN_STYLE from Automatic to Manual in target configs
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' "$PBXPROJ"
+
+          # Add DEVELOPMENT_TEAM and CODE_SIGN_IDENTITY after ASSETCATALOG line in target configs
+          # Use Python for reliable multi-line replacement
+          python3 - <<'PYEOF'
+          import re
+
+          with open("client/ios/App/App.xcodeproj/project.pbxproj", "r") as f:
+              content = f.read()
+
+          # Add DEVELOPMENT_TEAM after CODE_SIGN_STYLE = Manual if not already present
+          if "DEVELOPMENT_TEAM = FQ8GX7UR2S" not in content:
+              content = content.replace(
+                  "CODE_SIGN_STYLE = Manual;",
+                  "CODE_SIGN_STYLE = Manual;\n\t\t\t\tDEVELOPMENT_TEAM = FQ8GX7UR2S;"
+              )
+
+          # Ensure CODE_SIGN_IDENTITY is Apple Distribution in target configs
+          content = content.replace(
+              'CODE_SIGN_IDENTITY = "iPhone Developer";',
+              'CODE_SIGN_IDENTITY = "Apple Distribution";'
+          )
+
+          with open("client/ios/App/App.xcodeproj/project.pbxproj", "w") as f:
+              f.write(content)
+
+          print("Patched project.pbxproj signing settings")
+          PYEOF
+
+          echo "=== Signing settings after patch ==="
+          grep -E "CODE_SIGN_STYLE|CODE_SIGN_IDENTITY|DEVELOPMENT_TEAM|ProvisioningStyle" "$PBXPROJ"
+
       - name: Set up code signing
         script: |
           # Initialize keychain and install the Codemagic-managed certificate
