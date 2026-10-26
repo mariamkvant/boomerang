@@ -343,33 +343,33 @@ export default function BrowsePage() {
         {/* Search + view toggle */}
         <div className="pointer-events-auto flex gap-2">
           <div className="relative flex-1">
-            {/* Mode toggle inside search bar */}
+            {/* Mode toggle inside search bar — compact labels on mobile */}
             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-10">
               <button
                 onClick={() => setSearchMode('services')}
-                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors ${searchMode === 'services' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors ${searchMode === 'services' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                Services
+                Svcs
               </button>
               <button
                 onClick={() => setSearchMode('people')}
-                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors ${searchMode === 'people' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors ${searchMode === 'people' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 People
               </button>
               <Link
                 to="/requests"
-                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md transition-colors text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                className="text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
               >
-                Requests
+                Reqs
               </Link>
             </div>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               onFocus={() => setShowSearchSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 150)}
               onKeyDown={e => { if (e.key === 'Enter' && search.trim()) { saveRecentSearch(search.trim()); setShowSearchSuggestions(false); } }}
-              placeholder={searchMode === 'services' ? 'Search services, providers...' : 'Search by name, city, skill...'}
-              className="w-full pl-[148px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              placeholder={searchMode === 'services' ? 'Search services...' : 'Search people...'}
+              className="w-full pl-[104px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
               aria-label="Search" />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">
@@ -422,8 +422,8 @@ export default function BrowsePage() {
           </button>
         </div>
 
-        {/* Radius + city + locate */}
-        <div className="pointer-events-auto flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* Radius + city + locate — bleeds to screen edge so last pill is reachable */}
+        <div className="pointer-events-auto -mx-3 px-3 flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {/* Current radius pill */}
           <button
             onClick={() => {
@@ -466,7 +466,7 @@ export default function BrowsePage() {
           {user && (
             <Link
               to="/services/new"
-              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 bg-[#1f2937] text-white border-[#1f2937] hover:bg-[#111827] transition-colors shrink-0"
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 bg-[#1f2937] text-white border-[#1f2937] hover:bg-[#111827] transition-colors shrink-0 mr-3"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Post Offer
@@ -548,8 +548,8 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Category pills — single scrollable row, no wrapping */}
-        <div className="pointer-events-auto flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* Category pills — single scrollable row, bleeds to screen edge */}
+        <div className="pointer-events-auto -mx-3 px-3 flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
             className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
               !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -560,9 +560,9 @@ export default function BrowsePage() {
                 selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
-          {rest.map((c: any) => (
+          {rest.map((c: any, i: number) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
+              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${i === rest.length - 1 ? 'mr-3' : ''} ${
                 selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
