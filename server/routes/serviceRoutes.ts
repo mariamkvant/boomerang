@@ -16,7 +16,7 @@ router.get('/cities', async (_req, res: Response) => {
     WITH raw AS (
       SELECT
         -- Step 1: take base city (strip district after ' — ')
-        SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1) as base_city
+        TRIM(SPLIT_PART(COALESCE(s.city, u.city), ' — ', 1)) as base_city
       FROM services s
       JOIN users u ON s.provider_id = u.id
       WHERE s.is_active = 1
@@ -35,11 +35,12 @@ router.get('/cities', async (_req, res: Response) => {
             'Ortachala', 'Varketili', 'Dighomi', 'Old Tbilisi%'
           ]) THEN 'Tbilisi'
           -- Strip country suffix e.g. "Tbilisi, Georgia" → "Tbilisi"
-          WHEN base_city ILIKE '%,%' THEN TRIM(SPLIT_PART(base_city, ',', 1))
-          -- Luxembourg City variants
+          WHEN base_city ILIKE '%,%' THEN INITCAP(TRIM(SPLIT_PART(base_city, ',', 1)))
+          -- Luxembourg City variants (case-insensitive, all collapse to one)
           WHEN base_city ILIKE 'Luxembourg City%' THEN 'Luxembourg City'
-          WHEN base_city = 'Luxembourg' THEN 'Luxembourg City'
-          ELSE base_city
+          WHEN base_city ILIKE 'Luxembourg' THEN 'Luxembourg City'
+          -- Normalize everything else: proper casing so "london" = "London"
+          ELSE INITCAP(base_city)
         END as city
       FROM raw
     )
