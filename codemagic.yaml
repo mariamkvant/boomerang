@@ -10,7 +10,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: fyi.boomerang.app
         certificate: Boomerang_AppStore
-        provisioning_profile: Boomerang_AppStore
+        provisioning_profile: Boomerang_AppStore_v2
       vars:
         BUNDLE_ID: "fyi.boomerang.app"
         XCODE_SCHEME: "App"
