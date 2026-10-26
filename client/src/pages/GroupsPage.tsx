@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
@@ -8,10 +8,267 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { haptic } from '../utils/platform';
 import { SkeletonList } from '../components/Skeleton';
 
+// ─── Calendar helpers ────────────────────────────────────────────────────────
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function toYMD(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function monthGrid(year: number, month: number): (Date | null)[] {
+  const first = new Date(year, month, 1);
+  const last  = new Date(year, month + 1, 0);
+  const cells: (Date | null)[] = [];
+  // leading nulls
+  for (let i = 0; i < first.getDay(); i++) cells.push(null);
+  for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(year, month, d));
+  // trailing nulls to fill last row
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+// ─── Event card ──────────────────────────────────────────────────────────────
+
+function EventCard({ ev }: { ev: any }) {
+  const date = new Date(ev.event_date + 'T12:00:00');
+  const isFree = !ev.ticket_price_eur || parseFloat(ev.ticket_price_eur) <= 0;
+  const isFull = ev.max_attendees && Number(ev.rsvp_count) >= Number(ev.max_attendees);
+
+  return (
+    <Link to={`/groups/${ev.group_id}`}
+      className="flex gap-3 bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md transition-all p-4 group">
+      {/* Date badge */}
+      <div className="w-12 shrink-0 flex flex-col items-center justify-center bg-primary-50 dark:bg-primary-900/20 rounded-xl py-2">
+        <span className="text-[10px] font-semibold text-primary-500 uppercase tracking-wide leading-none">
+          {date.toLocaleString('en', { month: 'short' })}
+        </span>
+        <span className="text-xl font-bold text-primary-700 dark:text-primary-300 leading-tight">
+          {date.getDate()}
+        </span>
+      </div>
+
+      {/* Details */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-primary-600 transition-colors">
+          {ev.content?.split('\n')[0]?.substring(0, 80)}
+        </p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{ev.group_name}</span>
+          {ev.event_time && (
+            <span className="text-xs text-gray-400">· {ev.event_time.substring(0, 5)}</span>
+          )}
+          {ev.event_location && (
+            <span className="text-xs text-gray-400 truncate max-w-[140px]">· 📍 {ev.event_location}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-1.5">
+          {isFree ? (
+            <span className="text-[10px] font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">Free</span>
+          ) : (
+            <span className="text-[10px] font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-2 py-0.5 rounded-full">
+              🎟 €{parseFloat(ev.ticket_price_eur).toFixed(2)}
+            </span>
+          )}
+          {ev.max_attendees && (
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${isFull ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+              {isFull ? 'Full' : `${ev.rsvp_count}/${ev.max_attendees} going`}
+            </span>
+          )}
+          {!ev.max_attendees && Number(ev.rsvp_count) > 0 && (
+            <span className="text-[10px] text-gray-400">{ev.rsvp_count} going</span>
+          )}
+        </div>
+      </div>
+      <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-primary-400 transition-colors shrink-0 self-center" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </Link>
+  );
+}
+
+// ─── Events tab ──────────────────────────────────────────────────────────────
+
+function EventsTab() {
+  const { user } = useAuth();
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  // Calendar state
+  const today = new Date();
+  const [calYear,  setCalYear]  = useState(today.getFullYear());
+  const [calMonth, setCalMonth] = useState(today.getMonth());
+  const [selectedDay, setSelectedDay] = useState<string | null>(null); // 'YYYY-MM-DD' or null = all
+
+  const load = () => {
+    setLoading(true);
+    setLoadError(false);
+    // Fetch 6 months of upcoming events — client filters by selected day
+    const from = toYMD(new Date(today.getFullYear(), today.getMonth(), 1));
+    const to   = toYMD(new Date(today.getFullYear(), today.getMonth() + 6, 0));
+    const params = new URLSearchParams({ from, to });
+    // Pass user coords for proximity if available
+    if (user && (user as any).latitude) {
+      params.set('lat', String((user as any).latitude));
+      params.set('lng', String((user as any).longitude));
+      params.set('radius', '50'); // 50 km radius — wide net for events tab
+    }
+    api.getPublicEvents(params.toString())
+      .then((res: any) => { setEvents(Array.isArray(res) ? res : []); setLoading(false); })
+      .catch(() => { setLoadError(true); setLoading(false); });
+  };
+
+  useEffect(load, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build set of dates that have events (for dots on calendar)
+  const eventDates = useMemo(() => new Set(events.map((e: any) => e.event_date?.substring(0, 10))), [events]);
+
+  // Filtered list: if a day is selected show only that day's events, else show current month
+  const visibleEvents = useMemo(() => {
+    if (selectedDay) return events.filter((e: any) => e.event_date?.startsWith(selectedDay));
+    // Default: show all events in the displayed month
+    const prefix = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+    return events.filter((e: any) => e.event_date?.startsWith(prefix));
+  }, [events, selectedDay, calYear, calMonth]);
+
+  const cells = useMemo(() => monthGrid(calYear, calMonth), [calYear, calMonth]);
+
+  const prevMonth = () => {
+    setSelectedDay(null);
+    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11); }
+    else setCalMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    setSelectedDay(null);
+    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0); }
+    else setCalMonth(m => m + 1);
+  };
+
+  const todayYMD = toYMD(today);
+
+  return (
+    <div>
+      {/* ── Calendar ── */}
+      <div className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm p-4 mb-4">
+        {/* Month nav */}
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-colors text-gray-500 dark:text-gray-400">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <h3 className="text-sm font-semibold dark:text-white">{MONTHS[calMonth]} {calYear}</h3>
+          <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-colors text-gray-500 dark:text-gray-400">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" /></svg>
+          </button>
+        </div>
+
+        {/* Day-of-week headers */}
+        <div className="grid grid-cols-7 mb-1">
+          {DAYS.map(d => (
+            <div key={d} className="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wide py-1">{d}</div>
+          ))}
+        </div>
+
+        {/* Day cells */}
+        <div className="grid grid-cols-7 gap-y-1">
+          {cells.map((cell, i) => {
+            if (!cell) return <div key={i} />;
+            const ymd = toYMD(cell);
+            const hasEvents = eventDates.has(ymd);
+            const isToday = ymd === todayYMD;
+            const isSelected = ymd === selectedDay;
+            const isPast = ymd < todayYMD;
+
+            return (
+              <button
+                key={ymd}
+                onClick={() => setSelectedDay(isSelected ? null : ymd)}
+                disabled={!hasEvents}
+                className={`relative flex flex-col items-center justify-center rounded-xl py-1.5 transition-all ${
+                  isSelected
+                    ? 'bg-primary-500 text-white'
+                    : isToday
+                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold'
+                    : isPast
+                    ? 'text-gray-300 dark:text-gray-600'
+                    : hasEvents
+                    ? 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#2a3942] cursor-pointer font-medium'
+                    : 'text-gray-400 dark:text-gray-500 cursor-default'
+                }`}
+              >
+                <span className="text-sm leading-none">{cell.getDate()}</span>
+                {/* Event dot */}
+                {hasEvents && (
+                  <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-white' : 'bg-primary-500'}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected day label */}
+        {selectedDay && (
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-xs font-medium text-primary-600 dark:text-primary-400">
+              {new Date(selectedDay + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            <button onClick={() => setSelectedDay(null)} className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              Show all
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Event list ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            {selectedDay
+              ? `Events on ${new Date(selectedDay + 'T12:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}`
+              : `${MONTHS[calMonth]} events`}
+          </h3>
+          {loading && <div className="w-3.5 h-3.5 border-2 border-primary-400/30 border-t-primary-500 rounded-full animate-spin" />}
+        </div>
+
+        {loadError ? (
+          <div className="text-center py-10 bg-white dark:bg-[#202c33] rounded-2xl">
+            <p className="text-3xl mb-2">⚠️</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Could not load events</p>
+            <button onClick={load} className="text-xs text-primary-500 font-medium hover:text-primary-600">Retry</button>
+          </div>
+        ) : loading ? (
+          <SkeletonList count={3} />
+        ) : visibleEvents.length > 0 ? (
+          <div className="space-y-2">
+            {visibleEvents.map((ev: any) => <EventCard key={ev.id} ev={ev} />)}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white dark:bg-[#202c33] rounded-2xl shadow-sm">
+            <p className="text-3xl mb-3">📅</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+              {selectedDay ? 'No events on this day' : `No events in ${MONTHS[calMonth]}`}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Events are posted inside communities — join one to see what's on
+            </p>
+            <Link to="/groups" onClick={() => {}} className="inline-block mt-4 text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors">
+              Browse communities →
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ───────────────────────────────────────────────────────────────
+
 export default function GroupsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [tab, setTab] = useState<'browse' | 'mine' | 'create'>('browse');
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<'browse' | 'events' | 'mine' | 'create'>('browse');
   const [publicGroups, setPublicGroups] = useState<any[]>([]);
   const [myGroups, setMyGroups] = useState<any[]>([]);
   const [groupSearch, setGroupSearch] = useState('');
@@ -53,15 +310,20 @@ export default function GroupsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl">
-        {(['browse', 'mine', 'create'] as const).map(tb => (
-          <button key={tb} onClick={() => setTab(tb)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === tb
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-[#202c33] p-1 rounded-xl overflow-x-auto">
+        {([
+          { key: 'browse', label: t('groups.browse') },
+          { key: 'events', label: '📅 Events' },
+          { key: 'mine',   label: t('groups.myGroups') },
+          { key: 'create', label: t('groups.create') },
+        ] as const).map(tb => (
+          <button key={tb.key} onClick={() => setTab(tb.key)}
+            className={`flex-1 min-w-fit px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              tab === tb.key
                 ? 'bg-white dark:bg-[#2a3942] text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}>
-            {tb === 'browse' ? t('groups.browse') : tb === 'mine' ? t('groups.myGroups') : t('groups.create')}
+            {tb.label}
           </button>
         ))}
       </div>
@@ -78,7 +340,7 @@ export default function GroupsPage() {
               aria-label="Search communities" />
           </div>
 
-          {/* Suggested for you — shown when user is logged in and not searching */}
+          {/* Suggested for you */}
           {user && !groupSearch && myGroups.length === 0 && publicGroups.length > 0 && (
             <div className="mb-6">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Suggested for you</h3>
@@ -98,59 +360,62 @@ export default function GroupsPage() {
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">All communities</h3>
             </div>
           )}
+
           {loading ? <SkeletonList count={3} /> : (
-          <div className="grid md:grid-cols-2 gap-3">
-            {publicGroups.map((g: any) => (
-              <div key={g.id} className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
-                {/* Thin colored top bar */}
-                <div className="h-1 bg-gradient-to-r from-primary-400 to-orange-400" />
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <Link to={`/groups/${g.id}`} className="font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                        {g.name}
-                      </Link>
-                      {g.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{g.description}</p>
-                      )}
-                      <div className="flex items-center gap-1.5 mt-2.5 text-xs text-gray-400">
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                        </svg>
-                        <span>{g.member_count} {t('groups.members')}</span>
-                        <span>·</span>
-                        <span>by {g.creator_name}</span>
+            <div className="grid md:grid-cols-2 gap-3">
+              {publicGroups.map((g: any) => (
+                <div key={g.id} className="bg-white dark:bg-[#202c33] rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
+                  <div className="h-1 bg-gradient-to-r from-primary-400 to-orange-400" />
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <Link to={`/groups/${g.id}`} className="font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                          {g.name}
+                        </Link>
+                        {g.description && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{g.description}</p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-2.5 text-xs text-gray-400">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                          </svg>
+                          <span>{g.member_count} {t('groups.members')}</span>
+                          <span>·</span>
+                          <span>by {g.creator_name}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="shrink-0">
-                      {user && !isMember(g.id) && (
-                        <button onClick={() => handleJoin(g.id)}
-                          className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3.5 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium transition-colors">
-                          {t('groups.join')}
-                        </button>
-                      )}
-                      {isMember(g.id) && (
-                        <span className="text-xs text-primary-500 font-medium bg-primary-50 dark:bg-primary-900/20 px-2.5 py-1 rounded-lg">
-                          {t('groups.member')}
-                        </span>
-                      )}
+                      <div className="shrink-0">
+                        {user && !isMember(g.id) && (
+                          <button onClick={() => handleJoin(g.id)}
+                            className="text-xs bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3.5 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 font-medium transition-colors">
+                            {t('groups.join')}
+                          </button>
+                        )}
+                        {isMember(g.id) && (
+                          <span className="text-xs text-primary-500 font-medium bg-primary-50 dark:bg-primary-900/20 px-2.5 py-1 rounded-lg">
+                            {t('groups.member')}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {publicGroups.length === 0 && (
-              <div className="col-span-2 text-center py-12">
-                <svg className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                </svg>
-                <p className="text-gray-400 dark:text-gray-500 text-sm">{groupSearch ? t('groups.noResults') : t('groups.noPublic')}</p>
-              </div>
-            )}
-          </div>
+              ))}
+              {publicGroups.length === 0 && (
+                <div className="col-span-2 text-center py-12">
+                  <svg className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                  </svg>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">{groupSearch ? t('groups.noResults') : t('groups.noPublic')}</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
+
+      {/* Events tab */}
+      {tab === 'events' && <EventsTab />}
 
       {/* My Groups tab */}
       {tab === 'mine' && (

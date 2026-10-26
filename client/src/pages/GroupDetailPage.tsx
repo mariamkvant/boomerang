@@ -147,6 +147,11 @@ export default function GroupDetailPage() {
   const [eventLocation, setEventLocation] = useState('');
   const [maxAttendees, setMaxAttendees] = useState('');
   const [ticketPriceEur, setTicketPriceEur] = useState('');
+  // Event location geocoords — populated via Nominatim autocomplete
+  const [eventLocationCoords, setEventLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [eventLocationSuggestions, setEventLocationSuggestions] = useState<any[]>([]);
+  const [eventLocationSearching, setEventLocationSearching] = useState(false);
+  const eventLocationDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
   const [comments, setComments] = useState<Record<number, any[]>>({});
   const [newComment, setNewComment] = useState<Record<number, string>>({});
@@ -547,8 +552,46 @@ export default function GroupDetailPage() {
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Location</label>
-                      <input type="text" value={eventLocation} onChange={e => setEventLocation(e.target.value)} placeholder="e.g. Parc Merl, Luxembourg City"
-                        className="w-full mt-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500" />
+                      <div className="relative mt-1">
+                        <input type="text" value={eventLocation}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setEventLocation(val);
+                            setEventLocationCoords(null); // coords reset when text changes
+                            if (eventLocationDebounceRef.current) clearTimeout(eventLocationDebounceRef.current);
+                            if (val.length < 3) { setEventLocationSuggestions([]); return; }
+                            setEventLocationSearching(true);
+                            eventLocationDebounceRef.current = setTimeout(async () => {
+                              try {
+                                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5&addressdetails=1`, { headers: { 'User-Agent': 'Boomerang/1.0' } });
+                                setEventLocationSuggestions(await res.json());
+                              } catch {}
+                              setEventLocationSearching(false);
+                            }, 400);
+                          }}
+                          placeholder="e.g. Parc Merl, Luxembourg City"
+                          className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-[#202c33] dark:text-white outline-none focus:ring-2 focus:ring-primary-500 pr-7" />
+                        {eventLocationSearching && <span className="absolute right-2 top-1/2 -translate-y-1/2 inline-block w-3 h-3 border-2 border-primary-400/30 border-t-primary-500 rounded-full animate-spin" />}
+                        {eventLocationCoords && !eventLocationSearching && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-primary-500 text-xs">📍</span>}
+                        {eventLocationSuggestions.length > 0 && !eventLocationCoords && (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#2a3942] border border-gray-100 dark:border-gray-600 rounded-xl shadow-xl z-30 overflow-hidden max-h-48 overflow-y-auto">
+                            {eventLocationSuggestions.map((s: any, i: number) => (
+                              <button key={i} type="button"
+                                onClick={() => {
+                                  const a = s.address || {};
+                                  const display = a.neighbourhood || a.suburb || a.city_district || a.city || a.town || a.village || s.display_name.split(',')[0];
+                                  setEventLocation(display);
+                                  setEventLocationCoords({ lat: parseFloat(s.lat), lng: parseFloat(s.lon) });
+                                  setEventLocationSuggestions([]);
+                                }}
+                                className="w-full text-left px-3 py-2.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-[#1f2937] border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
+                                <p className="font-medium truncate">{s.display_name.split(',').slice(0, 2).join(',')}</p>
+                                <p className="text-gray-400 truncate mt-0.5">{s.display_name.split(',').slice(2).join(',').trim()}</p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Max attendees (optional)</label>
@@ -631,9 +674,12 @@ export default function GroupDetailPage() {
                         event_location: isEvent && eventLocation ? eventLocation : null,
                         max_attendees: isEvent && maxAttendees ? Number(maxAttendees) : null,
                         ticket_price_eur: isEvent && ticketPriceEur && parseFloat(ticketPriceEur) > 0 ? parseFloat(ticketPriceEur) : null,
+                        event_latitude: isEvent && eventLocationCoords ? eventLocationCoords.lat : null,
+                        event_longitude: isEvent && eventLocationCoords ? eventLocationCoords.lng : null,
                       });
                       setNewPost(''); setPostImage(null); setAttachedService(null); setShowServicePicker(false);
                       setIsEvent(false); setEventDate(''); setEventTime(''); setEventLocation(''); setMaxAttendees(''); setTicketPriceEur('');
+                      setEventLocationCoords(null); setEventLocationSuggestions([]);
                       reload(); toast('Posted!', 'success');
                     } catch (err: any) { toast(err.message, 'error'); }
                   }} disabled={!newPost.trim()}

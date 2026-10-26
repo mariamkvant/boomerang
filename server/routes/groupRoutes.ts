@@ -48,6 +48,62 @@ router.get('/mine', authMiddleware, async (req: AuthRequest, res: Response) => {
   res.json(groups);
 });
 
+// Get upcoming public events across all groups (used by Events tab on GroupsPage)
+router.get('/events', async (req: AuthRequest, res: Response) => {
+  const { lat, lng, radius, from, to } = req.query;
+
+  let conditions = [
+    "ga.event_date IS NOT NULL",
+    "ga.event_date >= CURRENT_DATE",
+    "g.is_public = true",
+  ];
+  const params: any[] = [];
+
+  if (from) { params.push(from); conditions.push(`ga.event_date >= $${params.length}`); }
+  if (to)   { params.push(to);   conditions.push(`ga.event_date <= $${params.length}`); }
+
+  // Proximity filter — use event coords, fall back to group creator's home coords
+  let distanceExpr = 'NULL::real as distance_km';
+  if (lat && lng && radius) {
+    const latN = parseFloat(String(lat));
+    const lngN = parseFloat(String(lng));
+    const radN = parseFloat(String(radius));
+    distanceExpr = `(6371 * acos(GREATEST(-1, LEAST(1,
+      cos(radians(${latN})) * cos(radians(COALESCE(ga.event_latitude, uc.latitude))) *
+      cos(radians(COALESCE(ga.event_longitude, uc.longitude)) - radians(${lngN})) +
+      sin(radians(${latN})) * sin(radians(COALESCE(ga.event_latitude, uc.latitude)))
+    )))) as distance_km`;
+    conditions.push(`COALESCE(ga.event_latitude, uc.latitude) IS NOT NULL`);
+    conditions.push(`(6371 * acos(GREATEST(-1, LEAST(1,
+      cos(radians(${latN})) * cos(radians(COALESCE(ga.event_latitude, uc.latitude))) *
+      cos(radians(COALESCE(ga.event_longitude, uc.longitude)) - radians(${lngN})) +
+      sin(radians(${latN})) * sin(radians(COALESCE(ga.event_latitude, uc.latitude)))
+    )))) <= ${radN}`);
+  }
+
+  const where = conditions.join(' AND ');
+  const events = await db.all(`
+    SELECT ga.id, ga.group_id, ga.content, ga.image,
+           ga.event_date, ga.event_time, ga.event_location,
+           ga.event_latitude, ga.event_longitude,
+           ga.max_attendees, ga.ticket_price_eur,
+           g.name as group_name, g.id as group_id,
+           ua.username as author_name,
+           (SELECT COUNT(*) FROM announcement_rsvps ar
+            WHERE ar.announcement_id = ga.id
+            AND (ar.payment_status = 'free' OR ar.payment_status = 'paid')) as rsvp_count,
+           ${distanceExpr}
+    FROM group_announcements ga
+    JOIN groups g ON ga.group_id = g.id
+    JOIN users ua ON ga.author_id = ua.id
+    LEFT JOIN users uc ON g.created_by = uc.id
+    WHERE ${where}
+    ORDER BY ga.event_date ASC, ga.event_time ASC NULLS LAST
+    LIMIT 100`, ...params);
+
+  res.json(events);
+});
+
 // Get group details
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const group = await db.get(`SELECT g.*, u.username as creator_name,
@@ -221,7 +277,7 @@ router.put('/:id/cover', authMiddleware, async (req: AuthRequest, res: Response)
 router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: Response) => {
   const member = await db.get('SELECT role FROM group_members WHERE group_id = ? AND user_id = ?', req.params.id, req.userId);
   if (!member) return res.status(403).json({ error: 'Members only' });
-  const { content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur } = req.body;
+  const { content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur, event_latitude, event_longitude } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: 'Content required' });
   let imageUrl = image || null;
   if (image && image.startsWith('data:')) {
@@ -232,10 +288,12 @@ router.post('/:id/announcements', authMiddleware, async (req: AuthRequest, res: 
   const ticketPrice = event_date && ticket_price_eur != null && parseFloat(ticket_price_eur) > 0
     ? parseFloat(ticket_price_eur)
     : null;
+  const evLat = event_date && event_latitude ? parseFloat(event_latitude) : null;
+  const evLng = event_date && event_longitude ? parseFloat(event_longitude) : null;
   const result = await db.run(
-    'INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+    'INSERT INTO group_announcements (group_id, author_id, content, image, pinned, service_id, event_date, event_time, event_location, max_attendees, ticket_price_eur, event_latitude, event_longitude) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)',
     req.params.id, req.userId, content.trim(), imageUrl, canPin || false, service_id || null,
-    event_date || null, event_time || null, event_location || null, max_attendees || null, ticketPrice
+    event_date || null, event_time || null, event_location || null, max_attendees || null, ticketPrice, evLat, evLng
   );
   res.status(201).json({ id: result.lastInsertRowid });
 });

@@ -260,6 +260,7 @@ export const api = {
   // Group management
   deleteGroup: (id: number) => request(`/groups/${id}`, { method: 'DELETE' }),
   getGroupActivity: (id: number) => request(`/groups/${id}/activity`),
+  getPublicEvents: (params?: string) => request(`/groups/events${params ? `?${params}` : ''}`),
   getGroupAnnouncements: (id: number) => request(`/groups/${id}/announcements`),
   postAnnouncement: (id: number, body: any) => request(`/groups/${id}/announcements`, { method: 'POST', body: JSON.stringify(body) }),
   deleteAnnouncement: (groupId: number, annId: number) => request(`/groups/${groupId}/announcements/${annId}`, { method: 'DELETE' }),

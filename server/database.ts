@@ -348,6 +348,11 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_city ON help_wanted(city)'); } catch(e) {}
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_help_wanted_budget ON help_wanted(budget_eur)'); } catch(e) {}
 
+    // === Event location geocoords (for map + proximity search on Events tab) ===
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS event_latitude REAL'); } catch(e) {}
+    try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS event_longitude REAL'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_ann_event_date ON group_announcements(event_date)'); } catch(e) {}
+
     // === Event ticketing — paid RSVP with QR codes ===
     // ticket_price_eur NULL means free (existing free RSVP flow unchanged)
     try { await client.query('ALTER TABLE group_announcements ADD COLUMN IF NOT EXISTS ticket_price_eur NUMERIC(10,2)'); } catch(e) {}
