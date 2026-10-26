@@ -58,19 +58,45 @@ workflows:
       - name: Build and export IPA
         script: |
           cd client/ios/App
-          xcode-project build-ipa \
-            --project App.xcodeproj \
-            --scheme "$XCODE_SCHEME" 2>&1 | tee /tmp/xcode_build.log
-          EXIT_CODE=${PIPESTATUS[0]}
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "=== FULL XCODE ERROR LOG ==="
-            grep -E "error:|rror" /tmp/xcode_build.log | tail -50
-            exit $EXIT_CODE
+          # Run xcodebuild directly to see full error output
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -archivePath build/App.xcarchive \
+            -destination "generic/platform=iOS" \
+            -allowProvisioningUpdates \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=FQ8GX7UR2S \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            2>&1 || true
+
+          # Export IPA from archive
+          if [ -d "build/App.xcarchive" ]; then
+            cat > /tmp/export_options.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>FQ8GX7UR2S</string>
+          </dict>
+          </plist>
+          EOF
+            xcodebuild -exportArchive \
+              -archivePath build/App.xcarchive \
+              -exportPath build/ipa \
+              -exportOptionsPlist /tmp/export_options.plist 2>&1
+          else
+            echo "Archive failed — no xcarchive produced"
+            exit 1
           fi
 
       - name: Upload to App Store Connect
         script: |
-          IPA_PATH=$(find "$CM_BUILD_DIR" -name "*.ipa" -type f 2>/dev/null | head -1)
+          IPA_PATH=$(find "$CM_BUILD_DIR" build/ipa -name "*.ipa" -type f 2>/dev/null | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
             app-store-connect publish --path "$IPA_PATH"
