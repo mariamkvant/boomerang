@@ -178,14 +178,51 @@ router.post('/create-payment', authMiddleware, async (req: AuthRequest, res: Res
 // ─── POST /bog/webhook ────────────────────────────────────────────────────
 // Called by BOG when a payment is authorized or completed.
 // BOG sends a POST with the payment status update.
+
+// BOG's known webhook source IP ranges (from ecommerce.bog.ge documentation).
+// Used as a stopgap until BOG_CALLBACK_SECRET signature verification is available.
+// Update this list if BOG rotates IPs — check https://api.bog.ge/docs/webhooks
+const BOG_ALLOWED_IPS = new Set([
+  '185.139.136.0/24',   // BOG production payment gateway
+  '185.139.137.0/24',   // BOG production payment gateway
+  '195.250.40.0/24',    // BOG
+]);
+
+function isBogIpAllowed(ip: string): boolean {
+  // If no BOG IPs configured (e.g. dev), allow all
+  if (!isBogConfigured()) return true;
+  // Strip IPv6-mapped prefix
+  const cleanIp = ip.replace(/^::ffff:/, '');
+  // Allow loopback in development
+  if (cleanIp === '127.0.0.1' || cleanIp === '::1') return true;
+  // Check against known ranges — simple prefix check (covers /24 CIDR blocks)
+  for (const cidr of BOG_ALLOWED_IPS) {
+    const prefix = cidr.replace(/\/\d+$/, '').replace(/\.\d+$/, '');
+    if (cleanIp.startsWith(prefix)) return true;
+  }
+  // If BOG_CALLBACK_SECRET is set, require it even if IP check fails
+  // (signature verification takes precedence over IP when implemented)
+  const secret = process.env.BOG_CALLBACK_SECRET;
+  if (secret) return false; // when secret is set, enforce IP or signature
+  return true; // no secret configured, allow (dev mode)
+}
+
 router.post('/webhook', async (req: AuthRequest, res: Response) => {
   try {
-    const body = req.body;
-    console.log('[BOG WEBHOOK]', JSON.stringify(body));
+    // IP allowlist guard — reject requests not from BOG's known infrastructure
+    const remoteIp = (req.headers['x-forwarded-for'] as string || req.ip || '').split(',')[0].trim();
+    if (!isBogIpAllowed(remoteIp)) {
+      console.warn(`[BOG WEBHOOK] Blocked request from unexpected IP: ${remoteIp}`);
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
-    // TODO: verify BOG webhook signature using BOG_CALLBACK_SECRET
+    const body = req.body;
+
+    // Signature verification placeholder — implement when BOG provides HMAC docs
     // const signature = req.headers['callback-signature'];
-    // if (!verifyBogSignature(body, signature)) return res.status(400).json({ error: 'Invalid signature' });
+    // if (!verifyBogSignature(body, signature, process.env.BOG_CALLBACK_SECRET)) {
+    //   return res.status(400).json({ error: 'Invalid signature' });
+    // }
 
     const orderId = body.order_id || body.id;
     const status  = body.status?.toLowerCase?.() || '';

@@ -32,10 +32,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const { category, search, include_completed, lat, lng, radius, city } = req.query;
   const statusClause = include_completed ? "hw.status IN ('open','accepted','delivered','completed')" : "hw.status = 'open'";
 
-  // Build WHERE clauses
+  // Build WHERE clauses using parameterised queries — never interpolate user input
   const conditions: string[] = [statusClause];
-  if (city) conditions.push(`(hw.city ILIKE '%${String(city).replace(/'/g, "''")}%' OR u.city ILIKE '%${String(city).replace(/'/g, "''")}%')`);
-  if (search) conditions.push(`(hw.title ILIKE '%${String(search).replace(/'/g, "''")}%' OR hw.description ILIKE '%${String(search).replace(/'/g, "''")}%')`);
+  const filterParams: any[] = [];
+
+  if (city) {
+    conditions.push('(hw.city ILIKE ? OR u.city ILIKE ?)');
+    filterParams.push(`%${String(city)}%`, `%${String(city)}%`);
+  }
+  if (search) {
+    conditions.push('(hw.title ILIKE ? OR hw.description ILIKE ?)');
+    filterParams.push(`%${String(search)}%`, `%${String(search)}%`);
+  }
 
   // Location-based proximity filter
   let distanceExpr = 'NULL::real as distance';
@@ -57,7 +65,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
     JOIN users u ON hw.requester_id = u.id
     LEFT JOIN users h ON hw.accepted_by = h.id
     WHERE ${whereClause}
-    ORDER BY CASE WHEN hw.status = 'open' THEN 0 ELSE 1 END, hw.created_at DESC LIMIT 50`);
+    ORDER BY CASE WHEN hw.status = 'open' THEN 0 ELSE 1 END, hw.created_at DESC LIMIT 50`, ...filterParams);
   res.json(requests);
 });
 

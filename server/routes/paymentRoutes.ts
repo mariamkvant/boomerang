@@ -423,7 +423,8 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
       const boomerangs = parseInt(session.metadata?.boomerangs);
       if (userId && boomerangs) {
         await db.run('UPDATE users SET points = points + ? WHERE id = ?', boomerangs, userId);
-        console.log(`[WEBHOOK] Top-up: +${boomerangs} 🪃 for user ${userId}`);
+        // Audit log — tracked by Sentry in production
+        console.info(`[WEBHOOK] top_up user=${userId} amount=${boomerangs}`);
       }
     }
 
@@ -436,7 +437,7 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
           "UPDATE service_requests SET payment_status = 'authorized' WHERE id = ? AND payment_status = 'pending'",
           requestId,
         );
-        console.log(`[WEBHOOK] PaymentIntent authorized for request ${requestId}`);
+        console.info(`[WEBHOOK] payment_authorized request=${requestId}`);
       }
     }
 
@@ -449,7 +450,7 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
           "UPDATE service_requests SET payment_status = 'paid' WHERE id = ? AND payment_status != 'paid'",
           requestId,
         );
-        console.log(`[WEBHOOK] Payment captured for request ${requestId}`);
+        console.info(`[WEBHOOK] payment_captured request=${requestId}`);
       }
     }
 
@@ -461,7 +462,7 @@ router.post('/webhook', async (req: AuthRequest, res: Response) => {
           "UPDATE users SET stripe_account_status = 'active' WHERE stripe_account_id = ?",
           account.id,
         );
-        console.log(`[WEBHOOK] Connect account ${account.id} is now active`);
+        console.info(`[WEBHOOK] connect_active account=${account.id}`);
       }
     }
 

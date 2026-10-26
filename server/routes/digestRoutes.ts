@@ -18,7 +18,7 @@ router.post('/weekly', async (req, res: Response) => {
      WHERE email_verified = true
      AND (notify_email IS NULL OR notify_email = true)`
   );
-  console.log(`[DIGEST] Found ${users.length} eligible users`);
+  console.info(`[DIGEST] Found ${users.length} eligible users`);
   let sent = 0;
 
   // Platform-wide new services count (shared across all users)
@@ -55,7 +55,7 @@ router.post('/weekly', async (req, res: Response) => {
 
     // Skip users with no personal activity AND no new services on the platform
     if (reqCount === 0 && compCount === 0 && dmCount === 0 && svcCount === 0) {
-      console.log(`[DIGEST] Skipping ${user.username} — no activity`);
+      console.info(`[DIGEST] Skipping ${user.username} — no activity`);
       continue;
     }
 
@@ -75,7 +75,7 @@ router.post('/weekly', async (req, res: Response) => {
     );
 
     try {
-      console.log(`[DIGEST] Sending to ${user.email}...`);
+      console.info(`[DIGEST] Sending to ${user.email}...`);
       const ok = await sendEmail(user.email, 'Your Weekly Boomerang Recap 🪃', html);
       if (ok) sent++;
       else console.warn(`[DIGEST] sendEmail returned false for ${user.email}`);

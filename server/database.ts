@@ -293,8 +293,10 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS service_latitude REAL'); } catch(e) {}
     try { await client.query('ALTER TABLE services ADD COLUMN IF NOT EXISTS service_longitude REAL'); } catch(e) {}
 
-    // Index for service location radius queries
+    // Index for service location radius queries — composite for faster proximity filtering
     try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_lat ON services(service_latitude)'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_services_location ON services(service_latitude, service_longitude) WHERE service_latitude IS NOT NULL'); } catch(e) {}
+    try { await client.query('CREATE INDEX IF NOT EXISTS idx_users_location ON users(latitude, longitude) WHERE latitude IS NOT NULL'); } catch(e) {}
 
     // === Rename Pet Care → Plants & Pet Care, add plant subcategories ===
     try { await client.query("UPDATE categories SET name = 'Plants & Pet Care', icon = '🌿' WHERE name = 'Pet Care'"); } catch(e) {}
