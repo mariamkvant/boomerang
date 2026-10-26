@@ -73,6 +73,73 @@ function DigestTrigger() {
   );
 }
 
+function AnnouncementBlast() {
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const send = async () => {
+    if (!subject.trim() || !body.trim()) { setStatus('Subject and message are required.'); return; }
+    if (!window.confirm(`Send this email to ALL users with email notifications enabled?\n\nSubject: ${subject}`)) return;
+    setLoading(true);
+    setStatus('');
+    try {
+      const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+        <h2 style="color:#f97316">🪃 Boomerang</h2>
+        ${body.split('\n').map(p => p.trim() ? `<p style="color:#374151;line-height:1.6">${p}</p>` : '<br/>').join('')}
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0"/>
+        <p style="font-size:12px;color:#9ca3af">You are receiving this because you have an account on <a href="https://boomerang.fyi" style="color:#f97316">boomerang.fyi</a>. Manage notifications in Settings.</p>
+      </div>`;
+      const res: any = await (api as any).blastEmail(subject, html);
+      setStatus(`Sent to ${res.sent} users. ${res.failed > 0 ? `${res.failed} failed.` : ''}`);
+      setSubject('');
+      setBody('');
+    } catch (e: any) {
+      setStatus('Error: ' + e.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="bg-white dark:bg-[#202c33] rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Announcement Email</div>
+          <div className="text-xs text-gray-400 mt-0.5">Send a custom email to all users with notifications enabled</div>
+          {status && <div className="text-xs mt-1 text-primary-600">{status}</div>}
+        </div>
+        <button onClick={() => setOpen(o => !o)}
+          className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium">
+          {open ? 'Close' : 'Compose'}
+        </button>
+      </div>
+      {open && (
+        <div className="mt-4 space-y-3">
+          <input
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+            placeholder="Email subject"
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white"
+          />
+          <textarea
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            placeholder="Email body (plain text — use new lines for paragraphs)"
+            rows={8}
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white resize-none"
+          />
+          <button onClick={send} disabled={loading}
+            className="bg-primary-500 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-primary-600 transition-colors">
+            {loading ? 'Sending...' : 'Send to all users'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState<'stats'|'analytics'|'users'|'services'|'reports'|'support'|'disputes'>('stats');
   const [stats, setStats] = useState<any>(null);
@@ -138,6 +205,7 @@ export default function AdminPage() {
           ))}
           </div>
           <DigestTrigger />
+          <AnnouncementBlast />
         </div>
       )}
 

@@ -374,4 +374,18 @@ router.post('/trigger-digest', authMiddleware, adminMiddleware, async (_req: Aut
   }
 });
 
+// Send announcement email to all users with notify_email = true
+router.post('/blast-email', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const { subject, html } = req.body;
+  if (!subject || !html) return res.status(400).json({ error: 'subject and html are required' });
+  const { sendEmail } = require('../email');
+  const users = await db.all("SELECT email FROM users WHERE notify_email = true AND email_verified = true");
+  let sent = 0, failed = 0;
+  for (const user of users) {
+    const ok = await sendEmail(user.email, subject, html);
+    ok ? sent++ : failed++;
+  }
+  res.json({ sent, failed, total: users.length });
+});
+
 export default router;
