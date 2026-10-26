@@ -34,21 +34,21 @@ workflows:
 
       - name: Set up code signing
         script: |
-          # Install certificate from Codemagic code signing identities
+          # Initialize keychain and install the Codemagic-managed certificate
           keychain initialize
-          keychain add-certificates --certificate "$CM_CERTIFICATE"
-
+          # Install certificate by reference name stored in Codemagic Code Signing Identities
+          CM_CERTIFICATE_PATH=$(find "$HOME/Library/Caches/us.abstracta.codemagic" -name "*.p12" 2>/dev/null | head -1)
+          echo "Looking for certificate..."
+          ls "$HOME/Library/Caches/us.abstracta.codemagic/" 2>/dev/null || true
+          keychain add-certificates
           # Install provisioning profile
           PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_HOME"
-          PROFILE_PATH=$(find "$HOME/Library/Caches/us.abstracta.codemagic" -name "*.mobileprovision" 2>/dev/null | head -1)
-          if [ -z "$PROFILE_PATH" ]; then
-            echo "Fetching profile via API..."
-            app-store-connect fetch-signing-files "$BUNDLE_ID" \
-              --type IOS_APP_STORE \
-              --create
-          fi
-          xcode-project use-profiles --project client/ios/App/App.xcodeproj
+          find "$HOME" -name "*.mobileprovision" 2>/dev/null | head -5
+          # Use xcode-project to patch the Xcode project
+          xcode-project use-profiles --project client/ios/App/App.xcodeproj --verbose
+          echo "=== Signing identities in keychain ==="
+          security find-identity -v -p codesigning
 
       - name: Increment build number
         script: |
