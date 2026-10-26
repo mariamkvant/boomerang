@@ -3,9 +3,12 @@ workflows:
     name: iOS App Store Release
     max_build_duration: 60
     instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic  # must match the name in Codemagic UI → Teams → Integrations
     environment:
-      groups:
-        - app_store_credentials
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: fyi.boomerang.app
       vars:
         BUNDLE_ID: "fyi.boomerang.app"
         XCODE_SCHEME: "App"
@@ -26,35 +29,6 @@ workflows:
           cd client
           npx cap sync ios
 
-      - name: Set up code signing
-        script: |
-          set -e
-
-          # ── 1. Write the App Store Connect API key ──────────────────────
-          KEY_FILE="$HOME/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_IDENTIFIER}.p8"
-          mkdir -p "$HOME/private_keys"
-          echo -n "$APP_STORE_CONNECT_PRIVATE_KEY" > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
-
-          # ── 2. Write certificate private key ────────────────────────────
-          printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > /tmp/cert_key.pem
-
-          # ── 3. Initialise a fresh keychain ───────────────────────────────
-          keychain initialize
-
-          # ── 4. Fetch signing files (certificate + provisioning profile) ─
-          #       --create ensures a new profile is generated if none exists
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key /tmp/cert_key.pem \
-            --create
-
-          # ── 5. Add the certificate to the keychain ───────────────────────
-          keychain add-certificates
-
-          # ── 6. Patch Xcode project with the provisioning profile ─────────
-          xcode-project use-profiles --project client/ios/App/App.xcodeproj
-
       - name: Increment build number
         script: |
           cd client/ios/App
@@ -73,11 +47,7 @@ workflows:
           IPA_PATH=$(find "$CM_BUILD_DIR" -name "*.ipa" -type f 2>/dev/null | head -1)
           echo "Found IPA: $IPA_PATH"
           if [ -n "$IPA_PATH" ]; then
-            app-store-connect publish \
-              --path "$IPA_PATH" \
-              --apple-id "$APP_STORE_CONNECT_ISSUER_ID" \
-              --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-              --private-key "$KEY_FILE"
+            app-store-connect publish --path "$IPA_PATH"
           else
             echo "No IPA found!"
             exit 1
@@ -85,4 +55,3 @@ workflows:
 
     artifacts:
       - "**/*.ipa"
-      - "**/*.xcarchive"
