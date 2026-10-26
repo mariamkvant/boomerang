@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  typecheck:
-    name: TypeScript check
+  test:
+    name: Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -46,6 +46,27 @@ jobs:
         run: npx tsc --noEmit
         working-directory: skillswap/client
 
+      - name: Run client tests
+        run: npm test
+        working-directory: skillswap/client
+
       - name: Build client
         run: npm run build
         working-directory: skillswap/client
+
+  # ── Deploy — only runs after all tests pass, only on main (not PRs) ──────
+  deploy:
+    name: Deploy to Railway
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Trigger Railway deployment
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            https://backboard.railway.app/graphql/v2 \
+            --data '{"query":"mutation { deploymentTrigger(input: { projectId: \"${{ secrets.RAILWAY_PROJECT_ID }}\", environmentId: \"${{ secrets.RAILWAY_ENVIRONMENT_ID }}\" }) { id } }"}'
+        continue-on-error: true
