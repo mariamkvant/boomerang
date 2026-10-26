@@ -311,7 +311,7 @@ export default function ServiceDetailPage() {
           </Link>
           {service.category_name && (<><span>›</span><Link to={`/browse?category=${service.category_id}`} className="hover:text-primary-600 shrink-0">{service.category_name}</Link></>)}
           <span>›</span>
-          <span className="text-gray-600 dark:text-gray-300 truncate">{service.title}</span>
+          <span className="text-gray-600 dark:text-gray-300 truncate capitalize">{service.title}</span>
         </div>
         {isOwner && (
           <Link to={`/services/${id}/edit`} className="bg-primary-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-600 shrink-0 ml-2">Edit</Link>
@@ -334,7 +334,7 @@ export default function ServiceDetailPage() {
           )}
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-bold mb-3 dark:text-white flex items-center gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold mb-3 dark:text-white flex items-center gap-3 capitalize">
           {service.title}
           <div className="flex items-center gap-2 ml-auto">
             {user && (
@@ -539,7 +539,7 @@ export default function ServiceDetailPage() {
         )}
 
         {/* ── Provider not on Stripe Connect — can't take payment ── */}
-        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_connected' && currency !== 'gel' && (
+        {user && !isOwner && status !== 'success' && priceEur != null && priceEur > 0 && providerConnectStatus === 'not_connected' && currency !== 'gel' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Provider hasn't set up payouts yet</p>
@@ -563,7 +563,7 @@ export default function ServiceDetailPage() {
         )}
 
         {/* ── Provider Connect pending verification ── */}
-        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'not_active' && (
+        {user && !isOwner && status !== 'success' && priceEur != null && priceEur > 0 && providerConnectStatus === 'not_active' && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">Payout account pending verification</p>
