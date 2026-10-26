@@ -9,11 +9,11 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: fyi.boomerang.app
-        certificate: Boomerang_AppStore
-        provisioning_profile: Boomerang_AppStore_v2
       vars:
         BUNDLE_ID: "fyi.boomerang.app"
         XCODE_SCHEME: "App"
+        CM_CERTIFICATE: Boomerang_AppStore
+        CM_PROVISIONING_PROFILE: Boomerang_AppStore_v2
       node: 22
     scripts:
       - name: Install client dependencies
@@ -30,6 +30,24 @@ workflows:
         script: |
           cd client
           npx cap sync ios
+
+      - name: Set up code signing
+        script: |
+          # Install certificate from Codemagic code signing identities
+          keychain initialize
+          keychain add-certificates --certificate "$CM_CERTIFICATE"
+
+          # Install provisioning profile
+          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_HOME"
+          PROFILE_PATH=$(find "$HOME/Library/Caches/us.abstracta.codemagic" -name "*.mobileprovision" 2>/dev/null | head -1)
+          if [ -z "$PROFILE_PATH" ]; then
+            echo "Fetching profile via API..."
+            app-store-connect fetch-signing-files "$BUNDLE_ID" \
+              --type IOS_APP_STORE \
+              --create
+          fi
+          xcode-project use-profiles --project client/ios/App/App.xcodeproj
 
       - name: Increment build number
         script: |
