@@ -145,13 +145,14 @@ export default function BrowsePage() {
     api.getServiceCities().then((res: any) => setAvailableCities(Array.isArray(res) ? res : [])).catch(() => {});
   }, []);
 
-  // Run acquireLocation whenever user loads — prefer profile home coords, fall back to GPS
+  // Run acquireLocation once when user first loads — prefer profile home coords, fall back to GPS
   useEffect(() => {
     if (user !== undefined) acquireLocation();
     if (user) {
       api.getSuggestions().then((res: any) => setSuggestions(Array.isArray(res) ? res : [])).catch(() => {});
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // use user.id so it only fires when the actual user identity changes
 
   // ── Location ─────────────────────────────────────────────────────────────
 

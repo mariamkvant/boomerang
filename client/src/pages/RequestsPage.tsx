@@ -236,8 +236,9 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
     );
   }, [user]);
 
-  // Auto-locate on mount and whenever user loads — prefer profile coords, fall back to GPS
-  useEffect(() => { if (user !== undefined) acquireLocation(); }, [user]);
+  // Auto-locate once when user identity is known — prefer profile coords, fall back to GPS
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user !== undefined) acquireLocation(); }, [user?.id]);
 
   // ── Debounce search ─────────────────────────────────────────────────────
 
