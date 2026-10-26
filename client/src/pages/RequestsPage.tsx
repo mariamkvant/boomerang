@@ -369,10 +369,11 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
       </div>
 
       {/* FLOATING CONTROLS */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex flex-col gap-2 pointer-events-none">
+      {/* Row 1: Search bar */}
+      <div className="absolute top-3 left-3 right-3 z-10 flex gap-2 items-center pointer-events-none">
 
         {/* Search row */}
-        <div className="pointer-events-auto flex gap-2 items-center">
+        <div className="pointer-events-auto flex gap-2 items-center flex-1">
           {/* Back to Explore pill */}
           <Link to="/browse"
             className="flex items-center gap-1 bg-white dark:bg-[#1c1c1c] shadow-md rounded-xl px-2.5 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 shrink-0 hover:bg-gray-50 transition-colors">
@@ -409,9 +410,10 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
             )}
           </button>
         </div>
+      </div>
 
-        {/* Radius + City + Locate row — bleeds to screen edge so last pill is reachable */}
-        <div className="pointer-events-auto -mx-3 px-3 flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* Row 2: Radius + City + Locate — own absolute row, full-width scrollable */}
+        <div className="absolute top-[54px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           <button
             onClick={() => setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : r === 5 ? 0 : 0.5)}
             className="flex items-center gap-1.5 px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937] shrink-0">
@@ -474,7 +476,6 @@ export default function RequestsPage({ postMode = false }: RequestsPageProps) {
             </div>
           </div>
         )}
-      </div>
 
       {/* Missing address banner */}
       {user && !(user as any).city && (

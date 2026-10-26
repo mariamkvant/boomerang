@@ -337,12 +337,12 @@ export default function BrowsePage() {
         )}
       </div>
 
-      {/* ── FLOATING CONTROLS ── */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex flex-col gap-2 pointer-events-none">
+      {/* ── FLOATING CONTROLS — stacked absolute rows, each edge-to-edge ── */}
 
-        {/* Search + view toggle */}
-        <div className="pointer-events-auto flex gap-2">
-          <div className="relative flex-1">
+        {/* Row 1: Search bar */}
+        <div className="absolute top-3 left-3 right-3 z-10 flex gap-2 pointer-events-none">
+          <div className="pointer-events-auto relative flex-1">
+
             {/* Mode toggle inside search bar — compact labels on mobile */}
             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-10">
               <button
@@ -413,7 +413,7 @@ export default function BrowsePage() {
             )}
           </div>
           <button onClick={() => setViewMode(v => v === 'map' ? 'list' : 'map')}
-            className="bg-white dark:bg-[#1c1c1c] shadow-md rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 flex items-center gap-1.5 whitespace-nowrap">
+            className="bg-white dark:bg-[#1c1c1c] shadow-md rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-800 flex items-center gap-1.5 whitespace-nowrap pointer-events-auto">
             {viewMode === 'map' ? (
               <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>List</>
             ) : (
@@ -422,8 +422,8 @@ export default function BrowsePage() {
           </button>
         </div>
 
-        {/* Radius + city + locate — bleeds to screen edge so last pill is reachable */}
-        <div className="pointer-events-auto -mx-3 px-3 flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* Row 2: Filter pills — own absolute row, full-width scrollable */}
+        <div className="absolute top-[54px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           {/* Current radius pill */}
           <button
             onClick={() => {
@@ -548,8 +548,8 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Category pills — single scrollable row, bleeds to screen edge */}
-        <div className="pointer-events-auto -mx-3 px-3 flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {/* Row 3: Category pills — own absolute row, full-width scrollable */}
+        <div className="absolute top-[96px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
             className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
               !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -567,11 +567,10 @@ export default function BrowsePage() {
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
         </div>
-      </div>
 
       {/* Location denied banner */}
       {locationDenied && (
-        <div className="absolute top-[148px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+        <div className="absolute top-[140px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-amber-800 dark:text-amber-300">Location blocked — showing all services.</p>
           <Link to="/settings" className="text-xs font-medium text-amber-600 shrink-0">Set address →</Link>
         </div>
