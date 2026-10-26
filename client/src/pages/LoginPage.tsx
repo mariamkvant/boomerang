@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { t } from '../i18n';
 
-import CommunityIllustration from '../components/CommunityIllustration';
-
 // Login page
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,20 +25,18 @@ export default function LoginPage() {
       {/* ── Green hero top ── */}
       <div className="flex-shrink-0 flex flex-col items-center justify-center pt-10 pb-6 px-6">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-6">
+        <div className="flex items-center gap-2.5 mb-3">
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
             <img src="/logo.svg" alt="Boomerang" className="w-8 h-8" />
           </div>
           <span className="text-white text-2xl font-light tracking-widest" style={{ fontFamily: 'Outfit, sans-serif' }}>boomerang</span>
         </div>
-        {/* Illustration */}
-        <CommunityIllustration className="w-full max-w-[300px] mx-auto" />
+        <h1 className="text-3xl font-bold text-white mb-1">Welcome back</h1>
+        <p className="text-white/70 text-sm text-center max-w-xs">Sign in to your neighbourhood marketplace</p>
       </div>
 
       {/* ── White card bottom ── */}
       <div className="flex-1 overflow-y-auto bg-white rounded-t-3xl px-6 pt-8 pb-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-        <p className="text-gray-400 text-sm mb-6">Sign in to your neighbourhood marketplace</p>
 
         {error && (
           <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm">
