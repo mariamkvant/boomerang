@@ -84,7 +84,6 @@ export default function BrowsePage() {
   const [searchMode, setSearchMode] = useState<'services' | 'people'>('services');
   const [peopleResults, setPeopleResults] = useState<any[]>([]);
   const [selectedCat, setSelectedCat] = useState(searchParams.get('category') || '');
-  const [showAllCats, setShowAllCats] = useState(false);
   // radiusKm = 0 means no radius filter — show all services regardless of distance
   // Switches to 0.5 (500m) automatically once user location is acquired
   const [radiusKm, setRadiusKm] = useState(0);
@@ -309,7 +308,7 @@ export default function BrowsePage() {
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 flex flex-col" style={{ top: '64px', bottom: '60px' }}>
+    <div className="fixed inset-0 flex flex-col" style={{ top: '64px', bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
 
       {/* ── MAP ── */}
       <div className="absolute inset-0 z-0">
@@ -424,14 +423,13 @@ export default function BrowsePage() {
         </div>
 
         {/* Radius + city + locate */}
-        <div className="pointer-events-auto flex gap-1.5 items-center flex-wrap">
-          {/* Current radius pill — shows active radius, tap to expand */}
+        <div className="pointer-events-auto flex gap-1.5 items-center overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          {/* Current radius pill */}
           <button
             onClick={() => {
-              // Cycle: 0.5 → 1 → 5 → 0 (all) → 0.5
               setRadiusKm(r => r === 0.5 ? 1 : r === 1 ? 5 : r === 5 ? 0 : 0.5);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937]"
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-[#1f2937] text-white border-[#1f2937] shrink-0"
           >
             {radiusKm === 0 ? 'All' : radiusKm < 1 ? `${radiusKm * 1000}m` : `${radiusKm}km`}
             <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -439,7 +437,7 @@ export default function BrowsePage() {
             </svg>
           </button>
           <button onClick={() => setShowCityPicker(p => !p)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
+            className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 shrink-0 ${
               cityFilter || countryFilter
                 ? 'bg-[#1f2937] text-white border-[#1f2937]'
                 : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -452,14 +450,14 @@ export default function BrowsePage() {
           </button>
           {!userCoords && (
             <button onClick={acquireLocation} disabled={locating}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1">
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-primary-500 text-white border-primary-500 flex items-center gap-1 shrink-0">
               {locating ? <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '📍'}
               Locate me
             </button>
           )}
           {/* Available Today filter pill */}
           <button onClick={() => setAvailableToday(v => !v)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 ${
+            className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all flex items-center gap-1 shrink-0 ${
               availableToday ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             }`}>
             📅 Available today
@@ -468,7 +466,7 @@ export default function BrowsePage() {
           {user && (
             <Link
               to="/services/new"
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 bg-[#1f2937] text-white border-[#1f2937] hover:bg-[#111827] transition-colors"
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border flex items-center gap-1 bg-[#1f2937] text-white border-[#1f2937] hover:bg-[#111827] transition-colors shrink-0"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Post Offer
@@ -482,7 +480,7 @@ export default function BrowsePage() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
               <p className="text-sm font-semibold text-gray-800 dark:text-white">Cities with services</p>
-              <button onClick={() => { setShowCityPicker(false); setCitySearch(''); }} className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-gray-200">
+              <button onClick={() => { setShowCityPicker(false); setCitySearch(''); }} className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-gray-200">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -550,33 +548,24 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Category pills */}
-        <div className="pointer-events-auto flex gap-1.5 flex-wrap">
+        {/* Category pills — single scrollable row, no wrapping */}
+        <div className="pointer-events-auto flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+            className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
               !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             }`}>All</button>
           {pinned.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
+              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
                 selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
-          {showAllCats ? (
-            <>
-              {rest.map((c: any) => (
-                <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border transition-all ${
-                    selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
-                  }`}>{c.icon} {translateCat(c.name)}</button>
-              ))}
-              <button onClick={() => setShowAllCats(false)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-gray-100 dark:bg-[#242424] text-gray-500 border-gray-200 dark:border-gray-700">Show less ↑</button>
-            </>
-          ) : rest.length > 0 && (
-            <button onClick={() => setShowAllCats(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700">+{rest.length} more</button>
-          )}
+          {rest.map((c: any) => (
+            <button key={c.id} onClick={() => handleCatClick(String(c.id))}
+              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
+                selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+              }`}>{c.icon} {translateCat(c.name)}</button>
+          ))}
         </div>
       </div>
 

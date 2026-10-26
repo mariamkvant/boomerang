@@ -704,13 +704,13 @@ export default function GroupDetailPage() {
                             <span className="text-sm font-medium dark:text-white">{a.author_name}</span>
                             <span className="text-[10px] text-gray-400">{new Date(a.created_at).toLocaleDateString()}</span>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 whitespace-pre-wrap">{a.content}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 whitespace-pre-wrap break-words">{a.content}</p>
                           {a.image && <img src={a.image} alt="" loading="lazy" className="mt-2 rounded-lg max-h-64 object-cover" />}
 
                           {/* Event details card */}
                           {a.event_date && (
                             <div className="mt-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl p-3">
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <span className="text-lg">
                   <svg className="w-5 h-5 text-primary-600 inline" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                 </span>
@@ -749,9 +749,16 @@ export default function GroupDetailPage() {
                                   {/* Already going (free) — show cancel option */}
                                   {a.i_rsvped && (!a.ticket_price_eur || parseFloat(a.ticket_price_eur) <= 0) && (
                                     <button onClick={() => handleRsvp(a.id, true)}
-                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white">
+                                      className="mt-3 w-full py-3 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white">
                                       ✓ Going ({a.rsvp_count || 0})
                                     </button>
+                                  )}
+                                  {/* Payment processing — card authorised but not yet captured */}
+                                  {a.i_rsvped && a.my_payment_status === 'pending' && (
+                                    <div className="mt-3 flex items-center justify-center gap-2 py-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                                      <div className="w-3.5 h-3.5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                                      <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Payment processing…</p>
+                                    </div>
                                   )}
                                   {/* Already has paid ticket — no cancel button (must contact organiser) */}
                                   {a.i_rsvped && a.my_payment_status === 'paid' && (
@@ -760,14 +767,14 @@ export default function GroupDetailPage() {
                                   {/* Not yet RSVPed — free event */}
                                   {!a.i_rsvped && (!a.ticket_price_eur || parseFloat(a.ticket_price_eur) <= 0) && (
                                     <button onClick={() => handleRsvp(a.id, false)}
-                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] border border-primary-300 text-primary-600 hover:bg-primary-50">
+                                      className="mt-3 w-full py-3 rounded-lg text-sm font-medium transition-colors bg-white dark:bg-[#202c33] border border-primary-300 text-primary-600 hover:bg-primary-50">
                                       I'm Going · {a.rsvp_count || 0} attending
                                     </button>
                                   )}
                                   {/* Not yet RSVPed — paid event */}
                                   {!a.i_rsvped && a.ticket_price_eur && parseFloat(a.ticket_price_eur) > 0 && (
                                     <button onClick={() => handleRsvp(a.id, false, parseFloat(a.ticket_price_eur))}
-                                      className="mt-3 w-full py-2 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white hover:bg-primary-600">
+                                      className="mt-3 w-full py-3 rounded-lg text-sm font-medium transition-colors bg-primary-500 text-white hover:bg-primary-600">
                                       🎟 Buy Ticket · €{parseFloat(a.ticket_price_eur).toFixed(2)}
                                     </button>
                                   )}

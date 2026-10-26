@@ -196,7 +196,7 @@ export default function SettingsPage() {
               {/* GPS fallback */}
               <button onClick={detectLocation} disabled={locating} type="button"
                 title="Use GPS instead"
-                className="border border-gray-200 dark:border-gray-600 text-gray-500 px-3 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942] disabled:opacity-50 shrink-0">
+                className="border border-gray-200 dark:border-gray-600 text-gray-500 px-3 py-3 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-[#2a3942] disabled:opacity-50 shrink-0">
                 {locating ? <span className="inline-block w-4 h-4 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin" /> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>}
               </button>
             </div>
@@ -255,14 +255,14 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-3 pt-1">
-          <button onClick={handleSave} className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100">{t('settings.save')}</button>
+          <button onClick={handleSave} className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100">{t('settings.save')}</button>
           {saved && <span className="text-xs text-green-600">Saved</span>}
         </div>
       </div>
 
       <div className="bg-white dark:bg-[#202c33] border border-gray-100 dark:border-gray-700 rounded-xl p-4 mt-4">
         <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Appearance</h3>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between min-h-[44px]">
           <div>
             <p className="text-sm font-medium dark:text-white">Dark mode</p>
             <p className="text-xs text-gray-400 mt-0.5">Switch between light and dark theme</p>
@@ -279,7 +279,7 @@ export default function SettingsPage() {
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map(l => (
             <button key={l.code} onClick={() => setLang(l.code)} title={l.name}
-              className={`px-3 py-2 rounded-lg text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
               {l.flag}
             </button>
           ))}
@@ -333,7 +333,7 @@ export default function SettingsPage() {
               </span>
             </div>
             <p className="text-xs text-gray-400 mb-3">Stripe is reviewing your details. If it's been more than 24 hours or you see outstanding requirements, click "Continue setup".</p>
-            <div className="flex gap-3 flex-wrap items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <button disabled={connectLoading} onClick={async () => {
                 setConnectLoading(true);
                 try {
@@ -341,10 +341,9 @@ export default function SettingsPage() {
                   window.location.href = r.url;
                 } catch (err: any) { toast(err.message, 'error'); }
                 setConnectLoading(false);
-              }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
+              }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium self-start">
                 Continue setup →
               </button>
-              <span className="text-gray-300 text-xs">·</span>
               <button disabled={connectLoading} onClick={async () => {
                 setConnectLoading(true);
                 try {
@@ -354,13 +353,11 @@ export default function SettingsPage() {
                   else toast('Still under review — check back shortly.', 'error');
                 } catch (err: any) { toast(err.message, 'error'); }
                 setConnectLoading(false);
-              }} className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1">
+              }} className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1 self-start">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
                 {connectLoading ? 'Checking…' : 'Refresh status'}
               </button>
-              <span className="text-gray-200 dark:text-gray-700">|</span>
               <button onClick={async () => {
-                // Use toast instead of window.confirm (window.confirm is suppressed in iOS WKWebView)
                 toast('Disconnecting payout account — tap again to confirm', 'error');
                 setTimeout(async () => {
                   try {
@@ -369,7 +366,7 @@ export default function SettingsPage() {
                     toast('Account reset. You can now reconnect.', 'success');
                   } catch (err: any) { toast(err.message, 'error'); }
                 }, 0);
-              }} className="text-xs text-red-400 hover:text-red-600 hover:underline font-medium">
+              }} className="text-xs text-red-400 hover:text-red-600 hover:underline font-medium self-start">
                 Start over
               </button>
             </div>

@@ -170,7 +170,7 @@ export default function MessagesPage() {
   const messageGroups = groupByDate(messages);
 
   return (
-    <div className="animate-fade-in -mx-4 -mt-6" style={{ height: 'calc(100dvh - 128px)' }}>
+    <div className="animate-fade-in -mx-4 -mt-6" style={{ height: 'calc(100dvh - 128px - 60px - env(safe-area-inset-bottom))' }}>
       <div className="flex h-full">
         {/* Sidebar */}
         <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-[340px] shrink-0 flex-col bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-[#2a3942]`}>
@@ -253,7 +253,7 @@ export default function MessagesPage() {
               {/* Chat header */}
               <div className="px-4 py-2.5 bg-gray-100 dark:bg-[#202c33] border-b border-gray-200 dark:border-[#2a3942] flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setActiveUser(null)} className="md:hidden p-1 -ml-1 text-gray-500 hover:text-gray-700" aria-label="Back">
+                  <button onClick={() => setActiveUser(null)} className="md:hidden p-2.5 -ml-1 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-gray-700" aria-label="Back">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                   <Link to={`/users/${activeUser}`} className="flex items-center gap-3">
@@ -303,7 +303,7 @@ export default function MessagesPage() {
                         if (!m.body && !m.image) return null;
                         return (
                           <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm ${
+                            <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm break-words ${
                               isMine
                                 ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100 rounded-lg rounded-tr-none'
                                 : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-lg rounded-tl-none'

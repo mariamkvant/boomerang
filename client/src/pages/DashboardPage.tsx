@@ -595,7 +595,7 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white">{r.service_title}</Link>
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white truncate min-w-0">{r.service_title}</Link>
                     {badge(r.status)}
                     {r.is_product && <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">Item</span>}
                   </div>
@@ -606,44 +606,44 @@ export default function DashboardPage() {
                   <RequestProgress status={r.status} createdAt={r.created_at} deliveredAt={r.delivered_at} completedAt={r.completed_at} />
                   <NextStep status={r.status} role="provider" />
                 </div>
-                <div className="flex flex-col gap-2 shrink-0 sm:flex-row">
+              </div>
+              {/* Action buttons — full-width row below content on mobile */}
+              <div className="flex flex-wrap gap-2 mt-3">
                   {r.status === 'pending' && (
                     <>
                       <button onClick={() => handleAction(api.acceptRequest, r.id)}
-                        className={`w-full sm:w-auto text-xs px-4 py-2 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-gray-500 text-white' : 'bg-[#1f2937] dark:bg-white text-white dark:text-gray-900'}`}>
+                        className={`text-xs px-4 py-2.5 rounded-lg font-medium transition-all ${actionSuccess === r.id ? 'bg-gray-500 text-white' : 'bg-[#1f2937] dark:bg-white text-white dark:text-gray-900'}`}>
                         {actionSuccess === r.id ? '✓ Accepted' : t('dashboard.accept')}
                       </button>
-                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="w-full sm:w-auto text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
+                      <button onClick={() => handleAction(api.cancelRequest, r.id)} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2.5 rounded-lg hover:bg-gray-200 font-medium">{t('dashboard.decline')}</button>
                       <button onClick={async () => {
                         const ok = await confirm({ title: 'Archive this request?', message: "The request will be declined and hidden from your dashboard. The requester won't be notified.", confirmText: 'Archive' });
                         if (ok) { try { await api.cancelRequest(r.id); await api.archiveRequest(r.id); toast('Archived'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="w-full sm:w-auto text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Archive</button>
+                      }} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-gray-700 px-3 py-2.5 rounded-lg font-medium">Archive</button>
                     </>
                   )}
                   {r.status === 'accepted' && (
                     <>
-                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Mark delivered</button>
-                      <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
-                      {/* Task #7: provider self-cancel */}
+                      <button onClick={() => setDeliverNote({ id: r.id, note: '' })} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-lg font-medium">Mark delivered</button>
+                      <button onClick={() => setRescheduleForm({ id: r.id, title: r.service_title, date: '', time: '', note: '' })} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 px-3 py-2.5 rounded-lg hover:bg-gray-200 font-medium">Reschedule</button>
                       <button onClick={async () => {
                         const ok = await confirm({ title: "Can't complete this service?", message: "Cancelling will release the payment hold and notify the requester. Only cancel if you genuinely can't complete this service.", confirmText: 'Yes, cancel', danger: true });
                         if (ok) { try { await api.cancelRequest(r.id); toast('Cancelled — requester notified and payment released.'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg font-medium">Cancel</button>
+                      }} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 border border-gray-200 dark:border-gray-700 px-3 py-2.5 rounded-lg font-medium">Cancel</button>
                     </>
                   )}
                   {r.status === 'delivered' && (
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('dashboard.waiting')}</span>
                       <button onClick={async () => { try { await api.nudgeRequest(r.id); toast('Nudge sent!'); } catch (err: any) { toast(err.message, 'error'); } }}
-                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg font-medium">Nudge</button>
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 px-2.5 py-2.5 rounded-lg font-medium">Nudge</button>
                       <button onClick={async () => {
                         const ok = await confirm({ title: 'Archive this request?', message: 'The request will be hidden from your dashboard. Payment (if any) will be released automatically after 5 days.', confirmText: 'Archive' });
                         if (ok) { try { await api.archiveRequest(r.id); toast('Request archived'); load(); } catch (err: any) { toast(err.message, 'error'); } }
-                      }} className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 dark:border-gray-700 px-2.5 py-1 rounded-lg font-medium" title="Archive">Archive</button>
+                      }} className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 dark:border-gray-700 px-2.5 py-2.5 rounded-lg font-medium">Archive</button>
                     </div>
                   )}
                 </div>
-              </div>
               {/* Delivery note shown to provider after delivering */}
               {r.status === 'delivered' && r.delivery_note && (
                 <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
@@ -699,7 +699,7 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white">{r.service_title}</Link>
+                    <Link to={`/services/${r.service_id}`} className="font-semibold text-sm hover:text-primary-600 dark:text-white truncate min-w-0">{r.service_title}</Link>
                     {badge(r.status)}
                     {r.is_product && <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">Item</span>}
                   </div>
@@ -763,9 +763,9 @@ export default function DashboardPage() {
                         await handleAction(api.confirmRequest, r.id);
                         setShoutoutPrompt({ userId: r.provider_id, name: r.provider_name });
                         setShoutoutMsg('');
-                      }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg font-medium">Confirm ✓</button>
+                      }} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-4 py-2.5 rounded-lg font-medium">Confirm ✓</button>
                       <button onClick={() => setDisputeForm({ id: r.id, reason: '' })}
-                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-lg font-medium">Something went wrong</button>
+                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 border border-gray-200 dark:border-gray-700 px-3 py-2.5 rounded-lg font-medium">Issue?</button>
                     </>
                   )}
                   {r.status === 'completed' && Number(r.has_reviewed) === 0 && (
