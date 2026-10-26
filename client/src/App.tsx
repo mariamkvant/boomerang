@@ -329,9 +329,9 @@ export default function App() {
           <Route path="/services/:id" element={<ServiceDetailPage />} />
           <Route path="/dashboard" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <DashboardPage />) : <Navigate to="/login" />} />
           <Route path="/availability" element={user ? <AvailabilityPage /> : <Navigate to="/login" />} />
-          <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/login" />} />
-          <Route path="/groups" element={<GroupsPage />} />
-          <Route path="/groups/:id" element={<GroupDetailPage />} />
+          <Route path="/settings" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <SettingsPage />) : <Navigate to="/login" />} />
+          <Route path="/groups" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <GroupsPage />) : <Navigate to="/login" />} />
+          <Route path="/groups/:id" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <GroupDetailPage />) : <Navigate to="/login" />} />
           <Route path="/help-wanted" element={<HelpWantedPage />} />
           <Route path="/help-wanted/:id" element={<HelpWantedPage />} />
           <Route path="/requests" element={<RequestsPage />} />

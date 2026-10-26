@@ -344,6 +344,20 @@ export default function SettingsPage() {
               }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
                 Continue setup →
               </button>
+              <span className="text-gray-300 text-xs">·</span>
+              <button disabled={connectLoading} onClick={async () => {
+                setConnectLoading(true);
+                try {
+                  const fresh = await api.stripeConnectStatus();
+                  setConnectStatus(fresh);
+                  if ((fresh as any).status === 'active') toast('Payout account is now active! ✓', 'success');
+                  else toast('Still under review — check back shortly.', 'error');
+                } catch (err: any) { toast(err.message, 'error'); }
+                setConnectLoading(false);
+              }} className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                {connectLoading ? 'Checking…' : 'Refresh status'}
+              </button>
               <span className="text-gray-200 dark:text-gray-700">|</span>
               <button onClick={async () => {
                 // Use toast instead of window.confirm (window.confirm is suppressed in iOS WKWebView)
