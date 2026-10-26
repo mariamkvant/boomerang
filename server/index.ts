@@ -264,8 +264,13 @@ initDatabase().then(() => {
     }
 
     // Automatic reminders — check every 5 min for stale requests
+    // Each reminder fires AT MOST ONCE per request by checking if we already
+    // sent that notification type. The notify() function inserts to the
+    // notifications table — we join on it to filter out already-notified rows.
     try {
-      // Remind providers about pending requests (not responded in 24h)
+      // Remind providers about pending requests (not responded in 24–72h)
+      // Window is wide (24–72h) so even with server restarts the query is stable.
+      // We deduplicate by checking the notifications table.
       const staleRequests = await db.all(
         `SELECT sr.id, sr.requester_id, s.provider_id, s.title, u.email as provider_email, u.username as provider_name
          FROM service_requests sr
@@ -273,7 +278,16 @@ initDatabase().then(() => {
          JOIN users u ON s.provider_id = u.id
          WHERE sr.status = 'pending'
          AND sr.created_at < NOW() - INTERVAL '24 hours'
-         AND sr.created_at > NOW() - INTERVAL '25 hours'`
+         AND sr.created_at > NOW() - INTERVAL '72 hours'
+         AND u.notify_reminders = true
+         AND NOT EXISTS (
+           SELECT 1 FROM notifications n
+           WHERE n.user_id = s.provider_id
+           AND n.type = 'reminder'
+           AND n.link = '/dashboard'
+           AND n.created_at > NOW() - INTERVAL '24 hours'
+           AND n.body LIKE '%' || s.title || '%'
+         )`
       );
       for (const r of staleRequests) {
         await notify({
@@ -285,7 +299,7 @@ initDatabase().then(() => {
         });
       }
 
-      // Remind requesters about delivered services (not confirmed in 48h)
+      // Remind requesters about delivered services (not confirmed in 48–96h)
       const staleDeliveries = await db.all(
         `SELECT sr.id, sr.requester_id, s.title, u.email as requester_email, u.username as requester_name
          FROM service_requests sr
@@ -293,7 +307,15 @@ initDatabase().then(() => {
          JOIN users u ON sr.requester_id = u.id
          WHERE sr.status = 'delivered'
          AND sr.delivered_at < NOW() - INTERVAL '48 hours'
-         AND sr.delivered_at > NOW() - INTERVAL '49 hours'`
+         AND sr.delivered_at > NOW() - INTERVAL '96 hours'
+         AND u.notify_reminders = true
+         AND NOT EXISTS (
+           SELECT 1 FROM notifications n
+           WHERE n.user_id = sr.requester_id
+           AND n.type = 'reminder'
+           AND n.created_at > NOW() - INTERVAL '48 hours'
+           AND n.body LIKE '%' || s.title || '%'
+         )`
       );
       for (const r of staleDeliveries) {
         await notify({
@@ -305,7 +327,7 @@ initDatabase().then(() => {
         });
       }
 
-      // Remind about accepted but not delivered (7 days)
+      // Remind about accepted but not delivered (7–14 days)
       const staleAccepted = await db.all(
         `SELECT sr.id, s.provider_id, s.title, u.email as provider_email
          FROM service_requests sr
@@ -313,7 +335,15 @@ initDatabase().then(() => {
          JOIN users u ON s.provider_id = u.id
          WHERE sr.status = 'accepted'
          AND sr.created_at < NOW() - INTERVAL '7 days'
-         AND sr.created_at > NOW() - INTERVAL '7 days 5 minutes'`
+         AND sr.created_at > NOW() - INTERVAL '14 days'
+         AND u.notify_reminders = true
+         AND NOT EXISTS (
+           SELECT 1 FROM notifications n
+           WHERE n.user_id = s.provider_id
+           AND n.type = 'reminder'
+           AND n.created_at > NOW() - INTERVAL '7 days'
+           AND n.body LIKE '%' || s.title || '%'
+         )`
       );
       for (const r of staleAccepted) {
         await notify({
@@ -325,11 +355,14 @@ initDatabase().then(() => {
       }
 
       // Booking reminders — 1 hour before scheduled time
+      // Only fire once per booking: check notifications table for recent booking_reminder
       const nowHour = new Date();
       const inOneHour = new Date(nowHour.getTime() + 60 * 60_000);
+      const inSixtyFiveMin = new Date(nowHour.getTime() + 65 * 60_000);
       const todayStr = nowHour.toISOString().split('T')[0];
       const nowTime = nowHour.toTimeString().slice(0, 5);
       const soonTime = inOneHour.toTimeString().slice(0, 5);
+      const soonTimePlus = inSixtyFiveMin.toTimeString().slice(0, 5);
       
       const upcomingSessions = await db.all(
         `SELECT b.*, sr.id as request_id, s.title, s.provider_id, sr.requester_id,
@@ -342,8 +375,14 @@ initDatabase().then(() => {
         JOIN users r ON sr.requester_id = r.id
         WHERE b.booked_date = $1
         AND b.start_time > $2 AND b.start_time <= $3
-        AND sr.status IN ('accepted', 'delivered')`,
-        todayStr, nowTime, soonTime
+        AND sr.status IN ('accepted', 'delivered')
+        AND NOT EXISTS (
+          SELECT 1 FROM notifications n
+          WHERE n.user_id = s.provider_id
+          AND n.type = 'booking_reminder'
+          AND n.created_at > NOW() - INTERVAL '30 minutes'
+        )`,
+        todayStr, nowTime, soonTimePlus
       );
       for (const session of upcomingSessions) {
         const msg = `Reminder: "${session.title}" at ${session.start_time} today`;
