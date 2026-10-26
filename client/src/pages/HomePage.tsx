@@ -333,6 +333,84 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* ── COMPARISON TABLE ── */}
+      <section className="border-t border-gray-100 dark:border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold text-primary-500 uppercase tracking-widest mb-3">How we compare</p>
+            <h2 className="text-2xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-white">
+              Everything you need, in one neighbourhood app
+            </h2>
+          </div>
+
+          {/* Mobile-friendly card grid */}
+          <div className="overflow-x-auto -mx-4 px-4">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left pb-4 pr-4 text-xs font-semibold text-gray-400 uppercase tracking-wide w-[38%]">Feature</th>
+                  {[
+                    { name: 'Boomerang', highlight: true },
+                    { name: 'Taskrabbit', highlight: false },
+                    { name: 'Airbnb', highlight: false },
+                    { name: 'Nextdoor', highlight: false },
+                  ].map(col => (
+                    <th key={col.name} className={`pb-4 px-3 text-center text-xs font-bold uppercase tracking-wide ${col.highlight ? 'text-primary-600' : 'text-gray-400'}`}>
+                      {col.highlight ? (
+                        <span className="inline-flex items-center gap-1.5 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 px-3 py-1.5 rounded-full">
+                          🪃 {col.name}
+                        </span>
+                      ) : col.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {[
+                  { feature: 'Map-first browse',          bm: true,  tr: true,  ab: true,  nd: false },
+                  { feature: 'Escrow payment (buy safe)',  bm: true,  tr: true,  ab: true,  nd: false },
+                  { feature: 'Booking calendar',           bm: true,  tr: true,  ab: true,  nd: false },
+                  { feature: 'Community events',           bm: true,  tr: false, ab: false, nd: true  },
+                  { feature: 'Paid event tickets + QR',   bm: true,  tr: false, ab: false, nd: false },
+                  { feature: 'Free / barter services',    bm: true,  tr: false, ab: false, nd: true  },
+                  { feature: 'Neighbourhood requests',    bm: true,  tr: false, ab: false, nd: true  },
+                  { feature: 'Item listings & rentals',   bm: true,  tr: false, ab: true,  nd: true  },
+                  { feature: 'Georgia (GEL) payments',    bm: true,  tr: false, ab: false, nd: false },
+                ].map((row, i) => (
+                  <tr key={i} className="group hover:bg-gray-50 dark:hover:bg-[#1c1c1c] transition-colors">
+                    <td className="py-3.5 pr-4 text-sm text-gray-700 dark:text-gray-300 font-medium">{row.feature}</td>
+                    {[row.bm, row.tr, row.ab, row.nd].map((has, j) => (
+                      <td key={j} className="py-3.5 px-3 text-center">
+                        {has ? (
+                          <span className={j === 0
+                            ? 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white'
+                            : 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                          }>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center justify-center w-6 h-6 text-gray-200 dark:text-gray-700">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-center text-xs text-gray-400 mt-8">
+            Boomerang is the only platform combining local services, paid events, free exchanges, and neighbourhood requests in one place.
+          </p>
+        </div>
+      </section>
+
       <section className="bg-[#f8f7f5] dark:bg-[#111111]">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-28 text-center">
           <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight text-gray-900 dark:text-white mb-6">{t('home.communityTitle')}</h2>

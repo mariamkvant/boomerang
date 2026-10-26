@@ -640,7 +640,7 @@ export default function BrowsePage() {
                 <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-wider mb-1.5">✨ For you</p>
                 <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                   {suggestions.slice(0, 5).map((s: any) => (
-                    <button key={s.id} onClick={() => setPanelState('half')}
+                    <Link key={s.id} to={`/services/${s.id}`}
                       className="flex-shrink-0 w-40 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl p-2.5 text-left">
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="text-base">{s.category_icon || '🛠'}</span>
@@ -650,7 +650,7 @@ export default function BrowsePage() {
                       {s.price_eur != null && (
                         <p className="text-xs font-bold text-primary-600 mt-0.5">{s.currency === 'gel' ? '₾' : '€'}{Math.round(parseFloat(s.price_eur))}</p>
                       )}
-                    </button>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -909,6 +909,16 @@ export default function BrowsePage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <h2 className="text-lg font-bold dark:text-white">{sellerProfile.username}</h2>
+                    {(() => {
+                      const prices = (sellerProfile.services || [])
+                        .map((s: any) => s.price_eur != null ? parseFloat(s.price_eur) : null)
+                        .filter((p: number | null): p is number => p !== null && p > 0);
+                      const min = prices.length > 0 ? Math.min(...prices) : null;
+                      if (min !== null) return (
+                        <p className="text-sm font-semibold text-primary-600 dark:text-primary-400 mt-0.5">from €{Math.round(min)}</p>
+                      );
+                      return null;
+                    })()}
                     {sellerProfile.avg_rating && (
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-yellow-500 text-sm">★</span>

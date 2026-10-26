@@ -216,12 +216,12 @@ export default function DashboardPage() {
 
   const badge = (s: string) => {
     const m: Record<string, string> = {
-      pending: 'text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',
-      accepted: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
-      delivered: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
-      completed: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
-      cancelled: 'text-gray-400 bg-gray-50 dark:bg-gray-900 dark:text-gray-500',
-      disputed: 'text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300',
+      pending:   'text-amber-700  bg-amber-50  dark:bg-amber-900/30  dark:text-amber-400',
+      accepted:  'text-blue-700   bg-blue-50   dark:bg-blue-900/30   dark:text-blue-400',
+      delivered: 'text-orange-700 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400',
+      completed: 'text-green-700  bg-green-50  dark:bg-green-900/30  dark:text-green-400',
+      cancelled: 'text-gray-400   bg-gray-50   dark:bg-gray-900      dark:text-gray-500',
+      disputed:  'text-red-700    bg-red-50    dark:bg-red-900/30    dark:text-red-400',
     };
     const labels: Record<string, string> = {
       pending: 'Pending', accepted: 'Active', delivered: 'Delivered',

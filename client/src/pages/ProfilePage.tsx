@@ -65,9 +65,13 @@ export default function ProfilePage() {
       <div className="bg-white dark:bg-[#202c33] p-4 sm:p-8 rounded-2xl shadow-card mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-              {profile.username?.charAt(0).toUpperCase()}
-            </div>
+            {profile.avatar ? (
+              <img src={profile.avatar} alt={profile.username} className="w-16 h-16 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shrink-0">
+                {profile.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{profile.username}</h1>
