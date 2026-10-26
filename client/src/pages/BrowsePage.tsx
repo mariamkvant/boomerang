@@ -91,6 +91,7 @@ export default function BrowsePage() {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [countryFilter, setCountryFilter] = useState('');
   const [availableToday, setAvailableToday] = useState(false);
+  const [showAllCats, setShowAllCats] = useState(false); // show 4 pinned + expand rest
 
   // Location
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -548,7 +549,7 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Row 3: Category pills — own absolute row, full-width scrollable */}
+        {/* Row 3: Category pills — pinned + expand */}
         <div className="absolute top-[96px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
             className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
@@ -560,12 +561,24 @@ export default function BrowsePage() {
                 selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
-          {rest.map((c: any, i: number) => (
+          {showAllCats && rest.map((c: any) => (
             <button key={c.id} onClick={() => handleCatClick(String(c.id))}
-              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${i === rest.length - 1 ? 'mr-3' : ''} ${
+              className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
                 selectedCat === String(c.id) ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
               }`}>{c.icon} {translateCat(c.name)}</button>
           ))}
+          {!showAllCats && rest.length > 0 && (
+            <button onClick={() => setShowAllCats(true)}
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-white dark:bg-[#1c1c1c] text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 shrink-0 mr-3">
+              +{rest.length} more
+            </button>
+          )}
+          {showAllCats && (
+            <button onClick={() => setShowAllCats(false)}
+              className="px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border bg-gray-100 dark:bg-[#242424] text-gray-500 border-gray-200 dark:border-gray-700 shrink-0 mr-3">
+              Less ↑
+            </button>
+          )}
         </div>
 
       {/* Location denied banner */}
@@ -573,6 +586,14 @@ export default function BrowsePage() {
         <div className="absolute top-[140px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-amber-800 dark:text-amber-300">Location blocked — showing all services.</p>
           <Link to="/settings" className="text-xs font-medium text-amber-600 shrink-0">Set address →</Link>
+        </div>
+      )}
+
+      {/* No-GPS nudge — user has city text but no coordinates, map can't centre on them */}
+      {user && (user as any).city && !(user as any).latitude && !locationDenied && (
+        <div className="absolute top-[140px] left-3 right-3 z-10 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+          <p className="text-xs text-blue-800 dark:text-blue-300">Add your GPS address to see services near you</p>
+          <Link to="/settings" className="text-xs font-medium text-blue-600 dark:text-blue-400 shrink-0 whitespace-nowrap">Set address →</Link>
         </div>
       )}
 
@@ -746,7 +767,7 @@ export default function BrowsePage() {
                     <Link
                       to={`/services/${s.id}`}
                       onClick={() => saveRecentlyViewed(s)}
-                      className={`flex gap-3 rounded-xl p-3 border transition-all group ${
+                      className={`flex gap-3 rounded-xl px-3 py-2.5 border transition-all group ${
                         isSelected
                           ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
                           : 'bg-white dark:bg-[#242424] border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
@@ -754,9 +775,9 @@ export default function BrowsePage() {
                     >
                       {/* Thumbnail */}
                       {s.image ? (
-                        <img src={s.image} alt={s.title} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" loading="lazy" />
+                        <img src={s.image} alt={s.title} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" loading="lazy" />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl flex-shrink-0">
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl flex-shrink-0">
                           {s.category_icon || '🛠'}
                         </div>
                       )}
@@ -775,49 +796,37 @@ export default function BrowsePage() {
                           )}
                         </div>
 
-                        {/* Provider + distance */}
-                        <div className="flex items-center gap-1.5 mb-1">
+                        {/* Provider + distance + rating — single compact row */}
+                        <div className="flex items-center gap-1.5">
                           <div className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">
                             {s.provider_name?.charAt(0).toUpperCase()}
                           </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{s.provider_name}</span>
-                          {/* Verified badge */}
                           {Number(s.completed_count) >= 3 && (
-                            <span title="Verified community member" className="shrink-0">
+                            <span title="Verified" className="shrink-0">
                               <svg className="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" /></svg>
                             </span>
                           )}
                           {s.distance != null && (
                             <span className="text-xs text-primary-500 font-medium shrink-0">· {fmtDist(Number(s.distance))}</span>
                           )}
-                          {fmtLastActive(s.provider_last_active) && (
-                            <span className="text-[10px] text-green-500 font-medium shrink-0 ml-auto">● {fmtLastActive(s.provider_last_active)}</span>
-                          )}
+                          <span className="text-[11px] text-gray-300 dark:text-gray-600 ml-auto shrink-0">{s.category_name}</span>
                           {s.avg_rating && (
-                            <span className="text-xs text-yellow-500 ml-auto shrink-0">
-                              ★ {Number(s.avg_rating).toFixed(1)}
-                              {s.review_count > 0 && <span className="text-gray-400 dark:text-gray-500"> ({s.review_count})</span>}
-                            </span>
+                            <span className="text-xs text-yellow-500 shrink-0">★ {Number(s.avg_rating).toFixed(1)}</span>
                           )}
                         </div>
 
-                        {/* Description preview */}
-                        {s.description && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-1 mb-1">{s.description}</p>
-                        )}
-
-                        {/* Category + request button */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] text-gray-300 dark:text-gray-600">{s.category_name}</span>
-                          {user && s.provider_id !== user.id && (
+                        {/* Request button row — only when not owner */}
+                        {user && s.provider_id !== user.id && (
+                          <div className="flex justify-end mt-1.5">
                             <button
                               onClick={e => { e.preventDefault(); e.stopPropagation(); setRequestConfirm({ service: s }); setRequestMessage(''); }}
                               className="text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 px-2.5 py-1 rounded-lg transition-all"
                             >
                               Request
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </Link>
                   </div>
