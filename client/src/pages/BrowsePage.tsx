@@ -234,12 +234,7 @@ export default function BrowsePage() {
       setSellerProfile(p);
       setSellerLoading(false);
     }).catch(() => setSellerLoading(false));
-    // Also expand panel to half and scroll to card
-    setPanelState(s => (s === 'collapsed' ? 'half' : s === 'peek' ? 'half' : s));
-    setTimeout(() => {
-      const el = cardRefs.current.get(providerId);
-      if (el && listRef.current) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 320);
+    // Keep the panel in its current state — the compact card is the detail view
   }, []);
 
   // ── Category ─────────────────────────────────────────────────────────────
