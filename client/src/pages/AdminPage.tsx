@@ -79,6 +79,14 @@ function AnnouncementBlast() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState(false);
+
+  const buildHtml = () => `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+    <h2 style="color:#f97316">🪃 Boomerang</h2>
+    ${body.split('\n').map(p => p.trim() ? `<p style="color:#374151;line-height:1.6">${p}</p>` : '<br/>').join('')}
+    <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0"/>
+    <p style="font-size:12px;color:#9ca3af">You are receiving this because you have an account on <a href="https://boomerang.fyi" style="color:#f97316">boomerang.fyi</a>. Manage notifications in Settings.</p>
+  </div>`;
 
   const send = async () => {
     if (!subject.trim() || !body.trim()) { setStatus('Subject and message are required.'); return; }
@@ -86,16 +94,11 @@ function AnnouncementBlast() {
     setLoading(true);
     setStatus('');
     try {
-      const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
-        <h2 style="color:#f97316">🪃 Boomerang</h2>
-        ${body.split('\n').map(p => p.trim() ? `<p style="color:#374151;line-height:1.6">${p}</p>` : '<br/>').join('')}
-        <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0"/>
-        <p style="font-size:12px;color:#9ca3af">You are receiving this because you have an account on <a href="https://boomerang.fyi" style="color:#f97316">boomerang.fyi</a>. Manage notifications in Settings.</p>
-      </div>`;
-      const res: any = await (api as any).blastEmail(subject, html);
+      const res: any = await (api as any).blastEmail(subject, buildHtml());
       setStatus(`Sent to ${res.sent} users. ${res.failed > 0 ? `${res.failed} failed.` : ''}`);
       setSubject('');
       setBody('');
+      setPreview(false);
     } catch (e: any) {
       setStatus('Error: ' + e.message);
     }
@@ -110,7 +113,7 @@ function AnnouncementBlast() {
           <div className="text-xs text-gray-400 mt-0.5">Send a custom email to all users with notifications enabled</div>
           {status && <div className="text-xs mt-1 text-primary-600">{status}</div>}
         </div>
-        <button onClick={() => setOpen(o => !o)}
+        <button onClick={() => { setOpen(o => !o); setPreview(false); }}
           className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium">
           {open ? 'Close' : 'Compose'}
         </button>
@@ -125,15 +128,37 @@ function AnnouncementBlast() {
           />
           <textarea
             value={body}
-            onChange={e => setBody(e.target.value)}
+            onChange={e => { setBody(e.target.value); setPreview(false); }}
             placeholder="Email body (plain text — use new lines for paragraphs)"
             rows={8}
             className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#2a3942] dark:text-white resize-none"
           />
-          <button onClick={send} disabled={loading}
-            className="bg-primary-500 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-primary-600 transition-colors">
-            {loading ? 'Sending...' : 'Send to all users'}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => setPreview(p => !p)}
+              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors">
+              {preview ? 'Edit' : 'Preview'}
+            </button>
+            <button onClick={send} disabled={loading || !subject.trim() || !body.trim()}
+              className="bg-primary-500 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-primary-600 transition-colors">
+              {loading ? 'Sending...' : 'Send to all users'}
+            </button>
+          </div>
+          {preview && subject && body && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden mt-2">
+              <div className="bg-gray-50 dark:bg-[#1c1c1c] px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500">
+                <span className="font-medium">Subject:</span> {subject}
+              </div>
+              <div className="bg-white p-4">
+                <iframe
+                  srcDoc={buildHtml()}
+                  title="Email preview"
+                  className="w-full border-0"
+                  style={{ minHeight: '300px' }}
+                  sandbox="allow-same-origin"
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
