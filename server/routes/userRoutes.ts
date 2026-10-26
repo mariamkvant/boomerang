@@ -226,7 +226,29 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     const avatarUrl = avatar ? await uploadAvatar(avatar) : null;
     await db.run('UPDATE users SET avatar = ? WHERE id = ?', avatarUrl, req.userId);
   }
-  await db.run('UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), languages_spoken = COALESCE(?, languages_spoken), interests = COALESCE(?, interests) WHERE id = ?', bio, username, city, latitude, longitude, languages_spoken, interests ?? null, req.userId);
+  // latitude/longitude: use COALESCE only when the value is undefined (not sent).
+  // When the client explicitly sends null it means "clear the coords" — honour that directly.
+  const latValue  = req.body.hasOwnProperty('latitude')  ? latitude  : undefined;
+  const lngValue  = req.body.hasOwnProperty('longitude') ? longitude : undefined;
+  if (latValue === null) {
+    // Explicit null — clear coords so a stale location doesn't persist after city change
+    await db.run(
+      'UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = NULL, longitude = NULL, languages_spoken = COALESCE(?, languages_spoken), interests = COALESCE(?, interests) WHERE id = ?',
+      bio, username, city, languages_spoken, interests ?? null, req.userId
+    );
+  } else if (latValue !== undefined) {
+    // New coords provided — save them directly
+    await db.run(
+      'UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), latitude = ?, longitude = ?, languages_spoken = COALESCE(?, languages_spoken), interests = COALESCE(?, interests) WHERE id = ?',
+      bio, username, city, latValue, lngValue, languages_spoken, interests ?? null, req.userId
+    );
+  } else {
+    // Coords not sent at all — keep existing values via COALESCE (pass undefined → DB driver sends NULL but COALESCE returns stored value)
+    await db.run(
+      'UPDATE users SET bio = COALESCE(?, bio), username = COALESCE(?, username), city = COALESCE(?, city), languages_spoken = COALESCE(?, languages_spoken), interests = COALESCE(?, interests) WHERE id = ?',
+      bio, username, city, languages_spoken, interests ?? null, req.userId
+    );
+  }
   // Update notification preferences if provided
   const { notify_email, notify_push, notify_reminders, auto_accept } = req.body;
   if (notify_email !== undefined || notify_push !== undefined || notify_reminders !== undefined) {
