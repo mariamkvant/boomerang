@@ -252,11 +252,11 @@ initDatabase().then(() => {
     const weekId = now.toISOString().slice(0, 10);
     if (isDigestWindow && lastDigestWeek !== weekId) {
       lastDigestWeek = weekId;
-      console.log('[DIGEST] Triggering weekly digest...');
+      console.info('[DIGEST] Triggering weekly digest...');
       try {
         const res = await fetch(`http://localhost:${PORT}/api/digest/weekly?secret=${process.env.DIGEST_SECRET || 'boomerang-digest-secret'}`, { method: 'POST' });
         const data: any = await res.json();
-        console.log('[DIGEST]', data.message);
+        console.info('[DIGEST]', data.message);
       } catch (err) {
         console.error('[DIGEST] Failed:', err);
       }
@@ -389,7 +389,7 @@ initDatabase().then(() => {
                 body: `"${r.title}" was automatically completed after 5 days. If there was an issue, please contact support.`,
                 link: '/dashboard',
               });
-              console.log(`[AUTO-RELEASE] Captured payment for request ${r.id}`);
+              console.info(`[AUTO-RELEASE] Captured payment for request ${r.id}`);
             }
           } catch (captureErr: any) {
             console.error(`[AUTO-RELEASE] Failed for request ${r.id}:`, captureErr.message);
