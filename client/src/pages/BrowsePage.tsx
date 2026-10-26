@@ -338,37 +338,36 @@ export default function BrowsePage() {
 
       {/* ── FLOATING CONTROLS — stacked absolute rows, each edge-to-edge ── */}
 
-        {/* Row 1: Search bar */}
+        {/* Row 1: Search bar — mode tabs sit beside the input, not inside it */}
         <div className="absolute top-3 left-3 right-3 z-10 flex gap-2 pointer-events-none">
+          {/* Mode tabs — Svcs / People / Reqs as a small pill group */}
+          <div className="pointer-events-auto flex items-center bg-white dark:bg-[#1c1c1c] rounded-xl shadow-md border border-gray-100 dark:border-gray-800 px-1 gap-0.5 shrink-0">
+            <button
+              onClick={() => setSearchMode('services')}
+              className={`text-[10px] font-semibold px-2 py-1.5 rounded-lg transition-colors ${searchMode === 'services' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            >
+              Svcs
+            </button>
+            <button
+              onClick={() => setSearchMode('people')}
+              className={`text-[10px] font-semibold px-2 py-1.5 rounded-lg transition-colors ${searchMode === 'people' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            >
+              People
+            </button>
+            <Link
+              to="/requests"
+              className="text-[10px] font-semibold px-2 py-1.5 rounded-lg transition-colors text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              Reqs
+            </Link>
+          </div>
           <div className="pointer-events-auto relative flex-1">
-
-            {/* Mode toggle inside search bar — compact labels on mobile */}
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-10">
-              <button
-                onClick={() => setSearchMode('services')}
-                className={`text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors ${searchMode === 'services' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Svcs
-              </button>
-              <button
-                onClick={() => setSearchMode('people')}
-                className={`text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors ${searchMode === 'people' ? 'bg-[#1f2937] text-white' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                People
-              </button>
-              <Link
-                to="/requests"
-                className="text-[10px] font-semibold px-1 py-0.5 rounded-md transition-colors text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-              >
-                Reqs
-              </Link>
-            </div>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               onFocus={() => setShowSearchSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 150)}
               onKeyDown={e => { if (e.key === 'Enter' && search.trim()) { saveRecentSearch(search.trim()); setShowSearchSuggestions(false); } }}
               placeholder={searchMode === 'services' ? 'Search services...' : 'Search people...'}
-              className="w-full pl-[104px] pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
+              className="w-full pl-3 pr-9 py-2.5 bg-white dark:bg-[#1c1c1c] rounded-xl text-sm shadow-md border border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-primary-500 outline-none dark:text-white"
               aria-label="Search" />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5">
@@ -422,7 +421,7 @@ export default function BrowsePage() {
         </div>
 
         {/* Row 2: Filter pills — own absolute row, full-width scrollable */}
-        <div className="absolute top-[54px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="absolute top-[58px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           {/* Current radius pill */}
           <button
             onClick={() => {
@@ -548,7 +547,7 @@ export default function BrowsePage() {
         )}
 
         {/* Row 3: Category pills — pinned + expand */}
-        <div className="absolute top-[96px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="absolute top-[104px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
             className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
               !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -581,7 +580,7 @@ export default function BrowsePage() {
 
       {/* Location denied banner */}
       {locationDenied && (
-        <div className="absolute top-[140px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+        <div className="absolute top-[152px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-amber-800 dark:text-amber-300">Location blocked — showing all services.</p>
           <Link to="/settings" className="text-xs font-medium text-amber-600 shrink-0">Set address →</Link>
         </div>
@@ -589,7 +588,7 @@ export default function BrowsePage() {
 
       {/* No-GPS nudge — user has city text but no coordinates, map can't centre on them */}
       {user && (user as any).city && !(user as any).latitude && !locationDenied && (
-        <div className="absolute top-[140px] left-3 right-3 z-10 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+        <div className="absolute top-[152px] left-3 right-3 z-10 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-blue-800 dark:text-blue-300">Add your GPS address to see services near you</p>
           <Link to="/settings" className="text-xs font-medium text-blue-600 dark:text-blue-400 shrink-0 whitespace-nowrap">Set address →</Link>
         </div>
