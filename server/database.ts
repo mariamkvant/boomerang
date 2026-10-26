@@ -335,6 +335,11 @@ try { await client.query("ALTER TABLE help_wanted DROP CONSTRAINT IF EXISTS help
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_iban TEXT'); } catch(e) {}
     try { await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_bank_name TEXT'); } catch(e) {}
 
+    // === Backfill: services with no price set → free (price_eur = 0) ===
+    // Old services created before pricing was mandatory had price_eur NULL.
+    // Set them to 0 so they display as "Free" and can be requested without payment.
+    try { await client.query("UPDATE services SET price_eur = 0, points_cost = 0, currency = 'eur' WHERE price_eur IS NULL"); } catch(e) {}
+
     // === help_wanted — paid Requests feature (budget + location) ===
     try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS budget_eur NUMERIC(10,2)'); } catch(e) {}
     try { await client.query('ALTER TABLE help_wanted ADD COLUMN IF NOT EXISTS latitude REAL'); } catch(e) {}

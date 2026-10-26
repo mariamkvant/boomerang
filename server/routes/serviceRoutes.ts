@@ -453,8 +453,8 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (!title || !description || !category_id) {
     return res.status(400).json({ error: 'Title, description, and category are required' });
   }
-  if (price_eur === undefined || price_eur === null || Number(price_eur) <= 0) {
-    return res.status(400).json({ error: 'A price (€) is required' });
+  if (price_eur === undefined || price_eur === null) {
+    return res.status(400).json({ error: 'A price is required. Use 0 for free/giveaway services.' });
   }
 
   // Auto-fill city from user profile if not provided

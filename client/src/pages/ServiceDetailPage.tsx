@@ -291,12 +291,13 @@ export default function ServiceDetailPage() {
 
   const isOwner = user?.id === service.provider_id;
   const priceEur: number | null = service.price_eur != null ? parseFloat(service.price_eur) : null;
+  const isFree = priceEur === 0;
   // Keep ref in sync so async Stripe callbacks see the current value
   priceEurRef.current = priceEur;
   const currency: string = service.currency || 'eur';
-  const platformFee = priceEur != null ? Math.round(priceEur * 0.20 * 100) / 100 : null;
+  const platformFee = priceEur != null && priceEur > 0 ? Math.round(priceEur * 0.20 * 100) / 100 : null;
   const providerGets = priceEur != null && platformFee != null ? Math.round((priceEur - platformFee) * 100) / 100 : null;
-  const displayPrice = priceEur != null ? fmtEur(priceEur, currency) : 'Contact provider';
+  const displayPrice = isFree ? '🎁 Free' : priceEur != null && priceEur > 0 ? fmtEur(priceEur, currency) : 'Contact provider';
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in pb-40 md:pb-8">
@@ -599,7 +600,7 @@ export default function ServiceDetailPage() {
         )}
 
         {/* ── Request form — shown to all logged-in users (no offer-first gate) ── */}
-        {user && !isOwner && status !== 'success' && priceEur != null && providerConnectStatus === 'ok' && (
+        {user && !isOwner && status !== 'success' && priceEur != null && (isFree || providerConnectStatus === 'ok') && (
           <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-sm dark:text-white">Pick a date & time</h3>
@@ -772,20 +773,30 @@ export default function ServiceDetailPage() {
                   </div>
                 )}
 
-                {/* EUR price breakdown — Task #16: show only total to buyer, not fee breakdown */}
+                {/* EUR price breakdown */}
                 {priceEur != null ? (
                   <>
                     <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Total</span>
-                        <span className="font-bold text-primary-600">{fmtEur(priceEur, currency)}</span>
+                        <span className={`font-bold ${isFree ? 'text-green-600' : 'text-primary-600'}`}>
+                          {isFree ? '🎁 Free' : fmtEur(priceEur, currency)}
+                        </span>
                       </div>
                     </div>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg p-2.5 mt-1">
-                      <p className="text-xs text-amber-700 dark:text-amber-300 text-center">
-                        🔒 Your card is authorised but <strong>not charged</strong> until you confirm the service was delivered.
-                      </p>
-                    </div>
+                    {isFree ? (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs text-green-700 dark:text-green-300 text-center">
+                          🎁 This service is free — no payment needed. Just confirm when done!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs text-amber-700 dark:text-amber-300 text-center">
+                          🔒 Your card is authorised but <strong>not charged</strong> until you confirm the service was delivered.
+                        </p>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
@@ -796,7 +807,7 @@ export default function ServiceDetailPage() {
               </div>
 
               {/* ── Stripe CardElement — only shown for paid EUR services ── */}
-              {priceEur != null && currency !== 'gel' && (
+              {priceEur != null && !isFree && currency !== 'gel' && (
                 <div className="mb-4">
                   {savedCardLast4 ? (
                     <div className="space-y-2">
@@ -866,12 +877,14 @@ export default function ServiceDetailPage() {
                 </button>
                 <button
                   onClick={handleRequest}
-                  disabled={requesting || (priceEur != null && currency !== 'gel' && !savedCardLast4 && !cardReady)}
+                  disabled={requesting || (!isFree && priceEur != null && currency !== 'gel' && !savedCardLast4 && !cardReady)}
                   className="flex-1 bg-[#1f2937] text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                   {requesting ? (
                     <><span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>
-                  ) : priceEur != null ? (
+                  ) : priceEur != null && priceEur > 0 ? (
                     <>Confirm & Hold {fmtEur(priceEur, currency)}</>
+                  ) : isFree ? (
+                    <>Confirm — it's free!</>
                   ) : 'Confirm'}
                 </button>
               </div>
@@ -908,7 +921,7 @@ export default function ServiceDetailPage() {
       </div>
 
       {/* ── Sticky mobile request bar ── */}
-      {user && !isOwner && status !== 'success' && (priceEur != null ? (providerConnectStatus === 'ok') : true) && (
+      {user && !isOwner && status !== 'success' && (priceEur != null ? (isFree || providerConnectStatus === 'ok') : true) && (
         <div className="fixed left-0 right-0 bg-white dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-40 md:hidden shadow-lg"
           style={{ bottom: 'calc(60px + env(safe-area-inset-bottom))' }}>
           <div>

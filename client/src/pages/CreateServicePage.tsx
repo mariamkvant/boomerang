@@ -152,10 +152,8 @@ export default function CreateServicePage() {
       setError('Price cannot be negative');
       setLoading(false); return;
     }
-    if (price !== null && price === 0 && !isGiveaway) {
-      setError('Price must be greater than €0 — or leave it blank to arrange via message');
-      setLoading(false); return;
-    }
+    // price = 0 is valid (free/giveaway)
+    // price = null means "contact provider"
     if (price !== null && price > 9999) {
       setError('Price cannot exceed €9,999'); setLoading(false); return;
     }

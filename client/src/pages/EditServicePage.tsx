@@ -56,7 +56,7 @@ export default function EditServicePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setSaving(true);
     const price = parseFloat(form.price_eur);
-    if (!price || price <= 0) { setError('Please enter a valid price greater than 0'); setSaving(false); return; }
+    if (isNaN(price) || price < 0) { setError('Please enter a valid price (0 for free)'); setSaving(false); return; }
     try {
       const body: any = {
         title: form.title,

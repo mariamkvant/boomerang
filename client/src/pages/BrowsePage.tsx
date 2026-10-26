@@ -25,6 +25,7 @@ const PANEL_HEIGHTS: Record<string, string> = {
 
 function fmtPrice(s: any): string {
   const p = s.price_eur != null ? parseFloat(s.price_eur) : null;
+  if (p === 0) return '🎁 Free';
   if (p != null && p > 0) {
     const sym = s.currency === 'gel' ? '₾' : '€';
     return `${sym}${Math.round(p)}`;

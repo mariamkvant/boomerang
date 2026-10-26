@@ -34,6 +34,7 @@ interface MapViewProps {
 }
 
 function fmtPinPrice(s: Service): string {
+  if (s.price_eur != null && Number(s.price_eur) === 0) return 'Free';
   if (s.price_eur != null && Number(s.price_eur) > 0) {
     const sym = s.currency === 'gel' ? '₾' : '€';
     return `${sym}${Math.round(Number(s.price_eur))}`;
@@ -42,6 +43,7 @@ function fmtPinPrice(s: Service): string {
 }
 
 function fmtPopupPrice(s: Service): string {
+  if (s.price_eur != null && Number(s.price_eur) === 0) return '🎁 Free';
   if (s.price_eur != null && Number(s.price_eur) > 0) {
     const sym = s.currency === 'gel' ? '₾' : '€';
     const n = Number(s.price_eur);
