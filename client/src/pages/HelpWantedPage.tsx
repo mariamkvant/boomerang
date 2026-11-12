@@ -98,6 +98,12 @@ export default function HelpWantedPage() {
                         I Can Help
                       </button>
                     )}
+                    {user && user.id !== r.requester_id && r.status === 'open' && !user.email_verified && (
+                      <button disabled title="Verify your email to offer help"
+                        className="bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 px-4 py-1.5 rounded-lg text-xs font-medium cursor-not-allowed opacity-60">
+                        Verify email to help
+                      </button>
+                    )}
                     {user && user.id === r.requester_id && r.status === 'open' && (
                       <button onClick={async (e) => {
                         e.preventDefault(); e.stopPropagation();

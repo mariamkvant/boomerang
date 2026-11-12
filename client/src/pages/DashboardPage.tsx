@@ -371,7 +371,7 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-gray-900 dark:text-white">
               {outgoing.filter(r => r.status === 'delivered').length} exchange{outgoing.filter(r => r.status === 'delivered').length > 1 ? 's' : ''} waiting for your confirmation
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to release payment to the provider</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Confirm to complete your exchanges</p>
           </div>
           <button onClick={() => setTab('outgoing')} className="text-xs bg-[#1f2937] dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-lg font-medium shrink-0">Review</button>
         </div>
@@ -760,7 +760,10 @@ export default function DashboardPage() {
                   {r.status === 'delivered' && (
                     <>
                       {r.payment_status === 'pending' ? (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">Payment not yet confirmed. You can confirm once payment is authorised.</p>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-xs text-amber-600 dark:text-amber-400">Payment not yet confirmed.</p>
+                          <button onClick={load} className="text-xs text-primary-500 hover:text-primary-600 underline self-start">Refresh status</button>
+                        </div>
                       ) : (
                         <button onClick={async () => {
                           await handleAction(api.confirmRequest, r.id);

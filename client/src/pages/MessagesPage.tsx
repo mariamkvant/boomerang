@@ -174,7 +174,7 @@ export default function MessagesPage() {
   const messageGroups = groupByDate(messages);
 
   return (
-    <div className="animate-fade-in -mx-4 -mt-6" style={{ height: 'calc(100dvh - 128px - 60px - env(safe-area-inset-bottom))' }}>
+    <div className="animate-fade-in -mx-4 -mt-6" style={{ height: 'calc(100dvh - 64px - 60px - env(safe-area-inset-bottom))' }}>
       <div className="flex h-full">
         {/* Sidebar */}
         <div className={`${showChat ? 'hidden md:flex' : 'flex'} w-full md:w-[340px] shrink-0 flex-col bg-white dark:bg-[#111b21] border-r border-gray-200 dark:border-[#2a3942]`}>
@@ -343,7 +343,7 @@ export default function MessagesPage() {
 
               {/* Input area */}
               <div className="px-3 py-2 bg-gray-100 dark:bg-[#202c33] shrink-0"
-                style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+                style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
                 {pendingImage && (
                   <div className="mb-2 ml-1 relative inline-block">
                     <img src={pendingImage} alt="" className="h-16 w-auto max-w-[160px] rounded-md object-cover" />

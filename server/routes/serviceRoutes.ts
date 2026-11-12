@@ -457,6 +457,9 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   if (price_eur === undefined || price_eur === null) {
     return res.status(400).json({ error: 'A price is required. Use 0 for free/giveaway services.' });
   }
+  // Validate category exists
+  const catExists = await db.get('SELECT id FROM categories WHERE id = ?', category_id);
+  if (!catExists) return res.status(400).json({ error: 'Invalid category' });
 
   // Auto-fill city from user profile if not provided
   let serviceCity = city;

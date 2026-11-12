@@ -893,7 +893,7 @@ export default function CreateServicePage() {
           </div>
         )}
 
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || (!(user as any)?.latitude && !serviceLatLng)}
           className="w-full bg-primary-500 text-white py-3.5 rounded-xl hover:bg-primary-600 font-semibold disabled:opacity-50 transition-all text-sm">
           {loading ? 'Publishing...' : form.is_product
             ? (isGiveaway ? '🎁 List as free giveaway' : isRental ? '🔑 List for rental' : '💰 List item for sale')

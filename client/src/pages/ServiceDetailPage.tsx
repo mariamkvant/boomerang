@@ -915,7 +915,7 @@ export default function ServiceDetailPage() {
           <div>
             <span className="text-lg font-bold text-primary-700 dark:text-primary-400">{displayPrice}</span>
           </div>
-          <button onClick={() => setShowConfirm(true)} className="bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-600">
+          <button onClick={() => setShowConfirm(true)} className="flex-1 bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-600 text-center">
             Request
           </button>
         </div>

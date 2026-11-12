@@ -310,7 +310,7 @@ export default function App() {
   const needsOnboarding = user && user.email_verified && !user.city && localStorage.getItem('onboarding_done') !== 'true';
 
   // Auth/onboarding pages use fixed inset-0 layout — skip main padding for them
-  const isFullscreenPage = ['/login', '/register', '/onboarding'].includes(location.pathname);
+  const isFullscreenPage = ['/login', '/register', '/onboarding', '/verify-email'].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">

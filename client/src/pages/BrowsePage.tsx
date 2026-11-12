@@ -422,7 +422,7 @@ export default function BrowsePage() {
         </div>
 
         {/* Row 2: Filter pills — own absolute row, full-width scrollable */}
-        <div className="absolute top-[58px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="absolute top-[60px] left-0 right-0 z-10 flex gap-1.5 items-center overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           {/* Current radius pill */}
           <button
             onClick={() => {
@@ -548,7 +548,7 @@ export default function BrowsePage() {
         )}
 
         {/* Row 3: Category pills — pinned + expand */}
-        <div className="absolute top-[104px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="absolute top-[108px] left-0 right-0 z-10 flex gap-1.5 overflow-x-auto px-3 pointer-events-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => { setSelectedCat(''); setSearchParams({}); }}
             className={`px-3 py-2.5 rounded-full text-xs font-semibold shadow-sm border transition-all shrink-0 ${
               !selectedCat ? 'bg-[#1f2937] text-white border-[#1f2937]' : 'bg-white dark:bg-[#1c1c1c] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -581,7 +581,7 @@ export default function BrowsePage() {
 
       {/* Location denied banner */}
       {locationDenied && (
-        <div className="absolute top-[152px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+        <div className="absolute top-[160px] left-3 right-3 z-10 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-amber-800 dark:text-amber-300">Location blocked — showing all services.</p>
           <Link to="/settings" className="text-xs font-medium text-amber-600 shrink-0">Set address →</Link>
         </div>
@@ -589,7 +589,7 @@ export default function BrowsePage() {
 
       {/* No-GPS nudge — user has city text but no coordinates, map can't centre on them */}
       {user && (user as any).city && !(user as any).latitude && !locationDenied && (
-        <div className="absolute top-[152px] left-3 right-3 z-10 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
+        <div className="absolute top-[160px] left-3 right-3 z-10 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-md">
           <p className="text-xs text-blue-800 dark:text-blue-300">Add your GPS address to see services near you</p>
           <Link to="/settings" className="text-xs font-medium text-blue-600 dark:text-blue-400 shrink-0 whitespace-nowrap">Set address →</Link>
         </div>
@@ -820,7 +820,7 @@ export default function BrowsePage() {
                           <div className="flex justify-end mt-1.5">
                             <button
                               onClick={e => { e.preventDefault(); e.stopPropagation(); setRequestConfirm({ service: s }); setRequestMessage(''); }}
-                              className="text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 hover:border-gray-400 px-2.5 py-1 rounded-lg transition-all"
+                              className="text-xs font-semibold bg-[#1f2937] text-white px-2.5 py-1.5 rounded-lg transition-all"
                             >
                               Request
                             </button>
