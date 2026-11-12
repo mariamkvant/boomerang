@@ -68,14 +68,39 @@ export default function TermsPage() {
       <h2 className="text-lg font-semibold mt-6 mb-2">10. Disputes</h2>
       <p className="text-sm text-gray-600">We encourage users to resolve disputes through the in-app messaging system. Boomerang may mediate disputes but is not obligated to do so. Dispute resolution tools are provided as a convenience and do not create any obligation or guarantee of a particular outcome. For unresolved disputes, Luxembourg law applies.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">11. Changes</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">11. Delivery Policy</h2>
+      <p className="text-sm text-gray-600">All services on Boomerang are delivered in person or remotely as agreed between the provider and requester. There is no physical shipment unless the listing explicitly describes a physical product. Delivery timelines, location, and method are set by the provider in their listing or agreed via in-app messaging. Boomerang does not guarantee any specific delivery timeframe.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">12. Cancellation Policy</h2>
+      <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
+        <li>Requesters may cancel a pending or accepted request before the service is delivered. Cancellation is available from the Dashboard.</li>
+        <li>If cancelled before the provider has accepted, no charge is made.</li>
+        <li>If cancelled after acceptance but before delivery, the payment authorisation is voided and no charge is made to the requester's card.</li>
+        <li>Providers may also decline a pending request at any time before delivery, in which case the payment hold is released.</li>
+        <li>Once a service is marked as delivered, cancellation requires raising a dispute within 5 days. After 5 days, payment is automatically released to the provider.</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">13. Refund Policy</h2>
+      <ul className="list-disc pl-6 space-y-1 text-sm text-gray-600">
+        <li>Payments are held in escrow and are only charged when the requester confirms delivery or when the 5-day auto-release period expires.</li>
+        <li>If a provider does not deliver a service, the requester may raise a dispute. Boomerang will review and may issue a full refund.</li>
+        <li>If a service is delivered but the quality is disputed, the requester must raise a dispute within 5 days of the provider marking it as delivered.</li>
+        <li>Refunds are processed back to the original payment method. Processing time is 5–10 business days depending on your bank or card issuer.</li>
+        <li>Boomerang's 20% platform fee is non-refundable on completed and confirmed transactions.</li>
+        <li>Free services (price €0 or ₾0) do not involve any payment and are not subject to refund procedures.</li>
+        <li>To request a refund or raise a dispute, use the in-app dispute feature on your Dashboard, or contact us at support@boomerang.fyi.</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">14. Changes</h2>
       <p className="text-sm text-gray-600">We may update these terms. Continued use of Boomerang after changes constitutes acceptance. We will notify users of significant changes.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">12. Governing Law</h2>
+      <h2 className="text-lg font-semibold mt-6 mb-2">15. Governing Law</h2>
       <p className="text-sm text-gray-600">These terms are governed by the laws of the Grand Duchy of Luxembourg. Any disputes shall be subject to the jurisdiction of Luxembourg courts.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">13. Contact</h2>
-      <p className="text-sm text-gray-600">Questions about these terms: legal@boomerang.fyi</p>
+      <h2 className="text-lg font-semibold mt-6 mb-2">16. Contact</h2>
+      <p className="text-sm text-gray-600">Questions about these terms: <a href="mailto:support@boomerang.fyi" className="text-primary-600 hover:underline">support@boomerang.fyi</a><br />
+      13 Avenue Pasteur, Limpertsberg 2311, Luxembourg<br />
+      Phone: <a href="tel:+352621301338" className="text-primary-600 hover:underline">+352 621 301 338</a></p>
     </div>
   );
 }

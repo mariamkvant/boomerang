@@ -35,6 +35,7 @@ const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 const EditServicePage = lazy(() => import('./pages/EditServicePage'));
 const ServiceHoursPage = lazy(() => import('./pages/ServiceHoursPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -278,6 +279,7 @@ function Footer() {
             <div className="space-y-1.5">
               <Link to="/privacy" className="block text-gray-400 hover:text-primary-500">{t('footer.privacy')}</Link>
               <Link to="/terms" className="block text-gray-400 hover:text-primary-500">{t('footer.terms')}</Link>
+              <Link to="/about" className="block text-gray-400 hover:text-primary-500">About</Link>
               <Link to="/support" className="block text-gray-400 hover:text-primary-500">Help & Support</Link>
             </div>
           </div>
@@ -341,6 +343,7 @@ export default function App() {
           <Route path="/onboarding" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : <OnboardingPage />) : <Navigate to="/login" />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/messages" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MessagesPage />) : <Navigate to="/login" />} />
           <Route path="/account" element={user ? <AccountPage /> : <Navigate to="/login" />} />
           <Route path="/me" element={user ? (needsVerification ? <Navigate to="/verify-email" /> : needsOnboarding ? <Navigate to="/onboarding" /> : <MePage />) : <Navigate to="/login" />} />
