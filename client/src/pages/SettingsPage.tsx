@@ -281,7 +281,7 @@ export default function SettingsPage() {
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map(l => (
             <button key={l.code} onClick={() => setLang(l.code)} title={l.name}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
+              className={`min-h-[44px] min-w-[44px] flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium border transition-all ${getLang() === l.code ? 'bg-primary-500 text-white border-primary-500' : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-primary-300'}`}>
               {l.flag}
             </button>
           ))}
@@ -343,7 +343,7 @@ export default function SettingsPage() {
                   window.location.href = r.url;
                 } catch (err: any) { toast(err.message, 'error'); }
                 setConnectLoading(false);
-              }} className="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium self-start">
+              }} className="min-h-[44px] inline-flex items-center text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium self-start">
                 Continue setup →
               </button>
               <button disabled={connectLoading} onClick={async () => {

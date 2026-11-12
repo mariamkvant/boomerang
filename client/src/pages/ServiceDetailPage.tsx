@@ -359,7 +359,7 @@ export default function ServiceDetailPage() {
         {/* Stats row */}
         <div className="flex flex-wrap gap-4 mb-6">
           {/* Price badge */}
-          <div className="flex items-center gap-2 bg-primary-50 dark:bg-primary-900/20 px-4 py-2.5 rounded-xl">
+          <div className="flex items-center gap-2 bg-primary-50 dark:bg-primary-900/20 px-4 py-2.5 rounded-xl shrink-0">
             <div>
               <div className="text-xl font-bold text-primary-700 dark:text-primary-400">{displayPrice}</div>
               <div className="text-xs text-primary-500">{priceEur != null ? 'per session' : 'price on request'}</div>
@@ -724,7 +724,7 @@ export default function ServiceDetailPage() {
             )}
 
             <button onClick={() => setShowConfirm(true)} disabled={requesting}
-              className="bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md">
+              className="w-full sm:w-auto bg-primary-500 text-white px-6 py-3 rounded-xl hover:bg-primary-600 font-semibold text-sm disabled:opacity-50 hover:shadow-md block">
               {requesting ? 'Sending...' : selectedDate && selectedSlot ? `Book ${new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })} · ${selectedSlot.start_time}` : selectedDate ? `Request for ${displayPrice} (no time selected)` : `Request for ${displayPrice}`}
             </button>
             {status && status !== 'success' && <p className="mt-3 text-sm text-red-500">{status}</p>}

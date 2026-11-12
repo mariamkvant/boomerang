@@ -64,7 +64,7 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto animate-fade-in pb-24 md:pb-8">
       <div className="bg-white dark:bg-[#202c33] p-4 sm:p-8 rounded-2xl shadow-card mb-6">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-6 min-w-0 flex-1">
             {profile.avatar ? (
               <img src={profile.avatar} alt={profile.username} className="w-16 h-16 rounded-full object-cover shrink-0" />
             ) : (
@@ -72,7 +72,7 @@ export default function ProfilePage() {
                 {profile.username?.charAt(0).toUpperCase()}
               </div>
             )}
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <h1 className="text-2xl font-bold truncate">{profile.username}</h1>
                 {trust && (
@@ -139,7 +139,7 @@ export default function ProfilePage() {
           )}
         </div>
         {trust && (
-          <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <div>
               <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{trust.completed}</div>
               <div className="text-xs text-gray-400">Exchanges</div>

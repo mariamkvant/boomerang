@@ -86,7 +86,7 @@ function ScheduleTab({ loaded, slots, setSlots, onLoad }: { loaded: boolean; slo
               </div>
               {daySlots.length === 0 && <p className="text-xs text-gray-400">{t('dashboard.notAvailable')}</p>}
               {daySlots.map(s => (
-                <div key={s.idx} className="flex items-center gap-2 mt-1">
+                <div key={s.idx} className="flex flex-wrap items-center gap-2 mt-1">
                   <select value={s.start_time} onChange={e => updateSlot(s.idx, 'start_time', e.target.value)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm" aria-label="Start time">
                     {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>

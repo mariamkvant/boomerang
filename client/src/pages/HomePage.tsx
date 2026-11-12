@@ -20,7 +20,7 @@ function InstallButton() {
       <p className="text-xs text-gray-500">{t('install.android')}</p>
     </div>
   );
-  return <button onClick={install} className="bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all shrink-0">{t('install.btn')}</button>;
+  return <button onClick={install} className="w-full sm:w-auto bg-primary-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary-600 hover:shadow-xl transition-all shrink-0">{t('install.btn')}</button>;
 }
 
 export default function HomePage() {
@@ -104,7 +104,7 @@ export default function HomePage() {
           )}
 
           {stats && stats.total_users > 5 && (
-            <div className="flex gap-10 mt-10 pt-8 border-t border-gray-200/60 dark:border-gray-800">
+            <div className="flex flex-wrap gap-6 md:gap-10 mt-10 pt-8 border-t border-gray-200/60 dark:border-gray-800">
               {[[stats.total_users, t('hero.members')], [stats.total_services, t('hero.services')], [stats.total_completed, t('hero.exchanges')]].map(([val, label], i) => (
                 <div key={i}>
                   <div className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{val}+</div>
@@ -345,7 +345,7 @@ export default function HomePage() {
 
           {/* Mobile-friendly card grid */}
           <div className="overflow-x-auto -mx-4 px-4">
-            <table className="w-full min-w-[600px] text-sm">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr>
                   <th className="text-left pb-4 pr-4 text-xs font-semibold text-gray-400 uppercase tracking-wide w-[38%]">Feature</th>

@@ -60,7 +60,7 @@ function EventCard({ ev }: { ev: any }) {
             <span className="text-xs text-gray-400">· {ev.event_time.substring(0, 5)}</span>
           )}
           {ev.event_location && (
-            <span className="text-xs text-gray-400 truncate max-w-[140px]">· 📍 {ev.event_location}</span>
+            <span className="text-xs text-gray-400 truncate max-w-[40%]">· 📍 {ev.event_location}</span>
           )}
         </div>
         <div className="flex items-center gap-2 mt-1.5">

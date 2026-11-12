@@ -307,7 +307,7 @@ export default function MessagesPage() {
                         if (!m.body && !m.image) return null;
                         return (
                           <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm break-words ${
+                            <div className={`relative max-w-[65%] px-3 py-1.5 text-[14.5px] leading-[19px] shadow-sm break-words [overflow-wrap:anywhere] ${
                               isMine
                                 ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-gray-100 rounded-lg rounded-tr-none'
                                 : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-lg rounded-tl-none'
@@ -345,12 +345,12 @@ export default function MessagesPage() {
               <div className="px-3 py-2 bg-gray-100 dark:bg-[#202c33] shrink-0">
                 {pendingImage && (
                   <div className="mb-2 ml-1 relative inline-block">
-                    <img src={pendingImage} alt="" className="h-16 rounded-md object-cover" />
+                    <img src={pendingImage} alt="" className="h-16 w-auto max-w-[160px] rounded-md object-cover" />
                     <button onClick={() => setPendingImage(null)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-700 text-white rounded-full text-[10px] flex items-center justify-center hover:bg-gray-900">✕</button>
                   </div>
                 )}
                 {messages.length <= 2 && !pendingImage && (
-                  <div className="flex gap-1.5 mb-2 ml-1 overflow-x-auto">
+                  <div className="flex gap-1.5 mb-2 ml-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                     {(messages.length === 0
                       ? ["Hi, I'm interested in your service", "When are you available?", "Can you tell me more?", "How long does it take?"]
                       : ['Thanks!', 'When works for you?', 'Sounds good', 'See you then!']

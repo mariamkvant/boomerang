@@ -200,7 +200,7 @@ function Navbar() {
 
       {/* Mobile menu — full vertical list */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1c1c1c] px-2 py-3 animate-fade-in max-h-[80vh] overflow-y-auto">
+        <div className="fixed top-16 left-0 right-0 z-50 lg:hidden border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-[#1c1c1c] px-2 py-3 animate-fade-in max-h-[80vh] overflow-y-auto shadow-xl">
           {user && (
             <div className="px-3 py-2.5 mb-2 border-b border-gray-100 dark:border-gray-800">
               <p className="text-sm font-semibold dark:text-white">{user.username}</p>
@@ -311,9 +311,9 @@ export default function App() {
   const isFullscreenPage = ['/login', '/register', '/onboarding'].includes(location.pathname);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-x-hidden">
       {!isFullscreenPage && <Navbar />}
-      <main className={isFullscreenPage ? 'flex-1' : 'flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6 pt-[4.5rem] lg:pt-6'}>
+      <main className={isFullscreenPage ? 'flex-1' : 'flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 lg:pb-6 pt-16 lg:pt-6'}>
         <ErrorBoundary>
         <Suspense fallback={<div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div></div>}>
         <Routes>
