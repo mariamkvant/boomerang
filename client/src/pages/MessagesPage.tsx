@@ -313,7 +313,7 @@ export default function MessagesPage() {
                                 : 'bg-white dark:bg-[#202c33] text-gray-900 dark:text-gray-100 rounded-lg rounded-tl-none'
                             } ${m._optimistic ? 'opacity-60' : ''} ${isLast ? 'mb-1' : 'mb-px'}`}>
                               {m.image && (
-                                <img src={m.image} alt="" className="rounded-md mb-1 max-w-full max-h-52 object-cover cursor-pointer" onClick={() => window.open(m.image, '_blank')} />
+                                <img src={m.image} alt="" loading="lazy" className="rounded-md mb-1 max-w-full max-h-52 object-cover cursor-pointer" onClick={() => { const a = document.createElement('a'); a.href = m.image; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.click(); }} />
                               )}
                               {m.body && <span>{m.body}</span>}
                               <span className={`text-[10px] float-right mt-1 ml-2 ${isMine ? 'text-gray-500 dark:text-gray-300' : 'text-gray-400 dark:text-gray-400'}`}>
@@ -342,7 +342,8 @@ export default function MessagesPage() {
               </div>
 
               {/* Input area */}
-              <div className="px-3 py-2 bg-gray-100 dark:bg-[#202c33] shrink-0">
+              <div className="px-3 py-2 bg-gray-100 dark:bg-[#202c33] shrink-0"
+                style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
                 {pendingImage && (
                   <div className="mb-2 ml-1 relative inline-block">
                     <img src={pendingImage} alt="" className="h-16 w-auto max-w-[160px] rounded-md object-cover" />

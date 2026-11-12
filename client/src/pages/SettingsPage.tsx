@@ -391,7 +391,8 @@ export default function SettingsPage() {
               setConnectLoading(true);
               try {
                 const r: any = await api.stripeConnectDashboard();
-                window.open(r.url, '_blank');
+                // Open in same window on iOS (window.open fails in WKWebView)
+                window.location.href = r.url;
               } catch (err: any) { toast(err.message, 'error'); }
               setConnectLoading(false);
             }} className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#2a3942] transition-colors disabled:opacity-50">

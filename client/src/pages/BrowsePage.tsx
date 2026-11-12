@@ -703,7 +703,8 @@ export default function BrowsePage() {
 
         {/* Service list — half / full only */}
         {(panelState === 'half' || panelState === 'full') && (
-          <div ref={listRef} className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          <div ref={listRef} className="flex-1 overflow-y-auto px-4 pb-4 space-y-2"
+            style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />

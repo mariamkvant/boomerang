@@ -72,7 +72,7 @@ function Navbar() {
   }, [profileOpen]);
 
   return (
-    <nav className="bg-white/95 dark:bg-[#1e1b18]/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800 fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0" style={{ boxShadow: '0 1px 0 rgba(0,0,0,0.06)' }}>
+    <nav className="bg-white/95 dark:bg-[#1e1b18]/95 backdrop-blur-xl border-b border-gray-100/80 dark:border-gray-800 fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0" style={{ boxShadow: '0 1px 0 rgba(0,0,0,0.06)', paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {!isHome && (
